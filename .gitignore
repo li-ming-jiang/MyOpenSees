@@ -42,7 +42,6 @@
 *.filters
 *.exp
 *.pyd
-*.rc
 obj
 
 # OTHER
