@@ -39,7 +39,6 @@
 *.bsc
 *.pdb
 .vs
-*.filters
 *.exp
 *.pyd
 obj
