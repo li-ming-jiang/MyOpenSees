@@ -1628,7 +1628,7 @@ OPS_HTNodeSet()
 				return -1;
 			}
 
-			theHTMesh->SelectingNodes(NodeRange, 1, zlocLB, zlocUB);
+			theHTMesh->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
 			// for geting uncertain number of doubel values
 
 		}
@@ -2316,6 +2316,7 @@ OPS_addHeatFluxBC()
 			int FaceID;
 			theHTMesh->SelectingElesbyFace(ElesRange, EntFaceID, FaceID);
 
+			opserr << "return face " << FaceID << endln;
 			//detect the num of existing HeatfluxBCs;
 			int ExistingHeatFluxBCs = thePattern->getNumHeatFluxBCs();
 
