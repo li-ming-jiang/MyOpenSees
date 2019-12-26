@@ -42,7 +42,7 @@
 *.exp
 *.pyd
 obj
-lib
+Win64
 
 # OTHER
 Makefile.def
@@ -66,4 +66,4 @@ Faria1998PlaneStress2d.h
 Faria1998ThreeDimensional.cpp
 Faria1998ThreeDimensional.h
 
-*.lib
+
