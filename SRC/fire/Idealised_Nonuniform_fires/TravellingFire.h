@@ -52,7 +52,7 @@ class TravellingFire : public FireModel
 	  virtual ~TravellingFire();
 	  
 	  void applyFluxBC(HeatFluxBC* theFlux, double time);
-	  int setFirePars(double time);
+	  int setFirePars(double time,const Vector& firePars =0);
 	  double getFirePars(int ParTag=1);
 	protected:
 

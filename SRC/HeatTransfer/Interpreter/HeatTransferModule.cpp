@@ -3008,12 +3008,29 @@ int OPS_SetFirePars() {
 		if (strcmp(option, "fireloc") == 0 || strcmp(option, "fireLoc") == 0 || strcmp(option, "-fireLoc") == 0)
 		{
 
-			if (OPS_GetNumRemainingInputArgs() > 0) {
+			if (OPS_GetNumRemainingInputArgs() < 3) {
+				opserr<< "WARNING:: insufficient arguments for set fireloc: " << "\n";
+			}
+			else{
 				if (OPS_GetDoubleInput(&dataNum, &xloc) < 0) {
 					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
 					return -1;
 				}
+				if (OPS_GetDoubleInput(&dataNum, &yloc) < 0) {
+					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &zloc) < 0) {
+					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					return -1;
+				}
 			}
+			FireModel* thefire = theHTModule->getFireModel(FireModelTag);
+			thefire->setFirepars()
+
+		}
+		else if (strcmp(option, "HRR") == 0 || strcmp(option, "hrr") == 0 || strcmp(option, "q") == 0 || strcmp(option, "Q") == 0)
+		{
 
 		}
 		FireModel* thefire = theHTModule->getFireModel(FireModelTag);
