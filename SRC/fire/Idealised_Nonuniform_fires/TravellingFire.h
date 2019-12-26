@@ -23,48 +23,46 @@
 ** ****************************************************************** */
 
 //
-// Written by Yaqiang Jiang (y.jiang@ed.ac.uk)
-// modified by liming jiang
+// Added by Liming Jiang (liming.jiang@polyu.edu.hk)
+// Based on LocalisedBurning fire model
 
-#ifndef FireModel_h
-#define FireModel_h
+#ifndef TravellingFire_h
+#define TravellingFire_h
+#include <FireModel.h>
+#include <PathTimeSeriesThermal.h>
+#include <Vector.h>
 
-//#include <ID.h>
-#include <TaggedObject.h>
-#include <MovableObject.h>
-#include <OPS_Globals.h>
-class HeatTransferDomain;
-class HeatFluxBC;
+//class Vector;
+class HeatTransferNode;
 
-class FireModel: public TaggedObject
+class TravellingFire : public FireModel
 {
     public:
-	  FireModel(int tag, int fireTypeTag);
-	  virtual ~FireModel();
+	  // typeTag indicates the type of norminal fire given in EN1991-1-2
+	  // default is 1 corresponding to the standard temperature-time curve,
+	  // 2 is for external fire curve, 3 is for hydrocarbon curve. Default 
+	  // value is 1.
+	  TravellingFire(int tag,PathTimeSeriesThermal* fireLocPath=0, double D=0, double Q=0,
+		               double H=3, int centerLineTag = 2);
+
+	  //TravellingFire(double crd1, double crd2, double crd3, const Vector& time,
+		 //              const Vector& d, const Vector& Q, double H);
+
+
+	  virtual ~TravellingFire();
 	  
-	  virtual void setDomain(HeatTransferDomain* theDomain);
-	  virtual void applyFluxBC(HeatFluxBC* theFlux, double time) = 0;
-
-	  virtual int getFireTypeTag(void);
-	  virtual double getFirePars(int parTag=0);
-	  virtual void  Print(OPS_Stream&, int = 0);
-
+	  void applyFluxBC(HeatFluxBC* theFlux, double time);
+	  int setFirePars(double time);
+	  double getFirePars(int ParTag=1);
 	protected:
-		HeatTransferDomain* the_domain; // The domain pointer here associates a FireModel object and a HT_Domain
-		int FireTypeTag;  // object thus enables a FireModel object fetch information from the 
-		                                // domain.
-    private:
 
+    private:
+	  double getFlux(HeatTransferNode* the_node, double time);
+	  PathTimeSeriesThermal* FireLocPath;
+	  Vector fireLocs;
+	  double  d, q, h;
+	  int centerLine;
 };
 
 #endif
 
-
-//11:standard fire
-//12:external fire
-//13:hydroCarbon fire
-//2:Parametric fire
-//3:Localised fire
-//5:Alpert jet fire
-//6:Idealised fire
-//7:Moving Localised fire

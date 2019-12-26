@@ -92,6 +92,7 @@ using std::setiosflags;
 #include <Idealised_Local_Fire.h>
 #include <LocalizedFireSFPE.h>
 #include <AlpertCeilingJetModel.h>
+#include <TravellingFire.h>
 
 #include <BoundaryPattern.h>
 #include <FireImposedPattern.h>
@@ -107,6 +108,7 @@ using std::setiosflags;
  #include <DataFileStream.h>
 
  #include <SimulationInformation.h>
+#include < PathTimeSeriesThermal.h>
 
 static PythonWrapper* theWrapper = 0;
  extern SimulationInformation simulationInfo;
@@ -124,6 +126,8 @@ static HT_TransientAnalysis* theHTAnalysis =0;
 static HT_TransientIntegrator* theTransientIntegrator=0;
 static HT_ConvergenceTest* theTest =0;
 static int HTReorderTag =0;
+
+static double lasttime = 0;
 
 //Declaration of Heat transfer Tcl commands
 //void* OPS_addHTMaterial();
@@ -1655,6 +1659,18 @@ OPS_HTNodeSet()
 	opserr << "NodeSet " << HTNodeSetTag << " grouped nodes:" << NodeRange << endln;
 #endif
 
+	int numNodes = NodeRange.Size();
+	int* data = new int[numNodes];
+	for (int i = 0; i < numNodes; i++) {
+		data[i] = (int)(NodeRange(i));
+	}
+	if (OPS_SetIntOutput(&numNodes, data) < 0) {
+		opserr << "WARNING HeatTransferModule failed to set outputs for HTNodeSet\n";
+		delete[] data;
+		return -1;
+	}
+
+
 	return 0;
 
 }
@@ -1924,6 +1940,39 @@ OPS_addFireModel()
 		}
 
 		theFireModel = new LocalizedFireEC1(FireModelTag, crd1, crd2, crd3, D, Q, H, lineTag);
+	}
+	//Travelling fire curve;
+	else if (strcmp(option, "travelling") == 0 || strcmp(option, "Travelling") == 0) {
+
+	double crd1 = 0.0; double crd2 = 0.0; double crd3 = 0.0;
+	double D = 0; double Q = 0; double H = 0; int lineTag = 0;
+	PathTimeSeriesThermal* theSeries = 0;
+	if (OPS_GetNumRemainingInputArgs() < 3)
+	{
+		opserr << "WARNING insufficient aguments" << endln;
+		opserr << " for HeatTransfer localised fire model: " << FireModelTag << endln;
+		return -1;
+	}
+
+	//end of fire origin, waiting for firePars;
+	option = OPS_GetString(); //in case no origin in input
+	if (strcmp(option, "firePars") == 0 || strcmp(option, "-firePars") == 0) {
+		option = OPS_GetString();
+		if (strcmp(option, "source") == 0 || strcmp(option, "-source") == 0 || strcmp(option, "-file") == 0 || strcmp(option, "file") == 0) {
+			if (OPS_GetNumRemainingInputArgs() <1)
+			{
+				opserr << "WARNING insufficient aguments" << endln;
+				opserr << " for HeatTransfer Travelling fire model: " << FireModelTag << endln;
+				return -1;
+			}
+			const char* fileName = OPS_GetString();
+			theSeries = new PathTimeSeriesThermal(1, fileName, 5,false);
+			
+		}
+
+	}
+
+	theFireModel = new TravellingFire(FireModelTag, theSeries);
 	}
 	//else ----------
 	else if (strcmp(option, "idealised") == 0 || strcmp(option, "Idealised") == 0) {
@@ -2316,7 +2365,7 @@ OPS_addHeatFluxBC()
 			int FaceID;
 			theHTMesh->SelectingElesbyFace(ElesRange, EntFaceID, FaceID);
 
-			opserr << "return face " << FaceID << endln;
+			//opserr << "return face " << FaceID << endln;
 			//detect the num of existing HeatfluxBCs;
 			int ExistingHeatFluxBCs = thePattern->getNumHeatFluxBCs();
 
@@ -2608,6 +2657,9 @@ int OPS_HTAnalyze()
 {
 	int result = 0;
 	int numData = 1;
+	double monitortime = 0;
+	double Ltime = lasttime;
+
 	if (theHTAnalysis != 0) {
 
 		if (OPS_GetNumRemainingInputArgs() < 2) {
@@ -2628,11 +2680,24 @@ int OPS_HTAnalyze()
 			return -1;
 		}
 
+		if (OPS_GetNumRemainingInputArgs() > 0) {
 
-		result = theHTAnalysis->analyze(numIncr, dT);
+			const char* option = OPS_GetString();
+			if (strcmp(option, "-monitor") == 0) {
+				if (OPS_GetDoubleInput(&numData, &monitortime) < 0) {
+					opserr << "WARNING heat transfer analysis: recieving incorret time step\n";
+					return -1;
+				}
+			}
 
+		}
+
+
+		result = theHTAnalysis->analyze(numIncr, dT,Ltime, monitortime);
+		lasttime = Ltime;
 		if (result < 0)
 			opserr << "OpenSees > analyze failed, returned: " << result << " error flag\n";
+
 
 	}
 	//Output for the final result of heat transfer analysis;
@@ -2833,7 +2898,86 @@ int OPS_getHTtime()
 	return 0;
 }
 
+int OPS_HTOutput()
+{
+	if (OPS_GetNumRemainingInputArgs() < 1) {
+		opserr << "WARNING HTOutput: insufficient argument for retruning a value\n";
+		return -1;
+	}
+	int dataNum = 1;
+	const char* option = 0;
+	option = OPS_GetString();
+	
+	if (strcmp(option, "firemodel") == 0 || strcmp(option, "fireModel") == 0 || strcmp(option, "-fire") == 0)
+	{
+		
+		int FireModelTag = 0;
+		int FireParTag = 0;
 
+		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
+			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+			return -1;
+		}
+		if (OPS_GetNumRemainingInputArgs() < 1)
+		{
+			opserr << "WARNING:: insufficient arguments for fire model HTOutput: " << "\n";
+			return -1;
+		}
+		option = OPS_GetString();
+		if (strcmp(option, "firepars") == 0 || strcmp(option, "firePars") == 0 || strcmp(option, "-firePars") == 0)
+		{
+			
+			if (OPS_GetNumRemainingInputArgs() > 0) {
+				if (OPS_GetIntInput(&dataNum, &FireParTag) < 0) {
+					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					return -1;
+				}
+			}
+
+		}
+		FireModel* thefire = theHTModule->getFireModel(FireModelTag);
+		double firePar = thefire->getFirePars(FireParTag);
+		//opserr << "fireparTag " << FireParTag << "firepar " << firePar << endln;
+		if (OPS_SetDoubleOutput(&dataNum, &firePar) < 0) {
+			opserr << "WARNING failed to return fire pars for fire model "<< FireModelTag<<"\n";
+			return -1;
+		}
+	}
+	//end of firemodel
+	else if (strcmp(option, "-node") == 0 || strcmp(option, "Node") == 0 || strcmp(option, "node") == 0)
+	{
+		if (OPS_GetNumRemainingInputArgs() < 2)
+		{
+			opserr << "WARNING:: insufficient arguments for nodal HTOutput: " << "\n";
+			return -1;
+		}
+		int nodetag = 0;
+		if (OPS_GetIntInput(&dataNum, &nodetag) < 0) {
+			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+			return -1;
+		}
+		HeatTransferNode* theNode = theHTDomain->getNode(nodetag);
+
+		if (OPS_GetNumRemainingInputArgs() > 0)
+		{
+			option = OPS_GetString();
+		}
+		else
+			option = "temp";
+
+		if (strcmp(option, "-temp") == 0 || strcmp(option, "temp") == 0 || strcmp(option, "Temp") == 0) {
+			double NodeTemp = theNode->getTemperature()(0);
+			if (OPS_SetDoubleOutput(&dataNum, &NodeTemp) < 0) {
+				opserr << "WARNING failed to return temperature for node " << nodetag << "\n";
+				return -1;
+			}
+		}
+	}
+	
+
+
+	return 0;
+}
 
 //Add HTWipe
 int OPS_HTReset()
@@ -3015,6 +3159,24 @@ static PyObject* Py_ops_HTReset(PyObject* self, PyObject* args)
 	return theWrapper->getResults();
 }
 
+static PyObject* Py_ops_HTtime(PyObject* self, PyObject* args)
+{
+	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
+
+	if (OPS_getHTtime() < 0) return NULL;
+
+	return theWrapper->getResults();
+}
+
+static PyObject* Py_ops_HToutput(PyObject* self, PyObject* args)
+{
+	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
+
+	if (OPS_HTOutput() < 0) return NULL;
+
+	return theWrapper->getResults();
+}
+
 //-------------------------------------------------------------------------------//
 //------------------------Procedure of Heat transfer commmands-----------------------------//
 
@@ -3036,9 +3198,13 @@ int OPS_addHTCommands(PythonWrapper* thewrapper)
 	theWrapper->addCommand("HTNodeSet", &Py_ops_HTNodeSet);
 	theWrapper->addCommand("HTPattern", &Py_ops_addHTPattern);
 	theWrapper->addCommand("FireModel", &Py_ops_addFireModel);
+
+	theWrapper->addCommand("HToutput", &Py_ops_HToutput);
+	theWrapper->addCommand("HTTime", &Py_ops_HTtime);
+
+
 	theWrapper->addCommand("HeatFluxBC", &Py_ops_addHeatFluxBC);
 	theWrapper->addCommand("HTCoupleT", &Py_ops_addMPTemperatureBC);
-
 
 	theWrapper->addCommand("HTAnalysis", &Py_ops_HTAnalysis);
 	theWrapper->addCommand("HTRecorder", &Py_ops_HTRecorder);

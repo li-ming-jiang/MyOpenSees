@@ -2688,8 +2688,8 @@ int TclHeatTransferCommand_HTAnalyze(ClientData clientData, Tcl_Interp *interp, 
 	if (Tcl_GetDouble(interp, argv[2], &dT) != TCL_OK)	
       return TCL_ERROR;
 
-    
-    result = theHTAnalysis->analyze(numIncr, dT);
+	double time = 0;
+    result = theHTAnalysis->analyze(numIncr, dT,time);
 
 	if (result < 0) 
     opserr << "OpenSees > analyze failed, returned: " << result << " error flag\n";
