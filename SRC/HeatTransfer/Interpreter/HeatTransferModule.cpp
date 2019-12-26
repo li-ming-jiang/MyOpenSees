@@ -2979,6 +2979,51 @@ int OPS_HTOutput()
 	return 0;
 }
 
+int OPS_SetFirePars() {
+	if (OPS_GetNumRemainingInputArgs() < 1) {
+		opserr << "WARNING HTOutput: insufficient argument for retruning a value\n";
+		return -1;
+	}
+	int dataNum = 1;
+	const char* option = 0;
+	option = OPS_GetString();
+
+	if (strcmp(option, "firemodel") == 0 || strcmp(option, "fireModel") == 0 || strcmp(option, "-fire") == 0)
+	{
+
+		int FireModelTag = 0;
+		int FireParTag = 0;
+		double xloc = 0;
+		double yloc = 0;
+		double zloc = 0;
+		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
+			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+			return -1;
+		}
+		if (OPS_GetNumRemainingInputArgs() < 1)
+		{
+			opserr << "WARNING:: insufficient arguments for fire model HTOutput: " << "\n";
+			return -1;
+		}
+		option = OPS_GetString();
+		if (strcmp(option, "fireloc") == 0 || strcmp(option, "fireLoc") == 0 || strcmp(option, "-fireLoc") == 0)
+		{
+
+			if (OPS_GetNumRemainingInputArgs() > 0) {
+				if (OPS_GetDoubleInput(&dataNum, &xloc) < 0) {
+					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					return -1;
+				}
+			}
+
+		}
+		FireModel* thefire = theHTModule->getFireModel(FireModelTag);
+		
+	}
+
+
+}
+
 //Add HTWipe
 int OPS_HTReset()
 {
@@ -3177,6 +3222,16 @@ static PyObject* Py_ops_HToutput(PyObject* self, PyObject* args)
 	return theWrapper->getResults();
 }
 
+static PyObject* Py_ops_SetFirePars(PyObject* self, PyObject* args)
+{
+	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
+
+	if (OPS_SetFirePars() < 0) return NULL;
+
+	return theWrapper->getResults();
+}
+
+
 //-------------------------------------------------------------------------------//
 //------------------------Procedure of Heat transfer commmands-----------------------------//
 
@@ -3201,7 +3256,7 @@ int OPS_addHTCommands(PythonWrapper* thewrapper)
 
 	theWrapper->addCommand("HToutput", &Py_ops_HToutput);
 	theWrapper->addCommand("HTTime", &Py_ops_HTtime);
-
+	theWrapper->addCommand("SetFirePars", &Py_ops_SetFirePars);
 
 	theWrapper->addCommand("HeatFluxBC", &Py_ops_addHeatFluxBC);
 	theWrapper->addCommand("HTCoupleT", &Py_ops_addMPTemperatureBC);

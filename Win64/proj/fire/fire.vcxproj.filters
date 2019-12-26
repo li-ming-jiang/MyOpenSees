@@ -40,13 +40,13 @@
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\LocalizedFireSFPE.cpp">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\MovingLocalizedFireEC1.cpp">
-      <Filter>Idealised_nonuniform_fires</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\AlpertCeilingJetModel.cpp">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\Idealised_Local_Fire.cpp">
+      <Filter>Idealised_nonuniform_fires</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\TravellingFire.cpp">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,10 +79,10 @@
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\LocalizedFireSFPE.h">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\MovingLocalizedFireEC1.h">
+    <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\AlpertCeilingJetModel.h">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\AlpertCeilingJetModel.h">
+    <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\TravellingFire.h">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClInclude>
   </ItemGroup>
