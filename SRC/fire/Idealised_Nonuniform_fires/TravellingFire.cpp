@@ -67,7 +67,7 @@ int
 TravellingFire::setFirePars(double time) {
 	
 		Vector firePars = FireLocPath->getFactors(time);
-
+		
 		if (firePars.Size() == 3) {
 			fireLocs(0) = firePars(0);
 			fireLocs(1) = firePars(1);
@@ -88,6 +88,7 @@ TravellingFire::setFirePars(double time) {
 		}
 		else {
 			opserr << "WARNING! TravellingFire::getFlux failed to get the location of fire origin" << endln;
+			return -1;
 		}
 
 		return 0;
@@ -117,7 +118,8 @@ double
 TravellingFire::getFlux(HeatTransferNode* node, double time)
 {
 	if (FireLocPath != 0) {
-		this->setFirePars(time);
+		if(this->setFirePars(time)<0)
+			exit(-1);
 	}
 	double q_dot=0;
 	
