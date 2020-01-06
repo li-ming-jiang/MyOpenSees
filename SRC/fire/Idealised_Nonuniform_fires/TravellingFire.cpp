@@ -23,7 +23,7 @@
 ** ****************************************************************** */
 
 //
-// Written by Yaqiang Jiang (y.jiang@ed.ac.uk)
+// Written by Liming Jiang (liming.jiang@polyu.edu.hk)
 //
 
 #include <TravellingFire.h>
@@ -38,8 +38,8 @@
 #include <PathTimeSeriesThermal.h>
 
 
-TravellingFire::TravellingFire(int tag, PathTimeSeriesThermal* fireLocPath, double D,
-	double Q, double H, int lineTag)
+TravellingFire::TravellingFire(int tag, double D,
+	double Q, double H, int lineTag, PathTimeSeriesThermal* fireLocPath)
 	:FireModel(tag, 7), FireLocPath(fireLocPath), fireLocs(3), d(D), q(Q), h(H), centerLine(lineTag)
 {
     // check the direction of central line of a Hasemi fire
@@ -64,8 +64,9 @@ TravellingFire::~TravellingFire()
 
 
 int
-TravellingFire::setFirePars(double time) {
-	
+TravellingFire::setFirePars(double time, const Vector& firepars)
+{
+	if(firepars ==0&&FireLocPath!=0){
 		Vector firePars = FireLocPath->getFactors(time);
 		
 		if (firePars.Size() == 3) {
@@ -90,7 +91,34 @@ TravellingFire::setFirePars(double time) {
 			opserr << "WARNING! TravellingFire::getFlux failed to get the location of fire origin" << endln;
 			return -1;
 		}
-
+	}
+	else if(firepars !=0){
+		
+		if (firepars.Size() == 3) {
+			fireLocs(0) = firepars(0);
+			fireLocs(1) = firepars(1);
+			fireLocs(2) = firepars(2);
+		}
+		else if (firepars.Size() == 4) {
+			fireLocs(0) = firepars(0);
+			fireLocs(1) = firepars(1);
+			fireLocs(2) = firepars(2);
+			q = firepars(3);
+		}
+		else if (firepars.Size() == 5) {
+			fireLocs(0) = firepars(0);
+			fireLocs(1) = firepars(1);
+			fireLocs(2) = firepars(2);
+			q = firepars(3);
+			d = firepars(4);
+		}
+		else {
+			opserr << "WARNING! TravellingFire::getFlux failed to get the location of fire origin" << endln;
+			return -1;
+		}
+		
+	}
+	
 		return 0;
 }
 
@@ -119,8 +147,9 @@ TravellingFire::getFlux(HeatTransferNode* node, double time)
 {
 	if (FireLocPath != 0) {
 		if(this->setFirePars(time)<0)
-			exit(-1);
+			return -1;
 	}
+	//opserr << "firelocs::" << fireLocs <<"q"<<q<<"d"<<d<< endln;
 	double q_dot=0;
 	
 	// first calculate flame length
@@ -195,7 +224,8 @@ TravellingFire::getFlux(HeatTransferNode* node, double time)
 	}
 	int tag = node->getTag();
 #ifdef _DEBUG
-	//opserr<<" Travelling fire: "<<fireLocs(1)<<","<<x3<<", q"<<q<<" r:  "<<r<<"____ "<< " q:  "<<q_dot<<"____ ";
+	opserr<<" Travelling fire: "<<fireLocs(0)<<","<< fireLocs(2) <<", q"<<q<<" r:  "<<r<< " q:  "<<q_dot<<"____ "<<endln
+		;
 #endif
 	return q_dot;
 }

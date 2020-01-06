@@ -42,8 +42,8 @@ class TravellingFire : public FireModel
 	  // default is 1 corresponding to the standard temperature-time curve,
 	  // 2 is for external fire curve, 3 is for hydrocarbon curve. Default 
 	  // value is 1.
-	  TravellingFire(int tag,PathTimeSeriesThermal* fireLocPath=0, double D=0, double Q=0,
-		               double H=3, int centerLineTag = 2);
+	  TravellingFire(int tag, double D=1, double Q=1E6,
+		               double H=3, int centerLineTag = 2, PathTimeSeriesThermal* fireLocPath = 0 );
 
 	  //TravellingFire(double crd1, double crd2, double crd3, const Vector& time,
 		 //              const Vector& d, const Vector& Q, double H);
@@ -52,7 +52,7 @@ class TravellingFire : public FireModel
 	  virtual ~TravellingFire();
 	  
 	  void applyFluxBC(HeatFluxBC* theFlux, double time);
-	  int setFirePars(double time,const Vector& firePars =0);
+	  int setFirePars(double time,const Vector& firepars =0);
 	  double getFirePars(int ParTag=1);
 	protected:
 

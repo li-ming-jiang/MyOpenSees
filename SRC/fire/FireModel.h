@@ -29,7 +29,7 @@
 #ifndef FireModel_h
 #define FireModel_h
 
-//#include <ID.h>
+#include <Vector.h>
 #include <TaggedObject.h>
 #include <MovableObject.h>
 #include <OPS_Globals.h>
@@ -47,6 +47,7 @@ class FireModel: public TaggedObject
 
 	  virtual int getFireTypeTag(void);
 	  virtual double getFirePars(int parTag=0);
+	  virtual int setFirePars(double time, const Vector& firepars = 0);
 	  virtual void  Print(OPS_Stream&, int = 0);
 
 	protected:
