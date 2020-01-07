@@ -38,8 +38,8 @@
 #include <PathTimeSeriesThermal.h>
 
 
-TravellingFire::TravellingFire(int tag, PathTimeSeriesThermal* fireLocPath, double D,
-	double Q, double H, int lineTag)
+TravellingFire::TravellingFire(int tag, double D,
+	double Q, double H, int lineTag, PathTimeSeriesThermal* fireLocPath)
 	:FireModel(tag, 7), FireLocPath(fireLocPath), fireLocs(3), d(D), q(Q), h(H), centerLine(lineTag)
 {
     // check the direction of central line of a Hasemi fire
@@ -66,31 +66,36 @@ TravellingFire::~TravellingFire()
 int
 TravellingFire::setFirePars(double time, const Vector& firePars) {
 	
-		Vector firePars = FireLocPath->getFactors(time);
-		
-		if (firePars.Size() == 3) {
-			fireLocs(0) = firePars(0);
-			fireLocs(1) = firePars(1);
-			fireLocs(2) = firePars(2);
+	Vector FirePars = 0;
+	if (FireLocPath != 0) {
+		FirePars = FireLocPath->getFactors(time);
+	}
+	else if (FireLocPath==0&&firePars != 0)
+		FirePars = firePars;
+	
+	if (FirePars.Size() == 3) {
+			fireLocs(0) = FirePars(0);
+			fireLocs(1) = FirePars(1);
+			fireLocs(2) = FirePars(2);
 		}
-		else if (firePars.Size() == 4) {
-			fireLocs(0) = firePars(0);
-			fireLocs(1) = firePars(1);
-			fireLocs(2) = firePars(2);
-			q = firePars(3);
+		else if (FirePars.Size() == 4) {
+			fireLocs(0) = FirePars(0);
+			fireLocs(1) = FirePars(1);
+			fireLocs(2) = FirePars(2);
+			q = FirePars(3);
 		}
-		else if (firePars.Size() == 5) {
-			fireLocs(0) = firePars(0);
-			fireLocs(1) = firePars(1);
-			fireLocs(2) = firePars(2);
-			q = firePars(3);
-			d = firePars(4);
+		else if (FirePars.Size() == 5) {
+			fireLocs(0) = FirePars(0);
+			fireLocs(1) = FirePars(1);
+			fireLocs(2) = FirePars(2);
+			q = FirePars(3);
+			d = FirePars(4);
 		}
 		else {
 			opserr << "WARNING! TravellingFire::getFlux failed to get the location of fire origin" << endln;
 			return -1;
 		}
-
+	opserr << FirePars << endln;
 		return 0;
 }
 
