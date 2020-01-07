@@ -33,6 +33,7 @@
 #include <TaggedObject.h>
 #include <MovableObject.h>
 #include <OPS_Globals.h>
+#include <Vector.h>
 class HeatTransferDomain;
 class HeatFluxBC;
 
