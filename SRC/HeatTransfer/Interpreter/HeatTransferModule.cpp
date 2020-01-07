@@ -1944,34 +1944,37 @@ OPS_addFireModel()
 	//Travelling fire curve;
 	else if (strcmp(option, "travelling") == 0 || strcmp(option, "Travelling") == 0) {
 
-	double crd1 = 0.0; double crd2 = 0.0; double crd3 = 0.0;
-	double D = 0; double Q = 0; double H = 0; int lineTag = 0;
-	PathTimeSeriesThermal* theSeries = 0;
-	if (OPS_GetNumRemainingInputArgs() < 3)
-	{
-		opserr << "WARNING insufficient aguments" << endln;
-		opserr << " for HeatTransfer localised fire model: " << FireModelTag << endln;
-		return -1;
-	}
+		double crd1 = 0.0; double crd2 = 0.0; double crd3 = 0.0;
+		double D = 1.0; double Q = 1e6; double H = 3.0; int lineTag = 2;
+		PathTimeSeriesThermal* theSeries = 0;
 
-	//end of fire origin, waiting for firePars;
-	option = OPS_GetString(); //in case no origin in input
-	if (strcmp(option, "firePars") == 0 || strcmp(option, "-firePars") == 0) {
-		option = OPS_GetString();
-		if (strcmp(option, "source") == 0 || strcmp(option, "-source") == 0 || strcmp(option, "-file") == 0 || strcmp(option, "file") == 0) {
-			if (OPS_GetNumRemainingInputArgs() <1)
-			{
-				opserr << "WARNING insufficient aguments" << endln;
-				opserr << " for HeatTransfer Travelling fire model: " << FireModelTag << endln;
-				return -1;
+
+		if (OPS_GetNumRemainingInputArgs() > 0)
+		{
+			//end of fire origin, waiting for firePars;
+			option = OPS_GetString(); //in case no origin in input
+			if (strcmp(option, "firePars") == 0 || strcmp(option, "-firePars") == 0) {
+				option = OPS_GetString();
+				if (strcmp(option, "source") == 0 || strcmp(option, "-source") == 0 || strcmp(option, "-file") == 0 || strcmp(option, "file") == 0) {
+					if (OPS_GetNumRemainingInputArgs() < 1)
+					{
+						opserr << "WARNING insufficient aguments" << endln;
+						opserr << " for HeatTransfer Travelling fire model: " << FireModelTag << endln;
+						return -1;
+					}
+					const char* fileName = OPS_GetString();
+					theSeries = new PathTimeSeriesThermal(1, fileName, 5, false);
+				}
+
 			}
-			const char* fileName = OPS_GetString();
-			theSeries = new PathTimeSeriesThermal(1, fileName, 5,false);
 		}
 
-	}
-
-	theFireModel = new TravellingFire(FireModelTag, theSeries);
+		if (theSeries != 0) {
+			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag, theSeries);
+		}
+		else {
+			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag);
+		}
 	}
 	//else ----------
 	else if (strcmp(option, "idealised") == 0 || strcmp(option, "Idealised") == 0) {
@@ -2934,7 +2937,12 @@ int OPS_HTOutput()
 			}
 
 		}
-		FireModel* thefire = theHTModule->getFireModel(FireModelTag);
+		FireModel* thefire = 0;
+		thefire = theHTModule->getFireModel(FireModelTag);
+		if (thefire == 0) {
+			opserr << "WARNING:: HToutput can not find the fire model " << endln;
+			return -1;
+		}
 		double firePar = thefire->getFirePars(FireParTag);
 		//opserr << "fireparTag " << FireParTag << "firepar " << firePar << endln;
 		if (OPS_SetDoubleOutput(&dataNum, &firePar) < 0) {
@@ -2995,6 +3003,8 @@ int OPS_SetFirePars() {
 		double xloc = 0;
 		double yloc = 0;
 		double zloc = 0;
+		double q = 0;
+		double d = 0;
 		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
 			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
 			return -1;
@@ -3013,27 +3023,65 @@ int OPS_SetFirePars() {
 			}
 			else{
 				if (OPS_GetDoubleInput(&dataNum, &xloc) < 0) {
-					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					opserr << "WARNING:: invalid xloc for set firePars " << "\n";
 					return -1;
 				}
 				if (OPS_GetDoubleInput(&dataNum, &yloc) < 0) {
-					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					opserr << "WARNING:: invalid yloc for set firePars " << "\n";
 					return -1;
 				}
 				if (OPS_GetDoubleInput(&dataNum, &zloc) < 0) {
-					opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+					opserr << "WARNING:: invalid zloc for set firePars " << "\n";
 					return -1;
 				}
 			}
+			Vector firelocs(3);
+			firelocs(0) = xloc; firelocs(1) = yloc; firelocs(2) = zloc;
 			FireModel* thefire = theHTModule->getFireModel(FireModelTag);
-			thefire->setFirepars()
+			double thecurrentTime = theHTDomain->getCurrentTime();
+			thefire->setFirePars(thecurrentTime, firelocs);
 
 		}
-		else if (strcmp(option, "HRR") == 0 || strcmp(option, "hrr") == 0 || strcmp(option, "q") == 0 || strcmp(option, "Q") == 0)
+		else if (strcmp(option, "firePars") == 0 || strcmp(option, "firepars") == 0 || strcmp(option, "-firepars") == 0 || strcmp(option, "-FirePars") == 0)
 		{
-
+			if (OPS_GetNumRemainingInputArgs() < 5) {
+				opserr << "WARNING:: insufficient arguments for set fireloc: x,y,z,q,d" << "\n";
+			}
+			else {
+				if (OPS_GetDoubleInput(&dataNum, &xloc) < 0) {
+					opserr << "WARNING:: invalid xloc for set firePars " << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &yloc) < 0) {
+					opserr << "WARNING:: invalid yloc for set firePars " << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &zloc) < 0) {
+					opserr << "WARNING:: invalid zloc for set firePars " << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &q) < 0) {
+					opserr << "WARNING:: invalid q for set firePars" << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &d) < 0) {
+					opserr << "WARNING:: invalid d for set firePars " << "\n";
+					return -1;
+				}
+			}
+			Vector firepars(5);
+			firepars(0) = xloc; firepars(1) = yloc; firepars(2) = zloc; firepars(3) = q; firepars(4) = d;
+			FireModel* thefire = 0;
+			thefire = theHTModule->getFireModel(FireModelTag);
+			if (thefire == 0) {
+				opserr << "HeatTransferModule::SetFirePars failed to obtain the fire model" << endln;
+				return -1;
+			}
+			double thecurrentTime = theHTDomain->getCurrentTime();
+		
+			thefire->setFirePars(thecurrentTime, firepars);
 		}
-		FireModel* thefire = theHTModule->getFireModel(FireModelTag);
+		
 		
 	}
 
@@ -3050,6 +3098,19 @@ int OPS_HTReset()
 	theHTPattern = 0;
 	return 0;
 }
+
+//Add HTWipe
+int OPS_WipeHT()
+{
+	if (theHTModule != 0) {
+		delete theHTModule;
+		theHTModule = 0;
+	}
+
+	
+	return 0;
+}
+
 
 
 //////////////////////////////////////////////
@@ -3211,14 +3272,6 @@ static PyObject* Py_ops_HTRecorder(PyObject* self, PyObject* args)
 	return theWrapper->getResults();
 }
 
-static PyObject* Py_ops_HTReset(PyObject* self, PyObject* args)
-{
-	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
-
-	if (OPS_HTReset() < 0) return NULL;
-
-	return theWrapper->getResults();
-}
 
 static PyObject* Py_ops_HTtime(PyObject* self, PyObject* args)
 {
@@ -3243,6 +3296,24 @@ static PyObject* Py_ops_SetFirePars(PyObject* self, PyObject* args)
 	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
 
 	if (OPS_SetFirePars() < 0) return NULL;
+
+	return theWrapper->getResults();
+}
+
+static PyObject* Py_ops_HTreset(PyObject* self, PyObject* args)
+{
+	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
+
+	if (OPS_HTReset() < 0) return NULL;
+
+	return theWrapper->getResults();
+}
+
+static PyObject* Py_ops_wipeHT(PyObject* self, PyObject* args)
+{
+	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
+
+	if (OPS_WipeHT() < 0) return NULL;
 
 	return theWrapper->getResults();
 }
@@ -3281,8 +3352,8 @@ int OPS_addHTCommands(PythonWrapper* thewrapper)
 	theWrapper->addCommand("HTRecorder", &Py_ops_HTRecorder);
 	theWrapper->addCommand("HTAnalyze", &Py_ops_HTAnalyze);
 	
-	theWrapper->addCommand("HTReset", &Py_ops_HTReset);
-	
+	theWrapper->addCommand("HTReset", &Py_ops_HTreset);
+	theWrapper->addCommand("WipeHT", &Py_ops_wipeHT);
 
 	return 0;
 }
