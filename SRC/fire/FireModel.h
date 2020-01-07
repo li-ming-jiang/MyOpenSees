@@ -47,6 +47,8 @@ class FireModel: public TaggedObject
 
 	  virtual int getFireTypeTag(void);
 	  virtual double getFirePars(int parTag=0);
+	  virtual int setFirePars(double time, const Vector& firePars = 0);
+
 	  virtual void  Print(OPS_Stream&, int = 0);
 
 	protected:

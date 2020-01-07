@@ -64,7 +64,7 @@ TravellingFire::~TravellingFire()
 
 
 int
-TravellingFire::setFirePars(double time) {
+TravellingFire::setFirePars(double time, const Vector& firePars) {
 	
 		Vector firePars = FireLocPath->getFactors(time);
 		
