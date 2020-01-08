@@ -15,17 +15,17 @@ HTMaterial ConcreteEC2 2 0.0;
 
 #Secondary Beam section with slab
 # beam sections: (I section here)
-set slabw 5.0;  #slab width
-set slabl 5.0;	#slab length
+set slabw 1.0;  #slab width
+set slabl 1.0;	#slab length
 set slabt 0.1;	#slab thickness
 
 HTEntity Brick 1 0.0 0.0 0.0 $slabw $slabt $slabl ; #To create a brick whose y-axis is through depth whith its centroid at 0,0,0
 
 
 #secondary beam mesh components
-set elex [expr $slabw/20];
-set eley [expr $slabt/5];
-set elez [expr $slabl/20]
+set elex [expr $slabw/10];
+set eley [expr $slabt/10];
+set elez [expr $slabl/10]
 
 #Secondary beam and mesh
 #HTMesh $MeshTag $EntityTag  $MaterialTag(first material tag) -SecondMat $secondmaterialTag, -phaseChange, 4FisrtMaterial (no need for steel), 4SecondMaterial
@@ -69,12 +69,14 @@ HTPattern fire 2 model 2 {
 
 
 # End of building the heat transfer models;
-HTNodeSet 1 -Entity 1 -Face 1;
-HTRecorder -file temp.out NodeSet 1;
+#HTNodeSet 1 -Entity 1 -Face 1;
+#HTRecorder -file temp.out NodeSet 1;
+HTNodeSet 1 -Entity 1 -Face 1 -Locx 0.0 -Locy -0.05 -Locz 0.0;
+
 	
 HTAnalysis HeatTransfer
 #HTAnalyze $numSteps $timeStep;
-HTAnalyze 10 10;	
+HTAnalyze 1 10;	
 
 #wipeHT;
 

@@ -1547,9 +1547,8 @@ OPS_HTNodeSet()
 			if (OPS_GetNumRemainingInputArgs() > 0) {
 				if (OPS_GetDoubleInput(&numData, &xlocUB) < 0) {
 					xlocUB = xlocLB;
-				}
-				else
 					OPS_ResetCurrentInputArg(-1);
+				}
 			}
 			else
 				xlocUB = xlocLB;
@@ -1584,9 +1583,9 @@ OPS_HTNodeSet()
 			if (OPS_GetNumRemainingInputArgs() > 0) {
 				if (OPS_GetDoubleInput(&numData, &ylocUB) < 0) {
 					ylocUB = ylocLB;
-				}
-				else
 					OPS_ResetCurrentInputArg(-1);
+				}
+					
 			}
 			else
 				ylocUB = ylocLB;
@@ -1619,9 +1618,9 @@ OPS_HTNodeSet()
 			if (OPS_GetNumRemainingInputArgs() > 0) {
 				if (OPS_GetDoubleInput(&numData, &zlocUB) < 0) {
 					zlocUB = zlocLB;
-				}
-				else
 					OPS_ResetCurrentInputArg(-1);
+				}
+				
 			}
 			else
 				zlocUB = zlocLB;

@@ -1704,7 +1704,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       return TCL_ERROR;
     }
     
-    theHTMesh->SelectingNodes(NodeRange, 1, zlocLB,zlocUB);
+    theHTMesh->SelectingNodes(NodeRange, 2, zlocLB,zlocUB);
     // for geting uncertain number of doubel values 
   }
   }

@@ -214,7 +214,7 @@ Simple_Mesh::SelectingNodes(ID& NodesRange,int crdTag,double MinValue, double Ma
 	  
 	}
 	int NewIDsize = SelectedNodes.size();
-	opserr<<"SimpleMesh::SelectingNodes has selected "<<NewIDsize<<" Nodes.."<<endln;
+	opserr<<"SimpleMesh::SelectingNodes has selected "<<NewIDsize<<" Nodes for crd"<<crdTag<<endln;
 
 	NodesRange.resize(NewIDsize);
 	for (int i = 0; i< NewIDsize; i++) {
