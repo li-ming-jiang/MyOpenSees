@@ -39,8 +39,9 @@
 
 
 TravellingFire::TravellingFire(int tag, double D,
-	double Q, double H, int lineTag, PathTimeSeriesThermal* fireLocPath)
-	:FireModel(tag, 7), FireLocPath(fireLocPath), fireLocs(3), d(D), q(Q), h(H), centerLine(lineTag)
+	double Q, double H, int lineTag, double smokeTemp, PathTimeSeriesThermal* fireLocPath)
+	:FireModel(tag, 7), FireLocPath(fireLocPath), fireLocs(3), d(D), 
+	q(Q), h(H), smokeT(smokeTemp),centerLine(lineTag)
 {
     // check the direction of central line of a Hasemi fire
     // 1 indicates it is parrallel to x1 axis, 2 indicates
@@ -74,28 +75,40 @@ TravellingFire::setFirePars(double time, const Vector& firePars) {
 		FirePars = firePars;
 	
 	if (FirePars.Size() == 3) {
-			fireLocs(0) = FirePars(0);
-			fireLocs(1) = FirePars(1);
-			fireLocs(2) = FirePars(2);
-		}
-		else if (FirePars.Size() == 4) {
-			fireLocs(0) = FirePars(0);
-			fireLocs(1) = FirePars(1);
-			fireLocs(2) = FirePars(2);
-			q = FirePars(3);
-		}
-		else if (FirePars.Size() == 5) {
-			fireLocs(0) = FirePars(0);
-			fireLocs(1) = FirePars(1);
-			fireLocs(2) = FirePars(2);
-			q = FirePars(3);
-			d = FirePars(4);
-		}
-		else {
+		fireLocs(0) = FirePars(0);
+		fireLocs(1) = FirePars(1);
+		fireLocs(2) = FirePars(2);
+	}
+	else if (FirePars.Size() == 4) {
+		fireLocs(0) = FirePars(0);
+		fireLocs(1) = FirePars(1);
+		fireLocs(2) = FirePars(2);
+		q = FirePars(3);
+	}
+	else if (FirePars.Size() == 5) {
+		fireLocs(0) = FirePars(0);
+		fireLocs(1) = FirePars(1);
+		fireLocs(2) = FirePars(2);
+		q = FirePars(3);
+		d = FirePars(4);
+	}
+	else if (FirePars.Size() == 6) {
+		fireLocs(0) = FirePars(0);
+		fireLocs(1) = FirePars(1);
+		fireLocs(2) = FirePars(2);
+		q = FirePars(3);
+		d = FirePars(4);
+		smokeT = FirePars(5);
+	}
+	else {
 			opserr << "WARNING! TravellingFire::getFlux failed to get the location of fire origin" << endln;
 			return -1;
 		}
+#ifdef _DEBUG
 	opserr << FirePars << endln;
+#endif // DEBUG
+
+	
 		return 0;
 }
 
@@ -111,6 +124,8 @@ TravellingFire::getFirePars(int ParTag) {
 		return q;
 	else if (ParTag == 5)
 		return d;
+	else if (ParTag == 6)
+		return smokeT;
 	else {
 		opserr << "WARNING! invalid tag for TravellingFire::getFirePars " << ParTag << endln;
 		return -1;
@@ -139,7 +154,7 @@ TravellingFire::getFlux(HeatTransferNode* node, double time)
 	double z_acute;
 
 	if (Qd_ast < 1.0) {
-		double a = 0.66666666666666666666666666666667;
+		double a = 2.0/3.0;
 		double term = pow(Qd_ast,0.4) - pow(Qd_ast,a);
 		z_acute = 2.4 * d * term;
 		} else {
@@ -198,8 +213,19 @@ TravellingFire::getFlux(HeatTransferNode* node, double time)
 	} else if (y >= 1.0) {
 		q_dot = 15000 * pow(y,-3.7);
 	}
-	int tag = node->getTag();
+	
+	double q_smoke = 0.7 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+	if (q_dot < q_smoke) {
 #ifdef _DEBUG
+		opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
+#endif
+		q_dot = q_smoke;
+		
+	}
+		
+
+#ifdef _DEBUG
+	int tag = node->getTag();
 	//opserr<<" Travelling fire: "<<fireLocs(1)<<","<<x3<<", q"<<q<<" r:  "<<r<<"____ "<< " q:  "<<q_dot<<"____ ";
 #endif
 	return q_dot;

@@ -1944,7 +1944,7 @@ OPS_addFireModel()
 	else if (strcmp(option, "travelling") == 0 || strcmp(option, "Travelling") == 0) {
 
 		double crd1 = 0.0; double crd2 = 0.0; double crd3 = 0.0;
-		double D = 1.0; double Q = 1e6; double H = 3.0; int lineTag = 2;
+		double D = 1.0; double Q = 1e6; double H = 3.0; double Ts = 293.15;  int lineTag = 2;
 		PathTimeSeriesThermal* theSeries = 0;
 
 
@@ -1969,10 +1969,10 @@ OPS_addFireModel()
 		}
 
 		if (theSeries != 0) {
-			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag, theSeries);
+			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag, Ts, theSeries);
 		}
 		else {
-			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag);
+			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag, Ts);
 		}
 	}
 	//else ----------
@@ -3004,6 +3004,7 @@ int OPS_SetFirePars() {
 		double zloc = 0;
 		double q = 0;
 		double d = 0;
+		double Ts = 0;
 		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
 			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
 			return -1;
@@ -3043,6 +3044,7 @@ int OPS_SetFirePars() {
 		}
 		else if (strcmp(option, "firePars") == 0 || strcmp(option, "firepars") == 0 || strcmp(option, "-firepars") == 0 || strcmp(option, "-FirePars") == 0)
 		{
+			int numPars = 0;
 			if (OPS_GetNumRemainingInputArgs() < 5) {
 				opserr << "WARNING:: insufficient arguments for set fireloc: x,y,z,q,d" << "\n";
 			}
@@ -3059,17 +3061,46 @@ int OPS_SetFirePars() {
 					opserr << "WARNING:: invalid zloc for set firePars " << "\n";
 					return -1;
 				}
-				if (OPS_GetDoubleInput(&dataNum, &q) < 0) {
-					opserr << "WARNING:: invalid q for set firePars" << "\n";
-					return -1;
+				if (OPS_GetNumRemainingInputArgs() > 0) {
+					if (OPS_GetDoubleInput(&dataNum, &q) < 0) {
+						opserr << "WARNING:: invalid q for set firePars" << "\n";
+						return -1;
+					}
+					numPars = 4;
 				}
-				if (OPS_GetDoubleInput(&dataNum, &d) < 0) {
-					opserr << "WARNING:: invalid d for set firePars " << "\n";
-					return -1;
+				else {
+					numPars = 3;
 				}
+				
+				if (OPS_GetNumRemainingInputArgs() > 0) {
+					if (OPS_GetDoubleInput(&dataNum, &d) < 0) {
+						opserr << "WARNING:: invalid d for set firePars " << "\n";
+						return -1;
+					}
+					numPars = 5;
+				}
+				
+				if (OPS_GetNumRemainingInputArgs() > 0) {
+					if (OPS_GetDoubleInput(&dataNum, &Ts) < 0) {
+						opserr << "WARNING:: invalid T_smoke for set firePars " << "\n";
+						return -1;
+					}
+					numPars = 6;
+				}
+				
 			}
-			Vector firepars(5);
-			firepars(0) = xloc; firepars(1) = yloc; firepars(2) = zloc; firepars(3) = q; firepars(4) = d;
+			Vector firepars(numPars);
+			firepars(0) = xloc; firepars(1) = yloc; firepars(2) = zloc; 
+			if (numPars == 4) {
+				firepars(3) = q; 
+			}
+			else if (numPars == 5) {
+				firepars(3) = q; firepars(4) = d;
+			}
+			else if (numPars == 6) {
+				firepars(3) = q; firepars(4) = d; firepars(5) = Ts+273.15;
+			}
+			
 			FireModel* thefire = 0;
 			thefire = theHTModule->getFireModel(FireModelTag);
 			if (thefire == 0) {

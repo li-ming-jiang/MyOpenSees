@@ -73,7 +73,7 @@ UserDefinedFire::UserDefinedFire(int tag,const Vector& theFireData, const Vector
 }
 
 
-UserDefinedFire::UserDefinedFire(int tag, const char* theFireData, const char* theTime, int typeTag)		       
+UserDefinedFire::UserDefinedFire(int tag, const char* theFireData, int typeTag)		       
 :FireModel(tag ,8),theData(0), time(0), currentTimeLoc(0), type_tag(typeTag)
 {
     // determine the number of data points
@@ -93,84 +93,56 @@ UserDefinedFire::UserDefinedFire(int tag, const char* theFireData, const char* t
 		}   
 	theFile.close();
 
-	// now open and go through file containg time
-	ifstream theFile1;
-	theFile1.open(theTime, ios::in);
-	if (theFile1.bad() || !theFile1.is_open()) {
-		opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
-		opserr << " - could not open file " << theTime << endln;
-		} else {
-			while (theFile1 >> dataPoint)
-				numDataPoints2++;
-		}   
-	theFile1.close();
 
 	// check number of data entries in both are the same
-	if (numDataPoints1 != numDataPoints2) {
-		opserr << "WARNING UserDefinedFire::UserDefinedFire() - files containing data ";
-		opserr << "points for path and time do not contain same number of points\n";
-		} else {
-			// create a vector and read in the data
-			if (numDataPoints1 != 0) {
-				// now create the two vector
-				theData = new Vector(numDataPoints1);
-				time = new Vector(numDataPoints1);
 
-				// ensure did not run out of memory creating copies
-				if (theData == 0 || theData->Size() == 0 ||
-					time == 0 || time->Size() == 0) {
+	if (numDataPoints1 != 0) {
+		// now create the two vector
+		theData = new Vector(numDataPoints1);
+		time = new Vector(numDataPoints1);
 
-						opserr << "WARNING UserDefinedFire::UserDefinedFire() - out of memory\n ";
-						if (theData != 0)
-							delete theData;
-						if (time != 0)
-							delete time;
-						theData = 0;
-						time = 0;
-					}
+		// ensure did not run out of memory creating copies
+		if (theData == 0 || theData->Size() == 0 ||
+			time == 0 || time->Size() == 0) {
 
-				// first open the file for temperature/flux and read in the data
-				ifstream theFile2;
-				theFile2.open(theFireData, ios::in);
-				if (theFile2.bad() || !theFile2.is_open()) {
-					opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
-					opserr << " - could not open file " << theFireData << endln;
-					delete theData;
-					delete time;
-					theData = 0;
-					time =0;
-					} else { // read in the path data and then do the time
-						int count = 0;
-						while (theFile2 >> dataPoint) {
-							(*theData)(count) = dataPoint;
-							count++;
-							}
-
-						// finally close the file
-						theFile2.close();
-
-						// now open the time file and read in the data
-						ifstream theFile3;
-						theFile3.open(theTime, ios::in);
-						if (theFile3.bad() || !theFile3.is_open()) {
-							opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
-							opserr << " - could not open file " << theTime << endln;
-							delete theData;
-							delete time;
-							theData = 0;
-							time =0;
-							} else { // read in the data
-								int count = 0;
-								while (theFile3 >> dataPoint) {
-									(*time)(count) = dataPoint;
-									count++;
-									}
-								theFile3.close();
-							} // read in the data 
-					}   // read in the path data and then do the time
-				}
+			opserr << "WARNING UserDefinedFire::UserDefinedFire() - out of memory\n ";
+			if (theData != 0)
+				delete theData;
+			if (time != 0)
+				delete time;
+			theData = 0;
+			time = 0;
 		}
+
+		// first open the file for temperature/flux and read in the data
+		ifstream theFile2;
+		theFile2.open(theFireData, ios::in);
+		if (theFile2.bad() || !theFile2.is_open()) {
+			opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
+			opserr << " - could not open file " << theFireData << endln;
+			delete theData;
+			delete time;
+			theData = 0;
+			time = 0;
+		}
+		else
+		{ // read in the path data and then do the time
+			int count = 0;
+			while (theFile2 >> dataPoint) {
+				(*theData)(count) = dataPoint;
+				theFile2 >> dataPoint;
+				(*time)(count) = dataPoint;
+				count++;
+			}
+
+			// finally close the file
+			theFile2.close();
+
+
+		}
+	}
 }
+
 
 
 UserDefinedFire::~UserDefinedFire()
