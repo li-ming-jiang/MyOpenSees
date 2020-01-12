@@ -93,6 +93,7 @@ using std::setiosflags;
 #include <LocalizedFireSFPE.h>
 #include <AlpertCeilingJetModel.h>
 #include <TravellingFire.h>
+#include <UserDefinedFire.h>
 
 #include <BoundaryPattern.h>
 #include <FireImposedPattern.h>
@@ -1808,6 +1809,20 @@ OPS_addFireModel()
 		theFireModel = new NorminalFireEC1(FireModelTag, 4); // hydrocarbon fire tag is 3;
 	}
 	else if (strcmp(option, "Exponent") == 0 || strcmp(option, "Exp") == 0) {
+		theFireModel = new NorminalFireEC1(FireModelTag, 5); // hydrocarbon fire tag is 3;
+	}
+	else if (strcmp(option, "UserDefined") == 0 || strcmp(option, "userDefined") == 0) {
+		if (OPS_GetNumRemainingInputArgs() < 2) {
+			opserr << "WARNING:: insufficient input for userdefined fireModel\n";
+			return -1;
+		}
+		option = OPS_GetString();
+		if (strcmp(option, "file") == 0 || strcmp(option, "-file" )|| strcmp(option, "File") == 0) {
+			const char* filename = OPS_GetString();
+			theFireModel = new UserDefinedFire(FireModelTag, filename, 1);
+		}
+
+
 		theFireModel = new NorminalFireEC1(FireModelTag, 5); // hydrocarbon fire tag is 3;
 	}
 	//Paramtetric fire

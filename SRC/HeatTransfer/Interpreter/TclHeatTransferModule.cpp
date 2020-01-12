@@ -92,7 +92,7 @@ using std::setiosflags;
 #include <Idealised_Local_Fire.h>
 #include <LocalizedFireSFPE.h>
 #include <AlpertCeilingJetModel.h>
-
+#include <UserDefinedFire.h>
 #include <BoundaryPattern.h>
 #include <FireImposedPattern.h>
 
@@ -1870,6 +1870,19 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 	else if (strcmp(argv[1], "Exponent") == 0 || strcmp(argv[1], "Exp") == 0) {
 		theFireModel = new NorminalFireEC1(FireModelTag, 5); // hydrocarbon fire tag is 3;
 	}
+    else if (strcmp(argv[1], "UserDefined") == 0 || strcmp(argv[1], "userDefined") == 0) {
+        count++;
+        if (argc < 3) {
+            opserr << "WARNING insufficient input for UserDeifined Fire Model " << FireModelTag<< endln;
+            return TCL_ERROR;
+        }
+
+        if (strcmp(argv[count], "-file") == 0 || strcmp(argv[1], "File") == 0 ||strcmp(argv[1], "file") == 0) {
+            theFireModel = new UserDefinedFire(FireModelTag,argv[count+1], 1);
+
+        }
+
+    }
     //Paramtetric fire
 	else if(strcmp(argv[1],"parametric") == 0||strcmp(argv[1],"Parametric") == 0){
 		double thi=0; double avent=0; double hvent=0; double atotal=0; double afire=0; double qfire=0; double Tlim=0;

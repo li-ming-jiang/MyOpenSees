@@ -122,17 +122,17 @@ NorminalFireEC1::applyFluxBC(HeatFluxBC* theFlux, double time)
 		Convection* convec = (Convection*) theFlux;
 		convec->setSurroundingTemp(this->getGasTemperature(time));
 		convec->applyFluxBC(time);
-		} else if (flux_type == 2) {
-			Radiation* rad = (Radiation*) theFlux;
-			static const double bzm = 5.67 * 1e-008;
-			//double alpha = rad->getAbsorptivity();
-			double temp = this->getGasTemperature(time);
-			double qir = bzm * pow(temp, 4.0);
-			rad->setIrradiation(qir);
-			rad->applyFluxBC(time);
-		} else {
-			opserr << "NorminalFireEC1::applyFluxBC() - incorrect flux type provided\n";
-			exit(-1);
-			}
+	} else if (flux_type == 2) {
+		Radiation* rad = (Radiation*) theFlux;
+		static const double bzm = 5.67 * 1e-008;
+		//double alpha = rad->getAbsorptivity();
+		double temp = this->getGasTemperature(time);
+		double qir = bzm * pow(temp, 4.0);
+		rad->setIrradiation(qir);
+		rad->applyFluxBC(time);
+	} else {
+		opserr << "NorminalFireEC1::applyFluxBC() - incorrect flux type provided\n";
+		exit(-1);
+	}
 }
 
