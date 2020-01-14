@@ -191,7 +191,7 @@ TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
   Tcl_CreateCommand(interp, "HTPattern", (Tcl_CmdProc* )TclHeatTransferCommand_addHTPattern,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "FireModel", (Tcl_CmdProc* )TclHeatTransferCommand_addFireModel,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HeatFluxBC", (Tcl_CmdProc* )TclHeatTransferCommand_addHeatFluxBC,(ClientData)NULL, NULL);
-  Tcl_CreateCommand(interp, "HTFixT", (Tcl_CmdProc*)TclHeatTransferCommand_addSPTemperatureBC, (ClientData)NULL, NULL);
+  //Tcl_CreateCommand(interp, "HTFixT", (Tcl_CmdProc*)TclHeatTransferCommand_addSPTemperatureBC, (ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTCoupleT", (Tcl_CmdProc* )TclHeatTransferCommand_addMPTemperatureBC,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTAnalysis", (Tcl_CmdProc* )TclHeatTransferCommand_HTAnalysis,(ClientData)NULL, NULL);
   
