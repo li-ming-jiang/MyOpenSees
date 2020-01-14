@@ -195,10 +195,11 @@ int Simple_Line::GenerateNodes(HeatTransferDomain* theHTDomain, int nDoF, const 
 
 		if (theHTDomain->addNode(TempNode) < 0)
 			return -1;
-		else
-			return 0;
+		
 
 	}
+
+	return 0;
 
 }
 

@@ -1026,14 +1026,19 @@ OPS_addHTMesh()
 			SectionLocs = new Vector(1);
 			(*SectionLocs)(0) = Loc1;
 			//if second material is defined
-			if (HTMaterialTag1 != 0) {
-				if (OPS_GetDoubleInput(&numdata, &Loc2) < 0) {
-					opserr << "WARNING:: invalid section location for defining simple mesh: " << HTMeshTag << "\n";
-					return -1;
-				}
+			
+			if (OPS_GetDoubleInput(&numdata, &Loc2) < 0) {
+				opserr << "WARNING:: invalid section location for defining simple mesh: " << HTMeshTag << "\n";
+				return -1;
+				OPS_ResetCurrentInputArg(-1);
+			}
+			else {
 				SectionLocs->resize(2);
+				(*SectionLocs)(0) = Loc1;
 				(*SectionLocs)(1) = Loc2;
 			}
+			
+			
 		}
 		else
 			OPS_ResetCurrentInputArg(-1);
@@ -1060,7 +1065,7 @@ OPS_addHTMesh()
 		}
 		
 #ifdef _DEBUG
-		//opserr << MeshCtrls;
+		opserr << "OriginLocs " << *SectionLocs << " MeshCtrls " << MeshCtrls << endln;
 #endif
 		// for geting uncertain number of doubel values  
 	}

@@ -96,7 +96,7 @@ int Simple_Mesh::GeneratingNodes(const Vector& originLocs )
   else
   {
 #ifdef _DEBUG
-    opserr<<"SimpleMesh::GeneratingNodes encountered a redefined OriginLocs"<<endln;
+    opserr<<"SimpleMesh::GeneratingNodes encountered redefined OriginLocs"<<endln;
 #endif
   }
   OriginNodeTag = theHTDomain->getNumNodes()+1;

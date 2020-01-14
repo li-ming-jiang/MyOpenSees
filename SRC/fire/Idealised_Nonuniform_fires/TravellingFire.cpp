@@ -214,7 +214,7 @@ TravellingFire::getFlux(HeatTransferNode* node, double time)
 		q_dot = 15000 * pow(y,-3.7);
 	}
 	
-	double q_smoke = 0.7 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+	double q_smoke = 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15)/0.7;
 	if (q_dot < q_smoke) {
 #ifdef _DEBUG
 		opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;

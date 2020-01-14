@@ -528,7 +528,7 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
     }
 
     //Adding CarbonSteelEC3
-	if (strcmp(argv[1],"SteelEC3") == 0||( argv[1], "CarbonSteelEC3") == 0) {
+	if (strcmp(argv[1],"SteelEC3") == 0||strcmp(argv[1], "CarbonSteelEC3")== 0) {
 
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
 
@@ -1066,6 +1066,7 @@ TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int 
     if (Tcl_GetDouble(interp, argv[count], &Loc2) == TCL_OK) {
       count++;
       SectionLocs->resize(2);
+      (*SectionLocs)(0) = Loc1;
        (*SectionLocs)(1)=Loc2;
     }
     
@@ -1094,7 +1095,7 @@ TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int 
 		}
       }
 #ifdef _DEBUG
-	  opserr<<MeshCtrls;
+	  opserr<<"OriginLocs "<< *SectionLocs<<" MeshCtrls "<< MeshCtrls<<endln;
 #endif
 // for geting uncertain number of doubel values  
   }

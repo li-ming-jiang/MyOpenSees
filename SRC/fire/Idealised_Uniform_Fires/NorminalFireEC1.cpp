@@ -124,7 +124,7 @@ NorminalFireEC1::applyFluxBC(HeatFluxBC* theFlux, double time)
 		convec->applyFluxBC(time);
 	} else if (flux_type == 2) {
 		Radiation* rad = (Radiation*) theFlux;
-		static const double bzm = 5.67 * 1e-008;
+		 double bzm = 5.67 * 1e-008;
 		//double alpha = rad->getAbsorptivity();
 		double temp = this->getGasTemperature(time);
 		double qir = bzm * pow(temp, 4.0);
