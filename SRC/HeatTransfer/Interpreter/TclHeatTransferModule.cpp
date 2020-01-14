@@ -527,7 +527,7 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
     }
 
     //Adding CarbonSteelEC3
-	if (strcmp(argv[1],"CarbonSteelEC3") == 0) {
+	if (strcmp(argv[1],"SteelEC3") == 0||( argv[1], "CarbonSteelEC3") == 0) {
 
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
 
@@ -1362,8 +1362,8 @@ TclHeatTransferCommand_addHTConstants(ClientData clientData, Tcl_Interp *interp,
   }
   
   int count=2;
-  Vector constants(6);
-  if((argc-count!=5)&&(argc-count!=6)){
+  Vector constants(5);
+  if((argc-count!=4)&&(argc-count!=5)){
 	  opserr<<"WARNING:: Non-sufficent or oversized data for defining heat transfer contants: "<<argv[1]<<"\n";
 	  return TCL_ERROR;
   }
@@ -1384,8 +1384,8 @@ TclHeatTransferCommand_addHTConstants(ClientData clientData, Tcl_Interp *interp,
 		}
       }
 // for geting uncertain number of doubel values 
-  if(argc-count==5){
-	  constants(5)=  constants(3)*constants(1)*constants(1)*constants(1)*constants(1);
+  if(argc-count==4){
+	  constants(4)= 5.67e-8*constants(1)*constants(1)*constants(1)*constants(1);
 #ifdef _DEBUG
 	  opserr<<"TclHeatTransfer:: AddHTconstants: "<<constants<<endln;
 #endif
@@ -2501,9 +2501,8 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
     else if(HeatFluxTypeTag==2)
     {
       
-      for(int i= 0;i<NumHeatFluxBCs; i++){
-        
-        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+i,ElesRange(i),FaceID,HeatFluxConstants(2),HeatFluxConstants(3),HeatFluxConstants(4),HeatFluxConstants(5));
+      for(int i= 0;i<NumHeatFluxBCs; i++){  
+        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+i,ElesRange(i),FaceID,HeatFluxConstants(2),5.67e-8,HeatFluxConstants(3), HeatFluxConstants(4));
         theHTDomain->addHeatFluxBC(Radiat_BC,PatternTag);
         
       }
@@ -2522,7 +2521,7 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
         Convection* Convec_BC = new Convection(ExistingHeatFluxBCs+2*i,ElesRange(i),FaceID,HeatFluxConstants(0),HeatFluxConstants(1));
         theHTDomain->addHeatFluxBC(Convec_BC,PatternTag);
         
-        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+2*i+1,ElesRange(i),FaceID,HeatFluxConstants(2),HeatFluxConstants(3),HeatFluxConstants(4),HeatFluxConstants(5));
+        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+2*i+1,ElesRange(i),FaceID,HeatFluxConstants(2), 5.67e-8,HeatFluxConstants(3),HeatFluxConstants(4));
         theHTDomain->addHeatFluxBC(Radiat_BC,PatternTag);
       }
     }

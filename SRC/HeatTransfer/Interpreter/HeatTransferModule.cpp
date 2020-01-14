@@ -504,7 +504,7 @@ int OPS_addHTMaterial()
 	HeatTransferMaterial* theHTMaterial = 0;
 
 	//Adding CarbonSteelEC3
-	if (strcmp(HTmatType, "CarbonSteelEC3") == 0) {
+	if (strcmp(HTmatType, "SteelEC3") == 0 || strcmp(HTmatType, "CarbonSteelEC3") == 0) {
 
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
 
@@ -1307,8 +1307,8 @@ OPS_addHTConstants()
 	}
 
 	int numArgs = OPS_GetNumRemainingInputArgs();
-	Vector constants(6);
-	if ((numArgs != 5) && (numArgs!= 6)) {
+	Vector constants(5);
+	if ((numArgs != 4) && (numArgs!= 5)) {
 		opserr << "WARNING:: Non-sufficent or oversized data for defining heat transfer contants: " << HTConstantTag << "\n";
 		return -1;
 	}
@@ -1326,8 +1326,8 @@ OPS_addHTConstants()
 
 
 	// for geting uncertain number of doubel values 
-	if (numArgs == 5) {
-		constants(5) = constants(3) * constants(1) * constants(1) * constants(1) * constants(1);
+	if (numArgs == 4) {
+		constants(4) = 5.67e-8 * constants(1) * constants(1) * constants(1) * constants(1);
 #ifdef _DEBUG
 		opserr << "TclHeatTransfer:: AddHTconstants: " << constants << endln;
 #endif
@@ -2405,7 +2405,7 @@ OPS_addHeatFluxBC()
 
 				for (int i = 0; i < NumHeatFluxBCs; i++) {
 
-					Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs + i, ElesRange(i), FaceID, HeatFluxConstants(2), HeatFluxConstants(3), HeatFluxConstants(4), HeatFluxConstants(5));
+					Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs + i, ElesRange(i), FaceID, HeatFluxConstants(2), 5.67e-8, HeatFluxConstants(3), HeatFluxConstants(4));
 					theHTDomain->addHeatFluxBC(Radiat_BC, PatternTag);
 
 				}
@@ -2424,7 +2424,7 @@ OPS_addHeatFluxBC()
 					Convection* Convec_BC = new Convection(ExistingHeatFluxBCs + 2 * i, ElesRange(i), FaceID, HeatFluxConstants(0), HeatFluxConstants(1));
 					theHTDomain->addHeatFluxBC(Convec_BC, PatternTag);
 
-					Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs + 2 * i + 1, ElesRange(i), FaceID, HeatFluxConstants(2), HeatFluxConstants(3), HeatFluxConstants(4), HeatFluxConstants(5));
+					Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs + 2 * i + 1, ElesRange(i), FaceID, HeatFluxConstants(2), 5.67e-8, HeatFluxConstants(3), HeatFluxConstants(4));
 					theHTDomain->addHeatFluxBC(Radiat_BC, PatternTag);
 				}
 			}
@@ -3391,7 +3391,7 @@ int OPS_addHTCommands(PythonWrapper* thewrapper)
 	theWrapper->addCommand("SetFirePars", &Py_ops_SetFirePars);
 
 	theWrapper->addCommand("HeatFluxBC", &Py_ops_addHeatFluxBC);
-	theWrapper->addCommand("HTCoupleT", &Py_ops_addMPTemperatureBC);
+	theWrapper->addCommand("HTCouple", &Py_ops_addMPTemperatureBC);
 
 	theWrapper->addCommand("HTAnalysis", &Py_ops_HTAnalysis);
 	theWrapper->addCommand("HTRecorder", &Py_ops_HTRecorder);
