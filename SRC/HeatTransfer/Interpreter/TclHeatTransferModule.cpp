@@ -2822,6 +2822,30 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 
   }
   //end of nodeset
+  else if (strcmp(argv[count], "-node") == 0 || strcmp(argv[count], "Node") == 0 || strcmp(argv[count], "-Node") == 0)
+  {
+      count++;
+
+      int numnodes = argc - count;
+      ID RecNodeID = ID(numnodes);
+      int NodeTag = 0;
+      for (int i = 0; i < numnodes; i++) {
+
+          if (Tcl_GetInt(interp, argv[count], &NodeTag) != TCL_OK) {
+              opserr << "WARNING:: invalid nodeSet tag for defining HTNodeRecorder : " << "\n";
+              return TCL_ERROR;
+          }
+          RecNodeID(i) = NodeTag;
+          count++;
+      }
+     
+
+#ifdef _DEBUG
+      opserr << "TclHeatTransferModule::HTRecorder, theRecNodeID " << RecNodeID << endln;
+#endif
+      theHTRecorder = new HTNodeRecorder(HTReorderTag++, &RecNodeID, *theHTDomain, *theOutputStream);
+
+  }
  else if(strcmp(argv[count],"-HTEntity") == 0||strcmp(argv[count],"htEntity") == 0||strcmp(argv[count],"-htentity") == 0)
   {
     count++;
