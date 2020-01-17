@@ -351,7 +351,7 @@ ConcreteEC2::getEnthalpy(double temp)
 HeatTransferMaterial*
 ConcreteEC2::getCopy(void)
 {
-    ConcreteEC2* theCopy = new ConcreteEC2(this->getTag(), moist);
+    ConcreteEC2* theCopy = new ConcreteEC2(this->getTag(), moist,IsLower);
     theCopy->trial_temp = trial_temp;
     return theCopy;
 }

@@ -556,7 +556,7 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
 			return TCL_ERROR;
 			}
 
-			if(strcmp(argv[1],"Lower") == 0||strcmp(argv[1],"lower") == 0||strcmp(argv[1],"-lower") == 0){
+			if(strcmp(argv[4],"Lower") == 0||strcmp(argv[4],"lower") == 0||strcmp(argv[4],"-lower") == 0){
 				isLower = true;
 			}
 		 }
