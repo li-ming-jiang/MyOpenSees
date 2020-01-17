@@ -58,7 +58,7 @@ class ConcreteEC2: public HeatTransferMaterial
     
     private:
 		bool IsLower;
-		double rho, cp, enthalpy, moist;
+		double rho, rho_a, cp, enthalpy, moist;
 		double trial_temp;
 		double ini_temp;  // keep a copy of initial temperature
 		static double epsilon;

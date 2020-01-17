@@ -58,7 +58,7 @@ class NWConcreteEC2: public HeatTransferMaterial
     protected:
     
     private:
-		double rho, cp, enthalpy, moist;
+		double rho_a,rho, cp, enthalpy, moist;
 		double trial_temp;
 		double ini_temp;  // keep a copy of initial temperature
 		static double epsilon;
