@@ -1481,6 +1481,7 @@ OPS_HTNodeSet()
 	}
 
 	HTNodeSet* theHTNodeSet = 0;
+	Simple_Entity* theHTEntity = 0;
 	int HTNodeSetTag = 0;
 	int HTEntityTag = 0;
 	int FaceID = 0;
@@ -1503,37 +1504,42 @@ OPS_HTNodeSet()
 			opserr << "WARNING:: invalid HT Entity tag for defining HTNodeSet: " << HTNodeSetTag << "\n";
 			return -1;
 		}
-	}
-	//HTEntityTag obtained
 
-
-	Simple_Entity* theHTEntity = theHTModule->getHTEntity(HTEntityTag);
-
-	if (theHTEntity == 0) {
-		opserr << "WARNING:: TclHTModule failed to get the requested entity when defining simple mesh: " << HTNodeSetTag << "\n";
-		return -1;
-	}
-
-	int EntityMeshTag = theHTEntity->getMeshTag();
-	Simple_Mesh* theHTMesh = theHTModule->getHTMesh(EntityMeshTag);
-
-	//to obtain faceTag
-	if (OPS_GetNumRemainingInputArgs() > 0) {
-		option = OPS_GetString();
-	}
-	else
-		opserr<<"WARNING:: insufficient information for defining HTNodeSet: " << HTNodeSetTag << "\n";
-	
-	if (strcmp(option, "-face") == 0 || strcmp(option, "-Face") == 0 || strcmp(option, "face") == 0) {
-		if (OPS_GetIntInput(&numData, &FaceID) <0) {
-			opserr << "WARNING:: invalid face tag for defining HTEleSet: " << HTNodeSetTag << "\n";
+		theHTEntity = theHTModule->getHTEntity(HTEntityTag);
+		if (theHTEntity == 0) {
+			opserr << "WARNING:: TclHTModule failed to get the requested entity when defining simple mesh: " << HTNodeSetTag << "\n";
 			return -1;
 		}
-		theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
+
+		int EntityMeshTag = theHTEntity->getMeshTag();
+		Simple_Mesh* theHTMesh = theHTModule->getHTMesh(EntityMeshTag);
+
+		//to obtain faceTag
+		if (OPS_GetNumRemainingInputArgs() > 0) {
+			option = OPS_GetString();
+		}
+		else
+			opserr << "WARNING:: insufficient information for defining HTNodeSet: " << HTNodeSetTag << "\n";
+
+		if (strcmp(option, "-face") == 0 || strcmp(option, "-Face") == 0 || strcmp(option, "face") == 0) {
+			if (OPS_GetIntInput(&numData, &FaceID) < 0) {
+				opserr << "WARNING:: invalid face tag for defining HTEleSet: " << HTNodeSetTag << "\n";
+				return -1;
+			}
+			theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
+		}
+		else {
+			OPS_ResetCurrentInputArg(-1);
+		}
+
 	}
 	else {
 		OPS_ResetCurrentInputArg(-1);
 	}
+	//HTEntityTag obtained
+
+
+	
 	//end of HTEntity tag 
 
   //search node in the range of xloc
@@ -1564,8 +1570,8 @@ OPS_HTNodeSet()
 				opserr << "WARNING::HTNodeSet "<< HTNodeSetTag<<" should receive xlocUB " << xlocUB << " greater than xlocLb " << xlocLB;
 				return -1;
 			}
-
-			theHTMesh->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
+			//opserr << xlocUB << " " << xlocLB;
+			theHTDomain->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
 			// for geting uncertain number of doubel values
 
 		}
@@ -1602,7 +1608,7 @@ OPS_HTNodeSet()
 				return -1;
 			}
 
-			theHTMesh->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
+			theHTDomain->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
 			// for geting uncertain number of doubel values
 
 		}
@@ -1637,7 +1643,7 @@ OPS_HTNodeSet()
 				return -1;
 			}
 
-			theHTMesh->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
+			theHTDomain->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
 			// for geting uncertain number of doubel values
 
 		}
@@ -3138,6 +3144,75 @@ int OPS_SetFirePars() {
 
 }
 
+
+int OPS_GetFireOut() {
+	if (OPS_GetNumRemainingInputArgs() < 1) {
+		opserr << "WARNING HTOutput: insufficient argument for retruning a value\n";
+		return -1;
+	}
+	int dataNum = 1;
+	const char* option = 0;
+	option = OPS_GetString();
+
+	if (strcmp(option, "firemodel") == 0 || strcmp(option, "fireModel") == 0 || strcmp(option, "-fire") == 0)
+	{
+
+		int FireModelTag = 0;
+		int FireParTag = 0;
+		double xloc = 0;
+		double yloc = 0;
+		double zloc = 0;
+		double q = 0;
+		double d = 0;
+		double Ts = 0;
+		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
+			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+			return -1;
+		}
+		if (OPS_GetNumRemainingInputArgs() < 1)
+		{
+			opserr << "WARNING:: insufficient arguments for fire model HTOutput: " << "\n";
+			return -1;
+		}
+		option = OPS_GetString();
+		if (strcmp(option, "loc") == 0 || strcmp(option, "Loc") == 0 || strcmp(option, "-Loc") == 0)
+		{
+
+			if (OPS_GetNumRemainingInputArgs() < 3) {
+				opserr << "WARNING:: insufficient arguments for set loc: " << "\n";
+			}
+			else {
+				if (OPS_GetDoubleInput(&dataNum, &xloc) < 0) {
+					opserr << "WARNING:: invalid xloc for set xloc " << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &yloc) < 0) {
+					opserr << "WARNING:: invalid yloc for set yloc " << "\n";
+					return -1;
+				}
+				if (OPS_GetDoubleInput(&dataNum, &zloc) < 0) {
+					opserr << "WARNING:: invalid zloc for set zloc " << "\n";
+					return -1;
+				}
+			}
+			Vector locs(3);
+			locs(0) = xloc; locs(1) = yloc; locs(2) = zloc;
+			FireModel* thefire = theHTModule->getFireModel(FireModelTag);
+			double thecurrentTime = theHTDomain->getCurrentTime();
+			double incq = thefire->getFireOut(thecurrentTime, locs);
+
+			if (OPS_SetDoubleOutput(&dataNum, &incq) < 0) {
+				opserr << "WARNING failed to return fire pars for fire model " << FireModelTag << "\n";
+				return -1;
+			}
+
+		}
+
+	}
+
+
+}
+
 //Add HTWipe
 int OPS_HTReset()
 {
@@ -3350,6 +3425,15 @@ static PyObject* Py_ops_SetFirePars(PyObject* self, PyObject* args)
 	return theWrapper->getResults();
 }
 
+static PyObject* Py_ops_GetFireOut(PyObject* self, PyObject* args)
+{
+	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
+
+	if (OPS_GetFireOut() < 0) return NULL;
+
+	return theWrapper->getResults();
+}
+
 static PyObject* Py_ops_HTreset(PyObject* self, PyObject* args)
 {
 	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
@@ -3394,6 +3478,7 @@ int OPS_addHTCommands(PythonWrapper* thewrapper)
 	theWrapper->addCommand("HToutput", &Py_ops_HToutput);
 	theWrapper->addCommand("HTTime", &Py_ops_HTtime);
 	theWrapper->addCommand("SetFirePars", &Py_ops_SetFirePars);
+	theWrapper->addCommand("GetFireOut", &Py_ops_GetFireOut);
 
 	theWrapper->addCommand("HeatFluxBC", &Py_ops_addHeatFluxBC);
 	theWrapper->addCommand("HTCouple", &Py_ops_addMPTemperatureBC);

@@ -135,100 +135,123 @@ TravellingFire::getFirePars(int ParTag) {
 }
 
 double 
-TravellingFire::getFlux(HeatTransferNode* node, double time)
+TravellingFire::getFireOut( double time, const Vector& coords)
 {
 	if (FireLocPath != 0) {
-		if(this->setFirePars(time)<0)
+		if (this->setFirePars(time) < 0)
 			exit(-1);
 	}
-	double q_dot=0;
-	
+
+
+	double q_dot = 0;
+
 	// first calculate flame length
-    double Lf = 0.0148 * pow(q,0.4) - 1.02 * d;
-	if (Lf < h) {
-		//opserr << "TravellingFire::getFlux() - flame is not impinging ceiling, method has not implemented.\n";
-		q_dot = 0.0;
-		}
-	double constant = 1.11 * 1e6 * pow(d,2.5);
+	double Lf = 0.0148 * pow(q, 0.4) - 1.02 * d;
+	
+	double constant = 1.11 * 1e6 * pow(d, 2.5);
 	double Qd_ast = q / constant;
 	double z_acute;
 
 	if (Qd_ast < 1.0) {
-		double a = 2.0/3.0;
-		double term = pow(Qd_ast,0.4) - pow(Qd_ast,a);
+		double a = 2.0 / 3.0;
+		double term = pow(Qd_ast, 0.4) - pow(Qd_ast, a);
 		z_acute = 2.4 * d * term;
-		} else {
-			double term = 1.0 - pow(Qd_ast, 0.4);
-			z_acute = 2.4 * d * term;
-		}
-	double term = 1.11 * 1e6 * pow(h,2.5);
+	}
+	else {
+		double term = 1.0 - pow(Qd_ast, 0.4);
+		z_acute = 2.4 * d * term;
+	}
+	double term = 1.11 * 1e6 * pow(h, 2.5);
 	double Qh_ast = q / term;
 
 	// now calculate H plus Lh
-	double Lt = 2.9 * h * pow(Qh_ast,0.33);
+	double Lt = 2.9 * h * pow(Qh_ast, 0.33);
 
 	// now calculate r	
-	const Vector& coords = node->getCrds();
+	
 	int size = coords.Size();
 
 	double deltaX1, deltaX2, sum, r;
-   
-	
-	
+
+
+
 	if (centerLine == 1) {
 		deltaX1 = fireLocs(1) - coords(1);
 		if (size == 3) {
 			// then heat transfer coordinate is 3D
 			deltaX2 = fireLocs(2) - coords(2);
-			} else {
-				// then heat transfer coordinate is 2D
-				deltaX2 = fireLocs(2);
-			}
-	} else if (centerLine == 2) {
+		}
+		else {
+			// then heat transfer coordinate is 2D
+			deltaX2 = fireLocs(2);
+		}
+	}
+	else if (centerLine == 2) {
 		deltaX1 = fireLocs(0) - coords(0);
 		if (size == 3) {
 			// then heat transfer coordinate is 3D
 			deltaX2 = fireLocs(2) - coords(2);
-		} else {
+		}
+		else {
 			// then heat transfer coordinate is 2D
 			deltaX2 = fireLocs(2);
 		}
-	} else if (centerLine == 3) {
-			deltaX1 = fireLocs(0) - coords(0);
-			deltaX2 = fireLocs(1) - coords(1);
-			}
+	}
+	else if (centerLine == 3) {
+		deltaX1 = fireLocs(0) - coords(0);
+		deltaX2 = fireLocs(1) - coords(1);
+	}
 
-    sum = deltaX1 * deltaX1 + deltaX2 * deltaX2;
-    r = sqrt(sum);
+	sum = deltaX1 * deltaX1 + deltaX2 * deltaX2;
+	r = sqrt(sum);
 
 	// now calculate y
 	double y = (r + h + z_acute) / (Lt + z_acute);
 
 	// now determine the flux
-	
+
 	if (y <= 0.3) {
 		q_dot = 100000;
-	} else if ((y > 0.3) && (y < 1.0)) {
-		q_dot = 136300 - 121000 * y;
-	} else if (y >= 1.0) {
-		q_dot = 15000 * pow(y,-3.7);
 	}
-	
-	double q_smoke = 0.8* 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+	else if ((y > 0.3) && (y < 1.0)) {
+		q_dot = 136300 - 121000 * y;
+	}
+	else if (y >= 1.0) {
+		q_dot = 15000 * pow(y, -3.7);
+	}
+
+	if (Lf < h) {
+		//opserr << "TravellingFire::getFlux() - flame is not impinging ceiling, method has not implemented.\n";
+		q_dot = 0.0;
+	}
+
+
+	double q_smoke = 0.8 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
 	if (q_dot < q_smoke) {
 #ifdef _DEBUG
 		opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
 #endif
 		q_dot = q_smoke;
-		
+
 	}
-		
+
+
 
 #ifdef _DEBUG
-	int tag = node->getTag();
+	//int tag = node->getTag();
 	//opserr<<" Travelling fire: "<<fireLocs(1)<<","<<x3<<", q"<<q<<" r:  "<<r<<"____ "<< " q:  "<<q_dot<<"____ ";
 #endif
 	return q_dot;
+
+}
+
+
+double 
+TravellingFire::getFlux(HeatTransferNode* node, double time)
+{
+	const Vector& coords = node->getCrds();
+	double qdot = this->getFireOut(time,coords);
+	return qdot;
 }
 
 
