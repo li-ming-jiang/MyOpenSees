@@ -86,6 +86,7 @@
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\Idealised_Local_Fire.cpp" />
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\LocalizedFireEC1.cpp" />
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\LocalizedFireSFPE.cpp" />
+    <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\NaturalFire.cpp" />
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\TravellingFire.cpp" />
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Uniform_Fires\EmpericalCompartmentFire.cpp" />
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Uniform_Fires\NorminalFireEC1.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\Idealised_Local_Fire.h" />
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\LocalizedFireEC1.h" />
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\LocalizedFireSFPE.h" />
+    <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\NaturalFire.h" />
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\TravellingFire.h" />
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Uniform_Fires\EmpericalCompartmentFire.h" />
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Uniform_Fires\NorminalFireEC1.h" />

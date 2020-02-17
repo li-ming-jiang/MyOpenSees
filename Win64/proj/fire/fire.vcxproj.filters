@@ -49,6 +49,9 @@
     <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\TravellingFire.cpp">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\NaturalFire.cpp">
+      <Filter>Idealised_nonuniform_fires</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\fire\CFD_Interface\CFD_Interface.h">
@@ -83,6 +86,9 @@
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\TravellingFire.h">
+      <Filter>Idealised_nonuniform_fires</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\fire\Idealised_Nonuniform_fires\NaturalFire.h">
       <Filter>Idealised_nonuniform_fires</Filter>
     </ClInclude>
   </ItemGroup>

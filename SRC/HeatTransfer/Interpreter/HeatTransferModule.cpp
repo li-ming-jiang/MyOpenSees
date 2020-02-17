@@ -92,7 +92,7 @@ using std::setiosflags;
 #include <Idealised_Local_Fire.h>
 #include <LocalizedFireSFPE.h>
 #include <AlpertCeilingJetModel.h>
-#include <TravellingFire.h>
+#include <NaturalFire.h>
 #include <UserDefinedFire.h>
 
 #include <BoundaryPattern.h>
@@ -2003,10 +2003,10 @@ OPS_addFireModel()
 		}
 
 		if (theSeries != 0) {
-			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag, Ts, theSeries);
+			theFireModel = new NaturalFire(FireModelTag, D, Q, H, lineTag, Ts, theSeries);
 		}
 		else {
-			theFireModel = new TravellingFire(FireModelTag, D, Q, H, lineTag, Ts);
+			theFireModel = new NaturalFire(FireModelTag, D, Q, H, lineTag, Ts);
 		}
 	}
 	//else ----------

@@ -23,41 +23,47 @@
 ** ****************************************************************** */
 
 //
-// Added by Liming Jiang (liming.jiang@ed.ac.uk)
-// Based on LocalisedFireEC1
+// Added by Liming Jiang (liming.jiang@polyu.edu.hk)
+// Based on LocalisedBurning fire model
 
-#ifndef MovingLocalizedFireEC1_h
-#define MovingLocalizedFireEC1_h
+#ifndef NaturalFire_h
+#define NaturalFire_h
 #include <FireModel.h>
 #include <PathTimeSeriesThermal.h>
+#include <Vector.h>
 
-class Vector;
+//class Vector;
 class HeatTransferNode;
 
-class MovingLocalizedFireEC1 : public FireModel
+class NaturalFire : public FireModel
 {
     public:
 	  // typeTag indicates the type of norminal fire given in EN1991-1-2
 	  // default is 1 corresponding to the standard temperature-time curve,
 	  // 2 is for external fire curve, 3 is for hydrocarbon curve. Default 
 	  // value is 1.
-	  MovingLocalizedFireEC1(int tag,PathTimeSeriesThermal* fireLocPath, double D, double Q,
-		               double H, int centerLineTag = 3);
+		NaturalFire(int tag, double D = 1, double Q = 1e6,
+			double H = 3, int centerLineTag = 2, double smokeTemp = 293.15, PathTimeSeriesThermal* fireLocPath = 0);
 
-	  //MovingLocalizedFireEC1(double crd1, double crd2, double crd3, const Vector& time,
+	  //NaturalFire(double crd1, double crd2, double crd3, const Vector& time,
 		 //              const Vector& d, const Vector& Q, double H);
 
 
-	  virtual ~MovingLocalizedFireEC1();
+	  virtual ~NaturalFire();
 	  
 	  void applyFluxBC(HeatFluxBC* theFlux, double time);
-
+	  int setFirePars(double time,const Vector& firePars =0);
+	  double getFirePars(int ParTag=1);
+	  double getFireOut(double time, const Vector&);
 	protected:
 
     private:
 	  double getFlux(HeatTransferNode* the_node, double time);
 	  PathTimeSeriesThermal* FireLocPath;
+	  Vector fireLocs;
 	  double  d, q, h;
+	  double smokeT;
+	  double maxq;
 	  int centerLine;
 };
 
