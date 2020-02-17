@@ -1992,6 +1992,14 @@ OPS_addFireModel()
 				}
 
 			}
+			else if (strcmp(option, "H") == 0 || strcmp(option, "-H") == 0) {
+				if (OPS_GetDoubleInput(&numData, &H) < 0) {
+					opserr << "WARNING invalid distance between the fire source and the ceiling" << endln;
+					opserr << " for HeatTransfer localised fire model: " << FireModelTag << endln;
+					return -1;
+				}
+
+			}
 		}
 
 		if (theSeries != 0) {
@@ -2985,7 +2993,7 @@ int OPS_HTOutput()
 		}
 		int nodetag = 0;
 		if (OPS_GetIntInput(&dataNum, &nodetag) < 0) {
-			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
+			opserr << "WARNING:: invalid node tag for HTOutput: " << "\n";
 			return -1;
 		}
 		HeatTransferNode* theNode = theHTDomain->getNode(nodetag);
@@ -2998,9 +3006,49 @@ int OPS_HTOutput()
 			option = "temp";
 
 		if (strcmp(option, "-temp") == 0 || strcmp(option, "temp") == 0 || strcmp(option, "Temp") == 0) {
-			double NodeTemp = theNode->getTemperature()(0);
+			double NodeTemp = theNode->getTemperature()(0)-273.15;
 			if (OPS_SetDoubleOutput(&dataNum, &NodeTemp) < 0) {
 				opserr << "WARNING failed to return temperature for node " << nodetag << "\n";
+				return -1;
+			}
+		}
+	}
+	else if (strcmp(option, "-nodeset") == 0 || strcmp(option, "NodeSet") == 0 || strcmp(option, "nodeset") == 0)
+	{
+
+		if (OPS_GetNumRemainingInputArgs() < 2)
+		{
+			opserr << "WARNING:: insufficient arguments for nodal HTOutput: " << "\n";
+			return -1;
+		}
+		int nodesetTag = 0;
+		if (OPS_GetIntInput(&dataNum, &nodesetTag) < 0) {
+			opserr << "WARNING:: invalid nodeset tag for HTOutput: " << "\n";
+			return -1;
+		}
+		HTNodeSet* theNodeset = theHTModule->getHTNodeSet(nodesetTag);
+
+		if (OPS_GetNumRemainingInputArgs() > 0)
+		{
+			option = OPS_GetString();
+		}
+		else
+			option = "temp";
+
+		if (strcmp(option, "-temp") == 0 || strcmp(option, "temp") == 0 || strcmp(option, "Temp") == 0) {
+			ID nodeID = theNodeset->getNodeID();
+			int numNodes = nodeID.Size();
+			double* data = new double[numNodes];
+
+			for (int i = 0; i < numNodes; i++) {
+				int nodeTag = nodeID(i);
+				HeatTransferNode* theNode = theHTDomain->getNode(nodeTag);
+				data[i]= theNode->getTemperature()(0) - 273.15;
+			}
+
+			if (OPS_SetDoubleOutput(&numNodes, data) < 0) {
+				opserr << "WARNING failed to return temperature for node set" << nodesetTag << "\n";
+				delete[] data;
 				return -1;
 			}
 		}
@@ -3031,6 +3079,7 @@ int OPS_SetFirePars() {
 		double q = 0;
 		double d = 0;
 		double Ts = 0;
+		double maxq = 1e5;
 		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
 			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
 			return -1;
@@ -3114,6 +3163,14 @@ int OPS_SetFirePars() {
 					numPars = 6;
 				}
 				
+				if (OPS_GetNumRemainingInputArgs() > 0) {
+					if (OPS_GetDoubleInput(&dataNum, &maxq) < 0) {
+						opserr << "WARNING:: invalid maximum incident q for set firePars " << "\n";
+						return -1;
+					}
+					numPars = 7;
+				}
+
 			}
 			Vector firepars(numPars);
 			firepars(0) = xloc; firepars(1) = yloc; firepars(2) = zloc; 
@@ -3125,6 +3182,9 @@ int OPS_SetFirePars() {
 			}
 			else if (numPars == 6) {
 				firepars(3) = q; firepars(4) = d; firepars(5) = Ts+273.15;
+			}
+			else if (numPars == 7) {
+				firepars(3) = q; firepars(4) = d; firepars(5) = Ts + 273.15; firepars(6) = maxq;
 			}
 			
 			FireModel* thefire = 0;

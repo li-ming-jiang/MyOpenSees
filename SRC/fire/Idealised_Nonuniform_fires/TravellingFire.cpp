@@ -41,7 +41,7 @@
 TravellingFire::TravellingFire(int tag, double D,
 	double Q, double H, int lineTag, double smokeTemp, PathTimeSeriesThermal* fireLocPath)
 	:FireModel(tag, 7), FireLocPath(fireLocPath), fireLocs(3), d(D), 
-	q(Q), h(H), smokeT(smokeTemp),centerLine(lineTag)
+	q(Q), h(H), smokeT(smokeTemp),maxq(1e5),centerLine(lineTag)
 {
     // check the direction of central line of a Hasemi fire
     // 1 indicates it is parrallel to x1 axis, 2 indicates
@@ -100,6 +100,16 @@ TravellingFire::setFirePars(double time, const Vector& firePars) {
 		d = FirePars(4);
 		smokeT = FirePars(5);
 	}
+	else if (FirePars.Size() == 7) {
+		fireLocs(0) = FirePars(0);
+		fireLocs(1) = FirePars(1);
+		fireLocs(2) = FirePars(2);
+		q = FirePars(3);
+		d = FirePars(4);
+		smokeT = FirePars(5);
+		maxq = FirePars(6);
+
+	}
 	else {
 			opserr << "WARNING! TravellingFire::getFlux failed to get the location of fire origin" << endln;
 			return -1;
@@ -126,6 +136,8 @@ TravellingFire::getFirePars(int ParTag) {
 		return d;
 	else if (ParTag == 6)
 		return smokeT;
+	else if (ParTag == 7)
+		return maxq;
 	else {
 		opserr << "WARNING! invalid tag for TravellingFire::getFirePars " << ParTag << endln;
 		return -1;
@@ -220,8 +232,10 @@ TravellingFire::getFireOut( double time, const Vector& coords)
 		q_dot = 15000 * pow(y, -3.7);
 	}
 
+	q_dot = q_dot * maxq / 1e5; //modify the maximum q
+
 	if (Lf < h) {
-		//opserr << "TravellingFire::getFlux() - flame is not impinging ceiling, method has not implemented.\n";
+		opserr << "Lf: "<<Lf<<" h: "<<h<<endln;
 		q_dot = 0.0;
 	}
 
