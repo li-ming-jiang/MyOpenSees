@@ -219,6 +219,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 
 	if (Lf < h) {
+		//not impinge ceiling
 		
 		if (r/ h > 0.18) {
 			gas_t = 5.38 * pow(q / 1000.0/r, 2.0 / 3.0) / h;
@@ -245,6 +246,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 	}
 	else {
 		// now calculate y
+		//impinge ceiling
 		double y = (r + h + z_acute) / (Lt + z_acute);
 
 		// now determine the flux
