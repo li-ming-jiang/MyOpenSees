@@ -219,20 +219,29 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 
 	if (Lf < h) {
-		opserr << "Lf: " << Lf << " h: " << h << endln;
-		q_dot = 0.0;
-	}
-
-	if (Lf < h) {
-		//opserr << "Lf: " << Lf << " h: " << h << endln;
-		if (r / h > 0.18) {
-			gas_t = 5.38 * pow(q / 1000/r, 2 / 3) / h;
+		
+		if (r/ h > 0.18) {
+			gas_t = 5.38 * pow(q / 1000.0/r, 2.0 / 3.0) / h;
 		}
 		else {
-			gas_t = 16.9 * pow(q/1000, 2 / 3) / pow(h,5/3);
+			gas_t = 16.9 * pow(q/1000.0, 2.0/3.0) / pow(h,5.0/3.0);
 
 		}
-		q_dot = 0.0;
+
+		//opserr << " GAS: " << gas_t << " Q: "<< q<<" h "<< pow(q / 1000.0 / r, 2.0 / 3.0);
+		gas_t = gas_t + 293.15;
+
+		if (gas_t > smokeT) {
+		
+			q_dot = 0.8 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
+		}
+		else {
+
+			q_dot = 0.8 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+
+		}
+		
+		
 	}
 	else {
 		// now calculate y
@@ -252,23 +261,16 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 		q_dot = q_dot * maxq / 1e5; //modify the maximum q
 
+		double q_smoke = 0.8 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+		if (q_dot < q_smoke) {
+#ifdef _DEBUG
+			opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
+#endif
+			q_dot = q_smoke;
+
+		}
 	}
 	
-
-	if (gas_t > smokeT) {
-		smokeT = gas_t;
-	}
-
-	double q_smoke = 0.8 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
-	if (q_dot < q_smoke) {
-#ifdef _DEBUG
-		opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
-#endif
-		q_dot = q_smoke;
-
-	}
-
-
 
 #ifdef _DEBUG
 	//int tag = node->getTag();
