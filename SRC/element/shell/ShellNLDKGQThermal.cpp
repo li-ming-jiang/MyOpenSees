@@ -1593,7 +1593,7 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 	Tmat(5,3) = g3[0];
 	Tmat(5,4) = g3[1];
 	Tmat(5,5) = g3[2];
-#ifdef _DEBUG
+#ifdef _SDEBUG
 	if(this->getTag()==10)
 		opserr<<"ShellNL : Disp "<<nodePointers[2]->getIncrDisp( )<<endln;
 #endif
@@ -1735,13 +1735,13 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
   if(this->getTag()==1&&i==1)
      newStrain(8)=111;
 	
-  if(counterTemperature !=1&&counterTemperature !=2){
+//if(counterTemperature !=1&&counterTemperature !=2){
 #ifdef _SDEBUG
 		opserr<< "Element  "<<this->getTag()<<" Int "<<i<<endln;	  
 #endif
 		success = materialPointers[i]->setTrialSectionDeformation(newStrain);
 
-  }
+//}
 
 		//compute the stress
 		stress = materialPointers[i]->getStressResultant( );
