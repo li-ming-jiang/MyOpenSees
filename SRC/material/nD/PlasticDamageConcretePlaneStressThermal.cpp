@@ -721,8 +721,8 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 				beta = 0;
 			}
 
-			if (TempAndElong(0) > 391 &&this->getTag()==2589)
-				opserr << "Temp " << TempAndElong(0)<< endln;
+		//	if (TempAndElong(0) > 391 &&this->getTag()==2589)
+				//opserr << "Temp " << TempAndElong(0)<< endln;
 
 			Fres = (alpha*I1 + sqrt(3.0 / 2.0)*Snorm + beta*sigpmp) / (1 - alpha) - fcbar;
 
@@ -879,10 +879,10 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
    
 //outpt.open(fname);
 	
-	//if (Tchange == 1) {
-	//	outpt << endln << TempAndElong(0) << endln;
-	//	Tchange++;
-	//}
+	if (Tchange == 1) {
+		outpt << endln << TempAndElong(0) << endln;
+		Tchange++;
+	}
 	
  // outpt<< "kt: "<< kt << ", kc: " << kc<< "...eps:" << eps(0)<<", "<<eps(1)<<", "<<eps(2) ;
 	//outpt << "...epsp:" << eps_p(0) << ", " << eps_p(1) << ", " << eps_p(2) << "..Fres " << Fres << endln;
@@ -1226,7 +1226,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 		//E = -fc*0.0025 / epsc0 / fc0*E0;
 	//Elong = (1 - dt)* ThermalElongation;
 	//Es = -fc*0.0025/epsc0/fc0*Es0;
-	//ThermalElongation = 0;
+	ThermalElongation = ThermalElongation;
 	Elong = ThermalElongation;
 	// this->setTempInitials();
 	// E = E0;
