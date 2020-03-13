@@ -1151,6 +1151,9 @@
     <ClCompile Include="..\..\..\SRC\material\nD\PlasticDamageConcrete3dThermal.cpp">
       <Filter>nD</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\nD\J2PlaneStressThermal.cpp">
+      <Filter>nD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\AxialSp.h">
@@ -2154,6 +2157,9 @@
       <Filter>nD</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\nD\PlasticDamageConcrete3dThermal.h">
+      <Filter>nD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\nD\J2PlaneStressThermal.h">
       <Filter>nD</Filter>
     </ClInclude>
   </ItemGroup>

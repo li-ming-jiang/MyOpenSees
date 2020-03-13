@@ -57,36 +57,36 @@ OPS_J2PlaneStressThermal(void)
 	int numArgs = OPS_GetNumRemainingInputArgs();
 
 	if (numArgs < 5) {
-		opserr << "Want: nDMaterial J2PlaneStressThermal $tag $E $nu $fy $fyinf \n";
+		opserr << "Want: nDMaterial J2PlaneStressThermal $tag $typeTag $E $nu $fy $fyinf \n";
 		return 0;
 	}
 
-	int iData[1];
+	int iData[2];
 	double dData[10];
 	dData[4] = 0;
 	dData[5] = 0;
 	
 
 
-	int numData = 1;
+	int numData = 2;
 	if (OPS_GetInt(&numData, iData) != 0) {
 		opserr << "WARNING invalid integer tag: nDMaterial EasticIsotropic \n";
 		return 0;
 	}
 
-	numData = numArgs - 1;;
+	numData = numArgs - 2;;
 	if (OPS_GetDouble(&numData, dData) != 0) {
 		opserr << "WARNING invalid data: nDMaterial EasticIsotropic : " << iData[0] << "\n";
 		return 0;
 	}
 
-	theMaterial = new J2PlaneStressThermal(iData[0],
+	theMaterial = new J2PlaneStressThermal(iData[0], iData[1],
 		dData[0], dData[1], dData[2], dData[3],dData[4], dData[5]);
 	matTag = iData[0];
 	return theMaterial;
 }
 
-J2PlaneStressThermal::J2PlaneStressThermal(int tag,
+J2PlaneStressThermal::J2PlaneStressThermal(int tag, int typeTag,
 	double e,
 	double nu,
 	double fy_0,
@@ -95,7 +95,7 @@ J2PlaneStressThermal::J2PlaneStressThermal(int tag,
 	double H0
 )
 	:NDMaterial(tag, 100),
-	E(e), nu(nu), fy(fy_0), fy_inf(fy_infty),
+	TypeTag(typeTag),E(e), nu(nu), fy(fy_0), fy_inf(fy_infty),
 	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
 	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3),d(d0),H(H0),
 	Ce(3, 3), C(3, 3), Ce0(3, 3), Ccommit(3, 3), fy0(fy_0), fy0_inf(fy_infty), E0(e)
@@ -667,7 +667,7 @@ J2PlaneStressThermal::getCopy(const char *type)
 		//for debugging
 		matTag++;
 		J2PlaneStressThermal *theCopy =
-			new J2PlaneStressThermal(matTag, E0, nu, fy0, fy0_inf,d,H);
+			new J2PlaneStressThermal(matTag, TypeTag, E0, nu, fy0, fy0_inf,d,H);
 		return theCopy;
 	}
 	else {
@@ -679,7 +679,7 @@ NDMaterial*
 J2PlaneStressThermal::getCopy(void)
 {
 	J2PlaneStressThermal *theCopy =
-		new J2PlaneStressThermal(this->getTag(), E0, nu, fy0, fy0_inf,d,H);
+		new J2PlaneStressThermal(this->getTag(), TypeTag, E0, nu, fy0, fy0_inf,d,H);
 	return theCopy;
 }
 
@@ -745,7 +745,7 @@ J2PlaneStressThermal::getTempAndElong(void)
 double
 J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, double&Elong)
 {
-	int typeTag = 21;
+	
 	double TempT = tempT;
 	double E00; //Initial tangent 
 	ET = E0;
@@ -761,7 +761,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	double FpRfactors[12];
 	double E0Rfactors[12];
 	
-	if (typeTag == 0 || typeTag == 3) {
+	if (TypeTag == 0 || TypeTag == 3) {
 		double FyRfEC3[12] = { 1.0, 1.0 ,1.0, 1.0 ,0.78, 0.47, 0.23, 0.11, 0.06, 0.04 ,0.02, 0.0 };
 		double FpRfEC3[12] = { 1.0, 0.807 ,0.613, 0.420 ,0.36, 0.18, 0.075, 0.050, 0.0375, 0.025 ,0.0125, 0.0 };
 		double E0RfEC3[12] = { 1.0, 0.9, 0.8 ,0.7, 0.6 ,0.31, 0.13, 0.09, 0.0675, 0.045, 0.0225 , 0.0 };
@@ -772,7 +772,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 		}
 
 	}
-	else if (typeTag == 21) {
+	else if (TypeTag == 21) {
 		double FyRfEC21[12] = { 1.0, 1.0 ,1.0, 1.0 ,0.78, 0.47, 0.23, 0.11, 0.06, 0.04 ,0.02, 0.0 };
 		double FpRfEC21[12] = { 1.0, 0.81 ,0.61, 0.42 ,0.36, 0.18, 0.07, 0.05, 0.04, 0.02 ,0.01, 0.0 };
 		double E0RfEC21[12] = { 1.0, 0.9, 0.8 ,0.7, 0.6 ,0.31, 0.13, 0.09, 0.07, 0.04, 0.02 , 0.0 };
@@ -783,7 +783,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 		}
 
 	}
-	else if (typeTag == 22) {
+	else if (TypeTag == 22) {
 		double FyRfEC22[12] = { 1.0, 1.0 ,1.0, 0.94 ,0.67, 0.40, 0.12, 0.11, 0.08, 0.05 ,0.03, 0.0 };
 		double FpRfEC22[12] = { 0.96 ,0.92, 0.81 ,0.63, 0.44, 0.26, 0.08, 0.06, 0.05 ,0.03, 0.02, 0.0 };
 		double E0RfEC22[12] = { 1.0, 0.87, 0.72 ,0.56, 0.40 ,0.24, 0.08, 0.06, 0.05, 0.03, 0.02 , 0.0 };
@@ -793,7 +793,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 			E0Rfactors[i] = E0RfEC22[i];
 		}
 	}
-	else if (typeTag == 23) {
+	else if (TypeTag == 23) {
 		double FyRfEC23[12] = { 1.0, 1.0 ,1.0, 0.90 ,0.70, 0.47, 0.23, 0.11, 0.06, 0.04 ,0.02, 0.0 };
 		double FpRfEC23[12] = { 1.00 ,0.87, 0.74 ,0.70, 0.51, 0.18, 0.07, 0.05, 0.04 ,0.02, 0.01, 0.0 };
 		double E0RfEC23[12] = { 1.0, 0.95, 0.90 ,0.75, 0.60 ,0.31, 0.13, 0.09, 0.07, 0.04, 0.02 , 0.0 };
@@ -804,7 +804,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 		}
 	}
 	else
-		opserr << "WARNING SteelECThermal received an invalid typeTag: " << typeTag << endln;
+		opserr << "WARNING SteelECThermal received an invalid typeTag: " << TypeTag << endln;
 
 	//Now Updating modulus, strengths
 	for (int i = 0; i<13; i++) {
@@ -870,7 +870,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	Elong = ThermalElongation;
 	//this->plastic_integrator();
    // TempAndElong(0) = Temp;
-	TempAndElong(1) = C(0,0);
+	TempAndElong(1) = ThermalElongation;
 	Tchange++;
 	return 0;
 }
