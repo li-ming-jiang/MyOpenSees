@@ -578,7 +578,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 				//}
 
 			}
-			//------end of determining lamda, principal stresses----------
+			//-//---//--end of determining lamda, principal stresses------///--//--//
 
 
 			//now determine damage variables
@@ -705,6 +705,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 			}
 			//end of local iteration for i
 
+			//determine the damage parameters----------//
 			dt = 1.0 - 1.0/At*((1 + At)*sqrt(fit) - fit);
 			dc = 1.0 - 1.0 / Ac*((1 + Ac)*sqrt(fic) - fic);
 
@@ -813,16 +814,22 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 
 
 	tempSigPr.Zero();
+	sigPr(0) = (1 - dt) * sigPr(0);
+	sigPr(1) = (1 - dc) * sigPr(1);
+
 	//dt = 0; dc = 0;
 
-	 if (sigPr(0) > 0 && sigPr(1) > 0)
-		 sigPr = (1 - dt)*sigPr;
+	/*
+	if (sigPr(0) > 0 && sigPr(1) > 0)
+		 sigPr(0) = (1 - dt) * sigPr(0);
 	 else if (sigPr(0) > 0 && sigPr(1) < 0) {
 		 sigPr(0) = (1 - dt)*sigPr(0);
 		 sigPr(1) = (1 - dc)*sigPr(1);
 	 }
 	 else if (sigPr(0) < 0 && sigPr(1) < 0)
 		 sigPr = (1 - dc)*sigPr;
+	*/
+	 
 
 
 
