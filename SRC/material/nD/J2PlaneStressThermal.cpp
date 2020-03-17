@@ -851,7 +851,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	
 	fy_inf = fy / fy0*fy0_inf;
 	//H = 0;
-	fyt = fy_inf + (fy - fy_inf)*exp(-d*kxi_Commit) + H*kxi_Commit;
+	fyt = fy_inf -(fy_inf-fy)*exp(-d*kxi_Commit) + H*kxi_Commit;
 	
 	
 

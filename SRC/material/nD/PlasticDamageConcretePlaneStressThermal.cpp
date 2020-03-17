@@ -256,6 +256,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 	double xi = 0;
 	double f2c = 1.16 * fc;
 	double Fres=0;
+	double Qnorm = 0;
 	
 
 	static Vector Deps(3);// increment of strain;
@@ -280,7 +281,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 
 	//f2c = 1.16*fc;
 	double alpha = (1.16 - 1) / (2 * 1.16 - 1);
-	double alphap = 0.01;
+	double alphap = 0.3;
 
 
 	double dtotal; // overall consideration of tensile and compressive damage
@@ -397,7 +398,6 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 
 		double ft_r, fc_r;
 
-		double Qnorm;
 		double deltakt, deltakc;
 		double dQdkc, dQdkt;
 
@@ -603,7 +603,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 			gamma_sigma = hsigmaSum / sigmaSum;
 
 
-			for (int k = 0; k < 20; k++) {
+			for (int k = 0; k < 50; k++) {
 			
 				if (ktn1 < 0)
 					ktn1 = 0;
@@ -691,7 +691,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 #endif
 				Qnorm = sqrt(Qrest*Qrest + Qresc*Qresc);
 
-				if (Qnorm < 1e-4) {
+				if (Qnorm < 1e-10) {
 					//opserr << "count: " << count;
 					break;
 				}
@@ -898,7 +898,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 	//opserr << fyield<<" "<< kt << "  " << kc << " Fres " << Fres << " sigma " << sig(0)<< endln;
 	outpt<< fyield << " " << kt << "  " << kc<< " " << eps(0)<<" "<<eps(1)<<"  "<<eps(2) ;
 	outpt << "  " << eps_p(0) << "  " << eps_p(1) << "  " << eps_p(2) << "   " << Fres;
-  outpt << "   "<<sigPr(0)<<"  "<<sigPr(1)<<"   " << sig(0)<<"  " <<sig(1)<<"   "<<sig(2)<< "    "<<fcbar<<"   "<<ftbar<<"   "<<C(0,0)<<"   "<<C(2,2)<<endln;
+  outpt << "   "<<sigPr(0)<<"  "<<sigPr(1)<<"   " << sig(0)<<"  " <<sig(1)<<"   "<<sig(2)<< "    "<<fcbar<<"   "<<ftbar<<"   "<< delta_epsPr(0)<<"   "<< delta_epsPr(1) <<"  "<< Qnorm <<endln;
 	
   }
   ///////////////////////////////////////////////output for debug////////////////////////////// 
