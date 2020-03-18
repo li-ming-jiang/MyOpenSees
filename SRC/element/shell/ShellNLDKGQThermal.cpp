@@ -1245,12 +1245,12 @@ const Vector&  ShellNLDKGQThermal::getResistingForce( )
   if (load != 0)
     resid -= *load;
 
-//if (counterTemperature == 0)
-//{
-//	for ( int i=0; i<24; i++)
-	//	resid[i] +=residThermal[i];
-//}
-//counterTemperature++;
+if (counterTemperature == 0)
+{
+	for ( int i=0; i<24; i++)
+		resid[i] +=residThermal[i];
+}
+counterTemperature++;
 #ifdef _SDEBUG
   opserr<<"ShellNL Resid "<<resid<<endln;
 #endif

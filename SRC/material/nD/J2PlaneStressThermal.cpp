@@ -221,7 +221,7 @@ J2PlaneStressThermal::setTrialStrain(Vector const&v1, Vector const&v2) {
 int
 J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 {
-	double tol = 1.0e-6;
+	double tol = 1.0e-8;
 	double xi = 0;
 	
 
@@ -310,25 +310,19 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 		double xi_a;
 		double xi_b;
 
-		double ft_r, fc_r;
+
 
 		double Qnorm;
-		double deltakt, deltakc;
-		double dQdkc, dQdkt;
-
-		double Qrest, Qresc;
-		double ktn1;
-		double kcn1;
-		double deltaktn1, deltakcn1;
+	
 
 
 		zeta1 = 0;
-		zeta2 =  - 2.0 * nuwave* fy;
+		zeta2 =  - 2.0 * nuwave* fyt;
 
 		I1 = sigma1 + sigma2;
 		Snorm = sqrt(2.0 / 3.0 * (sigma1*sigma1 + sigma2*sigma2 - sigma1*sigma2));
 		
-		xia = (2.0*nuwave - 3.0)*fy / zeta2;
+		xia = (2.0*nuwave - 3.0)*fyt / zeta2;
 		
 
 		xib = 1.0 - 3.0 * sqrt(6.0)*G / ( 2.0 * sqrt(6.0)*nuwave*G);
@@ -368,6 +362,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 				xi = (xi_a + xi_b) / 2;
 			}
 
+			//fyt = fy_inf + (fy - fy_inf) * exp(-d * kxi) + H * kxi;
 
 			double  lamdap1 =  zeta2*xi + (2.0 * nuwave - 3.0)*fy;
 			double  lamdap2 =  - sqrt(6.0)*G*(3.0 - 2.0 * nuwave + 2.0 * nuwave*xi);
@@ -395,10 +390,10 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 			//returning to different zone
 
 
-			Fres = sqrt(3.0 / 2.0)*Snorm  - fy;
+			Fres = sqrt(3.0 / 2.0)*Snorm  - fyt;
 
 
-			if ((fabs(Xres) / Snorm < tol) && (fabs(Fres) / fy < tol) && lamda > 0) {
+			if ((fabs(Xres) / Snorm < tol) && (fabs(Fres) / fyt < tol) && lamda > 0) {
 					break;
 			}
 
@@ -408,7 +403,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 			//xi = xi_a ;
 			//}
 
-			double dlamda1_dxi =  zeta2;
+			double dlamda1_dxi = zeta2 ;
 			double dlamda2_dxi = - sqrt(6.0)*G * 2.0 * nuwave;
 
 			double dlamdadxi = (-1.0 / xi / xi)*lamdap1 / lamdap2 + (1.0 / xi - 1)*(dlamda1_dxi*lamdap2 - dlamda2_dxi*lamdap1) / lamdap2 / lamdap2;
@@ -850,6 +845,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 
 	
 	fy_inf = fy / fy0*fy0_inf;
+	H = fy / fy0 * 200e6;
 	//H = 0;
 	fyt = fy_inf -(fy_inf-fy)*exp(-d*kxi_Commit) + H*kxi_Commit;
 	
@@ -870,7 +866,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	Elong = ThermalElongation;
 	//this->plastic_integrator();
    // TempAndElong(0) = Temp;
-	TempAndElong(1) = ThermalElongation;
+	TempAndElong(1) = kxi;
 	Tchange++;
 	return 0;
 }
