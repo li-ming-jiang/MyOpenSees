@@ -1198,7 +1198,7 @@ DispBeamColumn2dThermal::getResistingForce()
   q(1) += q0[1];
   q(2) += q0[2];
 
-
+  /*
 	if (counterTemperature == 1) { 
 		#ifdef _BDEBUG
 		   opserr <<" Ele: "<< this->getTag()<<" ,q before Thermal force"<<q<<endln;
@@ -1212,7 +1212,7 @@ DispBeamColumn2dThermal::getResistingForce()
 		//q0TemperatureP[2]= q0Temperature[2];
 		counterTemperature++;
 		  }
-
+*/
 #ifdef _BDEBUG
  opserr <<" Ele: "<< this->getTag()<< ", q after Thermal force"<<q<<endln;
 #endif
