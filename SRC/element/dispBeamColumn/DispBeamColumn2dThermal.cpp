@@ -815,9 +815,7 @@ DispBeamColumn2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 
     }
     
-    q0[0] -= q0Temperature[0];
-    q0[1] -= q0Temperature[1];
-    q0[2] -= q0Temperature[2];
+
 
   }
   else if(type == LOAD_TAG_NodalThermalAction) {
@@ -902,9 +900,7 @@ DispBeamColumn2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 	  }
     }
     
-    q0[0] -= q0Temperature[0];
-    q0[1] -= q0Temperature[1];
-    q0[2] -= q0Temperature[2];
+
 }
 //----------------------------------------------
   else if(type == LOAD_TAG_ThermalActionWrapper) {
@@ -979,9 +975,6 @@ DispBeamColumn2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
     }
 	//end of for loop
     
-    q0[0] -= q0Temperature[0];
-    q0[1] -= q0Temperature[1];
-    q0[2] -= q0Temperature[2];
 }
  //----------------------------------------
 else {
@@ -1198,21 +1191,19 @@ DispBeamColumn2dThermal::getResistingForce()
   q(1) += q0[1];
   q(2) += q0[2];
 
-  /*
-	if (counterTemperature == 1) { 
-		#ifdef _BDEBUG
-		   opserr <<" Ele: "<< this->getTag()<<" ,q before Thermal force"<<q<<endln;
-		#endif
-		
-		q(0) -= (q0Temperature[0]);
-		q(1) -= (q0Temperature[1]);
-		q(2) -= (q0Temperature[2]);
-		//q0TemperatureP[0]= q0Temperature[0];
-		//q0TemperatureP[1]= q0Temperature[1];
-		//q0TemperatureP[2]= q0Temperature[2];
-		counterTemperature++;
-		  }
-*/
+
+  if (counterTemperature == 1) {
+#ifdef _BDEBUG
+      opserr << " Ele: " << this->getTag() << " ,q before Thermal force" << q << endln;
+#endif
+
+      q(0) -= (q0Temperature[0]);
+      q(1) -= (q0Temperature[1]);
+      q(2) -= (q0Temperature[2]);
+
+      counterTemperature++;
+  }
+
 #ifdef _BDEBUG
  opserr <<" Ele: "<< this->getTag()<< ", q after Thermal force"<<q<<endln;
 #endif
