@@ -550,7 +550,7 @@ const Matrix&  ShellNLDKGQThermal::getTangentStiff( )
   //do tangent and residual here
   formResidAndTangent( tang_flag ) ; 
 #ifdef _SDEBUG
- // opserr<<stiff<<endln;
+  opserr<<stiff<<endln;
 #endif
   return stiff ;
 }    
