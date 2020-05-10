@@ -309,12 +309,12 @@ void SteelECThermal::determineTrialState (double dStrain)
 	  }
 	  else if (fabsTstrain <= EpsiT)
 		  {
-		  	Tstress = fy+(fabsTstrain-EpsiYT)*(1E-4)*E0;
-			Ttangent = (1E-4)*E0;
+		  	Tstress = fy+(fabsTstrain-EpsiYT)*(1E-2)*E0;
+			Ttangent = (1E-2)*E0;
 		  }	  
 	  else if (fabsTstrain <= EpsiU)
 	 	 {
-		  double fy1 = fy+(EpsiU-EpsiYT)*(1E-4)*E0;// modeified to add hardeding and avoid cinvergence problem
+		  double fy1 = fy+(EpsiU-EpsiYT)*(1E-2)*E0;// modeified to add hardeding and avoid cinvergence problem
 		  Tstress = fy1*(1- (fabsTstrain - EpsiT)/(EpsiU -EpsiT));
           //opserr<<"Error: Stiffness of SteelECthermal is negative"<<endln;
 		  Ttangent = -fy1/(EpsiU-EpsiT);

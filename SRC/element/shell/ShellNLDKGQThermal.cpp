@@ -1675,8 +1675,13 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 			//Added by Liming, 2015 for unconverged loop
 			if(incrDisp.Norm()>1e6)
 				return(-1);
-			//if((this->getTag())==1&&i==3)
-				//opserr<<"Node "<<j<<" incrDisp "<<incrDisp<<endln;
+#ifdef _SDEBUG
+			if ((this->getTag()) == 1 && i == 2) {
+				const Vector& ul = nodePointers[j]->getTrialDisp();
+				opserr << "Node " << j << " TrialDisp " << ul << endln;
+				opserr << "Node " << j << " incrDisp " << incrDisp << endln;
+			}
+#endif
 			//dispIncLocal = Tmat * dul
 			dispIncLocal.addMatrixVector(0.0,Tmat,incrDisp,1.0);
 			
@@ -1696,7 +1701,7 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 			dstrain_li.addMatrixVector(1.0, BJP, dispIncLocal,1.0);
 #ifdef _SDEBUG
 		if(this->getTag()==1&&i==3)
-			opserr<<"ShellNLDKGQ "<<this->getTag()<< " dstrain_li  "<<dstrain_li<<endln;
+			opserr<<"ShellNLDKGQ "<<this->getTag() << "i:" << i << ",j:" << j << "   ul"<< incrDisp <<endln<<" Bbend  "<< Bbend <<"dstrain_li"<< dstrain_li <<endln;
 #endif
 			//add for geometric nonlinearity: dstrain_nl(3)
 		   //dstrain_nl += (BGJ*dulbend);
@@ -1716,19 +1721,19 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 			dstrain(7) = dstrain_li(7);
 
 	#ifdef _SDEBUG
-		if(this->getTag()==1&&i==3)
-			opserr<<"ShellNLDKGQ "<<this->getTag()<< " Cstrain "<<Cstrain<< "dstrain  "<<dstrain<<endln;
+		if(this->getTag()==1)
+			opserr<<"ShellNLDKGQ "<<this->getTag()<<"i,j"<<i<<","<<j<< " Cstrain "<<Cstrain<< "dstrain  "<<dstrain<<endln;
 #endif
 
 		//strain = Cstrain + dstrain;
 		for(q=0;q<nstress;q++){
 			strain(q) = Cstrain(q) + dstrain(q);
 		}//end for q
-#ifdef _SDEBUG
-		if(this->getTag()==1&&i==3)
-			opserr<<"ShellNLDKGQ "<<this->getTag()<< " strain  "<<strain<<endln;
+#ifdef _sDEBUG
+		//if(this->getTag()==1)
+			//opserr<<"ShellNLDKGQ "<<this->getTag()<< " strain  "<<strain<<endln;
 #endif
-				Vector newStrain = Vector(9);
+		Vector newStrain = Vector(9);
 		newStrain.Zero();
    for(int mi =0;mi<8;mi++)
 	   newStrain(mi) = strain(mi);
@@ -1808,17 +1813,19 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 					BJ(p,q)=saveB[p][q][j];
 			}// end for p
 			//multiply bending terms by -1.0 for correct statement of equilibrium
+			
 			for (p=3;p<6;p++){
 				for (q=3; q<6; q++)
 					BJ(p,q) *= (-1.0);
 			}//end for p 
-
+			
 			//transpose BJtran=transpose(BJ);
 			for (p=0;p<ndf;p++){
 				for(q=0;q<nstress;q++)
 					BJtran(p,q)=BJ(q,p);
 			}//end for p
 
+			//opserr << "BJTran" << BJtran << endln;
 			//compute residual force - no need to modify for geometric nonlinearity
 			residJlocal.addMatrixVector(0.0,BJtran,stress,1.0);
 			residJ1.addMatrixVector(0.0,PmatTran,residJlocal,1.0);
@@ -1867,6 +1874,7 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 						stiffJKlocal(pp,qq) += stiffJKgeo(pp-3,qq-3);
 				}//end for pp
 
+		
 				//transpose dof and coordinates
 				stiffJK1.addMatrixProduct(0.0,PmatTran,stiffJKlocal,1.0);
 				stiffJK2.addMatrixProduct(0.0,stiffJK1,Pmat,1.0);
@@ -2206,6 +2214,7 @@ const Matrix&
 	 Bbend(2,1) = shpBend[3][j] + shpBend[4][j];
 	 Bbend(2,2) = shpBend[3][k] + shpBend[4][k];
 
+	 Bbend = (-1) * Bbend;
 	 return Bbend;
  }
 //*************************************************************************
