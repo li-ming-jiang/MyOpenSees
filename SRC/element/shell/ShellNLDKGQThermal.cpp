@@ -1700,7 +1700,7 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 			//dstrain_li += (BJ*dispIncLocal);
 			dstrain_li.addMatrixVector(1.0, BJP, dispIncLocal,1.0);
 #ifdef _SDEBUG
-		if(this->getTag()==1&&i==3)
+		if(this->getTag()==1)
 			opserr<<"ShellNLDKGQ "<<this->getTag() << "i:" << i << ",j:" << j << "   ul"<< incrDisp <<endln<<" Bbend  "<< Bbend <<"dstrain_li"<< dstrain_li <<endln;
 #endif
 			//add for geometric nonlinearity: dstrain_nl(3)
