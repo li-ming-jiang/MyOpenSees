@@ -302,19 +302,12 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 	fit = 1 + At*(2 + At)*kt;
 	fic = 1 + Ac*(2 + Ac)*kc;
 
-	fcbar = fc; ftbar = ft;
+	//fcbar = fc; 
+	ftbar = ft;
 	//ftbar = ft*pow((1.0 / At*(1 + At - sqrt(fit))), (1.0 - dtbt))*sqrt(fit);
-	//fcbar = fc*pow((1.0 / Ac*(1 + Ac - sqrt(fic))), (1.0 - dcbc))*sqrt(fic);
+	fcbar = fc*pow((1.0 / Ac*(1 + Ac - sqrt(fic))), (1.0 - dcbc))*sqrt(fic);
 
-	/*
-	Matrix PeigT(3, 3); Matrix Product(3, 3);
-	PeigT.addMatrixTranspose(0, Peig, 1);
 
-	opserr << Peig << PeigT;
-	Product = Peig*PeigT;
-	opserr << Product;
-	opserr << SigPr;
-	*/
 	eps_p = eps_pCommit;
 	sigeP = sigePCommit;
 
@@ -699,7 +692,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 				 // opserr<<this->getTag() << " plastic iteration  "<<i;
 
 				//ftbar = ft*pow((1.0 / At*(1 + At - sqrt(fit))), (1.0 - dtbt))*sqrt(fit);
-				//fcbar = fc*pow((1.0 / Ac*(1 + Ac - sqrt(fic))), (1.0 - dcbc))*sqrt(fic);
+				fcbar = fc*pow((1.0 / Ac*(1 + Ac - sqrt(fic))), (1.0 - dcbc))*sqrt(fic);
 
 				
 			}
