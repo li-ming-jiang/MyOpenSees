@@ -403,7 +403,7 @@ void J2PlasticityThermal :: Print( OPS_Stream &s, int flag )
 //plasticity integration routine
 void J2PlasticityThermal :: plastic_integrator( )
 {
-  const double tolerance = (1.0e-8)*sigma_y ;
+  const double tolerance = (1.0e-6) ;
 
   const double dt = ops_Dt ; //time step
 

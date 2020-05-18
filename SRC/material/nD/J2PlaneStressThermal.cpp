@@ -97,7 +97,7 @@ J2PlaneStressThermal::J2PlaneStressThermal(int tag, int typeTag,
 	:NDMaterial(tag, 100),
 	TypeTag(typeTag),E(e), nu(nu), fy(fy_0), fy_inf(fy_infty),
 	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
-	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3),d(d0),H(H0),
+	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3),d(d0),H(H0),HT(H0),
 	Ce(3, 3), C(3, 3), Ce0(3, 3), Ccommit(3, 3), fy0(fy_0), fy0_inf(fy_infty), E0(e)
 {
 	eps.Zero();
@@ -223,7 +223,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 {
 	double tol = 1.0e-8;
 	double xi = 0;
-	
+	double root23 = sqrt(2.3 / 3.0);
 
 	double Fres = 0;
 
@@ -286,7 +286,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 
 	fyield = sigmaVM - fyt;
 
-
+	//sigmaV = sqrt(3*J2)
 	if (fyield > tol) {
 		// opserr << (alpha*I1tr + sigmaVM + beta*sigpmp) / (1 - alpha);
 		//plastic
@@ -305,141 +305,56 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 
 		double deltaxi;
 		double Xres;
-		double xia;
-		double xib;
-		double xi_a;
-		double xi_b;
+	
 
 
 
 		double Qnorm;
+
 	
-
-
-		zeta1 = 0;
-		zeta2 =  - 2.0 * nuwave* fyt;
-
 		I1 = sigma1 + sigma2;
 		Snorm = sqrt(2.0 / 3.0 * (sigma1*sigma1 + sigma2*sigma2 - sigma1*sigma2));
-		
-		xia = (2.0*nuwave - 3.0)*fyt / zeta2;
-		
+		double phi = Snorm - root23 * fyt;
+		double resid = 0;
+		double tang = 0;
+		double iteration_counter = 0;
+		double kxi_trial = 0;
+		double f_trial = 0;
+		double f_trial_p = 0;
+		while (fabs(resid) > 1e-5) {
 
-		xib = 1.0 - 3.0 * sqrt(6.0)*G / ( 2.0 * sqrt(6.0)*nuwave*G);
+			kxi_trial = kxi + root23 * lamda;
+			f_trial = fy_inf + (fy - fy_inf) * exp(-d * kxi_trial) + HT * kxi_trial;
+			f_trial_p= -d * (fy - fy_inf) * exp(-d * kxi) + HT;
+			resid = Snorm
+				- (2.0 * G) * lamda
+				- root23 * f_trial;
+				//- (eta / dt) * gamma;
 
-		if (xia < xib) {
-			if (xia < 0)
-				xi_a = 0;
-			else
-				xi_a = xia;
 
-			if (xib < 1)
-				xi_b = xib;
-			else
-				xi_b = 1;
-		}
-		else {
-			if (xib < 0)
-				xi_a = 0;
-			else
-				xi_a = xib;
+			tang = -(2.0 * G)
+				- 2.0 / 3.0 * f_trial_p;
+				//- (eta / dt);
 
-			if (xia < 1)
-				xi_b = xia;
-			else
-				xi_b = 1;
-		}
+			lamda -= (resid / tang);
+
+			iteration_counter++;
+
+			if (iteration_counter > 100) {
+				opserr << "More than 100" ;
+				opserr << " iterations in constituive subroutine J2-plasticity \n";
+				break;
+			} //end if 
+
+		} //end while resid
+
 
 		//iteration to determine lamda
 		//-----------------------------------------------------------------------
 		//variables
 		
-		for (int i = 0; i < 40; i++) {
-
-			//residual of X = xi*(s+2*G*lamda)-s;
-
-			if (xi < tol) {
-				xi = (xi_a + xi_b) / 2;
-			}
-
-			//fyt = fy_inf + (fy - fy_inf) * exp(-d * kxi) + H * kxi;
-
-			double  lamdap1 =  zeta2*xi + (2.0 * nuwave - 3.0)*fy;
-			double  lamdap2 =  - sqrt(6.0)*G*(3.0 - 2.0 * nuwave + 2.0 * nuwave*xi);
-			lamda = (1.0 - xi) / xi*lamdap1 / lamdap2;
-#ifdef _SDEBUG
-			if (lamda < 0) {
-				opserr << this->getTag() << " meets an nagetive lamda: " << lamda << "sigPr " << SigtrPr << endln;
-				return(-1);
-			}
-#endif
-
-			double deltasig;
-
-			deltasig = xi*(nuwave*(1 - xi)*I1tr ) / (3.0 - 2.0 * nuwave*(1 - xi));
-
-			sigma1 = SigtrPr(0)*xi + deltasig;
-			sigma2 = SigtrPr(1)*xi + deltasig;
-
-
-			I1 = sigma1 + sigma2;
-			Snorm = sqrt(2.0 / 3.0 * (sigma1*sigma1 + sigma2*sigma2 - sigma1*sigma2));
-			Xres = xi*(Snorm + 2.0 * G*lamda) - Snorm;
-
-
-			//returning to different zone
-
-
-			Fres = sqrt(3.0 / 2.0)*Snorm  - fyt;
-
-
-			if ((fabs(Xres) / Snorm < tol) && (fabs(Fres) / fyt < tol) && lamda > 0) {
-					break;
-			}
-
-
-			//if (i > 15) {
-
-			//xi = xi_a ;
-			//}
-
-			double dlamda1_dxi = zeta2 ;
-			double dlamda2_dxi = - sqrt(6.0)*G * 2.0 * nuwave;
-
-			double dlamdadxi = (-1.0 / xi / xi)*lamdap1 / lamdap2 + (1.0 / xi - 1)*(dlamda1_dxi*lamdap2 - dlamda2_dxi*lamdap1) / lamdap2 / lamdap2;
-
-			double dsigdxi = (nuwave*(1.0 - 2.0*xi)*I1tr )*(3.0 - 2.0 * nuwave*(1.0 - xi)) - 2.0*nuwave*(nuwave*(1.0 - xi)*xi*I1tr);
-			dsigdxi = dsigdxi / (3.0 - 2.0 * nuwave*(1.0 - xi)) / (3.0 - 2.0 * nuwave*(1 - xi));
-
-			double dsigma1dxi = SigtrPr(0) + dsigdxi;
-			double dsigma2dxi = SigtrPr(1) + dsigdxi;
-			double dsnormdxi = ((2.0 * sigma1 - sigma2)*dsigma1dxi + (2.0 * sigma2 - sigma1)*dsigma2dxi) / 3.0 / Snorm;
-
-			double  dXdxi = Snorm + 2.0 * G*lamda + (xi - 1.0)*dsnormdxi + 2.0*G*xi*dlamdadxi;
-
-			deltaxi = -Xres / dXdxi;
-			xi = xi + deltaxi;
-
-
-#ifdef _SDEBUG
-			opserr << "sigma1: " << sigma1 << "  sigma2: " << sigma2 << endln;
-			opserr << "  Fres: " << Fres << " sigma1Res: " << sigma1Res << endln;
-#endif
-			//if (this->getTag()==177) {
-
-			//opserr<< "Material: " <<this->getTag()<<" ," << SigtrPr(0)<< ", "<< SigtrPr(1)<< "..,sigPr:"<<sigma1<<sigma2<< ", ft: "<<ftbar<<", fc: "<<fcbar<<endln;
-			//}
-
-		}
-		//end of determining lamda, principal stresses;
-
-		kxi = kxi_Commit + lamda * sqrt(2.0/3.0);
-		if (kxi > 1)
-			kxi = 1.0;
-
-
-
-		fyt = fy_inf+ (fy - fy_inf)*exp(-d*kxi)+ H*kxi;
+		kxi = kxi_trial;
+		fyt = fy_inf+ (fy - fy_inf)*exp(-d*kxi)+ HT*kxi;
 
 		//now determine damage variables
 		//-----------------------------------------------------------------------
@@ -845,9 +760,9 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 
 	
 	fy_inf = fy / fy0*fy0_inf;
-	H = fy / fy0 * 200e6;
-	//H = 0;
-	fyt = fy_inf -(fy_inf-fy)*exp(-d*kxi_Commit) + H*kxi_Commit;
+	//H = fy / fy0 * 200e6;
+	HT = H * fy / fy0;
+	fyt = fy_inf -(fy_inf-fy)*exp(-d*kxi_Commit) + HT*kxi_Commit;
 	
 	
 

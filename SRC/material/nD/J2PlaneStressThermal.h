@@ -110,6 +110,7 @@ private:
 	double fy0_inf;    // compressive yield strength
 	double d;
 	double H;
+	double HT;
 
 	double xi_p;
 

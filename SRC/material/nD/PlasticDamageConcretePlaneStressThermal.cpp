@@ -674,14 +674,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 				Qresc = -kcn1 + kcCommit + deltakcn1;
 				if (ktn1 != ktn1)
 					opserr << ktn1;
-#ifdef _sDEBUG
-				if (this->getTag() == 465) {
-					opserr << "Qrest" << Qrest << " ,Qresc:" << Qresc << endln;
-					opserr << "deltakt:" << deltakt << ", deltakc:" << deltakc << endln;
-					opserr << "dQdkt" << dQdkt << " ,dQdkc" << dQdkc << endln;
 
-				}
-#endif
 				Qnorm = sqrt(Qrest*Qrest + Qresc*Qresc);
 
 				if (Qnorm < 1e-10) {
@@ -693,8 +686,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 
 				//ftbar = ft*pow((1.0 / At*(1 + At - sqrt(fit))), (1.0 - dtbt))*sqrt(fit);
 				fcbar = fc*pow((1.0 / Ac*(1 + Ac - sqrt(fic))), (1.0 - dcbc))*sqrt(fic);
-
-				
+		
 			}
 			//end of local iteration for i
 
@@ -807,22 +799,24 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 
 
 	tempSigPr.Zero();
-	sigPr(0) = (1 - dt) * sigPr(0);
-	sigPr(1) = (1 - dc) * sigPr(1);
+	//sigPr(0) = (1 - dt) * sigPr(0);
+	//sigPr(1) = (1 - dc) * sigPr(1);
 
 	//dt = 0; dc = 0;
 
-	/*
-	if (sigPr(0) > 0 && sigPr(1) > 0)
-		 sigPr(0) = (1 - dt) * sigPr(0);
+	
+	if (sigPr(0) > 0 && sigPr(1) > 0) {
+		sigPr(0) = (1 - dt) * sigPr(0);
+		sigPr(1) = (1 - dt) * sigPr(1);
+	}
 	 else if (sigPr(0) > 0 && sigPr(1) < 0) {
 		 sigPr(0) = (1 - dt)*sigPr(0);
 		 sigPr(1) = (1 - dc)*sigPr(1);
 	 }
-	 else if (sigPr(0) < 0 && sigPr(1) < 0)
-		 sigPr = (1 - dc)*sigPr;
-	*/
-	 
+	 else if (sigPr(0) < 0 && sigPr(1) < 0) {
+		sigPr(0) = (1 - dc) * sigPr(0);
+		sigPr(1) = (1 - dc) * sigPr(1);
+	}
 
 
 
