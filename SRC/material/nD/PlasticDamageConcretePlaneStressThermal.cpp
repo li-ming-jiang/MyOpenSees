@@ -19,7 +19,7 @@
 ** ****************************************************************** */
 
 //Based on the work presented in Lee, J., & Fenves, G. L. (2001). Return-mapping algorithm for plastic-damage models: 3-D and plane stress formulation. 
-//International Journal for Numerical Methods in Engineering, 50(2), 487¨C506. 
+//International Journal for Numerical Methods in Engineering, 50(2), 487-C506. 
 // Modified for SIF modelling by Liming Jiang [http://openseesforfire.github.io] 
 
 #include <PlasticDamageConcretePlaneStressThermal.h>           
