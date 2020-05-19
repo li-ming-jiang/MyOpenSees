@@ -1214,7 +1214,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 	//ThermalElongation = Temp*1.0e-5;
 	double stif = -fc*0.0025 / epsc0 / fc0;
 
-	E = (1-1.0*(1-stif))*E0;
+	E = stif*E0;
 //if (E < 0)
 	//	E = 1e-4*E0;
 
