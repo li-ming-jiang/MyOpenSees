@@ -352,21 +352,17 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 		Snorm = root23* fyt;
 		//now determine damage variables
 		//-----------------------------------------------------------------------
-		double Tsigma1 = sigma1; double Tsigma2 = sigma2; double TSnorm = 0;
-		for (int i = 0; i < 50; i++) {
-			Tsigma1 = SigtrPr(0) -lamda * (2 * G * (sigma1 - (sigma1 + sigma2) / 3)) / Snorm;
-			Tsigma2 = SigtrPr(1) - lamda * (2 * G * (sigma2 - (sigma1 + sigma2) / 3)) / Snorm;
-			TSnorm = sqrt(2.0 / 3.0 * (Tsigma1 * Tsigma1 + Tsigma2 * Tsigma2 - Tsigma1 * Tsigma2));
-			sigma1 = Tsigma1; sigma2 = Tsigma2;
-			if (abs((TSnorm - Snorm) / Snorm) < 1e-5)
-				break;
-		}
+		double devS1 = (sigma1 - I1tr / 3.0) / (1 + 2 * G * lamda / Snorm);
+		double devS2 = (sigma2 - I1tr / 3.0) / (1 + 2 * G * lamda / Snorm);
 		
-
+		sigma1 = 2 * devS1 + devS2;
+		sigma2 = devS1 + 2*devS2;
+	
+		
 		sigPr(0) = sigma1; sigPr(1) = sigma2;
 
 		//calculate increment of eps_principle
-		if (lamda>0)
+		if (lamda >0)
 			delta_epsPr = lamda*(sigPr / Snorm - (sigPr(0) + sigPr(1)) / 3 / Snorm);
 
 		

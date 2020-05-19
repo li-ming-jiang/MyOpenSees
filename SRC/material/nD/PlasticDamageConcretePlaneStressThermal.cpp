@@ -1086,6 +1086,7 @@ PlasticDamageConcretePlaneStressThermal::getTempAndElong(void)
 double
 PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, double&Elong)
 {
+	bool Lits = true;
 	double Eps_lits = 0;
 	Temp = tempT;
 	double epsc0 = -0.0025;
@@ -1224,16 +1225,19 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 	//Elong = (1 - dt)* ThermalElongation;
 	//Es = -fc*0.0025/epsc0/fc0*Es0;
 
-   if (sigCommit(0) < 0&& sigCommit(1) < 0) {
-		double Sig_factor = -(sigCommit(0)+sigCommit(1))/2 / fc0/ 1.562491022;
-		Eps_lits = (4.12e-5 * Temp - 1.72e-7 * Temp * Temp + 3.3e-10 * Temp * Temp * Temp)* Sig_factor;
-		if (Eps_lits > epsLitsp)
-			epsLitsp = Eps_lits;
-		
+	if (Lits) {
+		if (sigCommit(0) < 0 && sigCommit(1) < 0) {
+			double Sig_factor = -(sigCommit(0) + sigCommit(1)) / 2 / fc0 / 1.562491022;
+			Eps_lits = (4.12e-5 * Temp - 1.72e-7 * Temp * Temp + 3.3e-10 * Temp * Temp * Temp) * Sig_factor;
+			if (Eps_lits > epsLitsp)
+				epsLitsp = Eps_lits;
+
+		}
+		if (epsLitsp > 0)
+			ThermalElongation = ThermalElongation - epsLitsp;
 	}
-   if (epsLitsp > 0)
-	   ThermalElongation = ThermalElongation - epsLitsp;
-	
+
+
    //else
 	//	ThermalElongation = 0;
 
