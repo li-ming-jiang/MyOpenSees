@@ -223,7 +223,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 {
 	double tol = 1.0e-8;
 	double xi = 0;
-	double root23 = sqrt(2.3 / 3.0);
+	double root23 = sqrt(2.0 / 3.0);
 
 	double Fres = 0;
 
@@ -258,18 +258,11 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 	sige_tr = Ce*Eeps_tr;
 	//sige_tr = sigeP+ Ce*Deps;
 
-#ifdef _sDEBUG
-	if (this->getTag() == 109) {
-		opserr << this->getTag() << "--kt--: " << kt << "--kc--: " << kc << endln;
-		opserr << "---eps:" << eps << "--epsp:" << eps_p << endln;
-	}
-
-#endif
 
 	//Spectral transforamtion;
 	Vector Sigtr(3); Vector SigtrPr(2); Matrix Peig(2, 2);
-	double fyield; double sigpmp;
-	double beta;  double lamda;
+	double fyield =0; double sigpmp;
+	double beta;  double lamda =0.0;
 	double I1tr, sigmaVM;
 
 	//int findex =0;  //index of yielding criteria: 0: elastic; 1: Prinicipal sigma; 2: Drucker Prager
@@ -315,13 +308,14 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 		I1 = sigma1 + sigma2;
 		Snorm = sqrt(2.0 / 3.0 * (sigma1*sigma1 + sigma2*sigma2 - sigma1*sigma2));
 		double phi = Snorm - root23 * fyt;
-		double resid = 0;
+		double resid = 1.0;
 		double tang = 0;
 		double iteration_counter = 0;
 		double kxi_trial = 0;
 		double f_trial = 0;
 		double f_trial_p = 0;
-		while (fabs(resid) > 1e-5) {
+		lamda = (Snorm - root23 * fyt) / (2.0 * G);
+		while (fabs(resid) > 1e-8) {
 
 			kxi_trial = kxi + root23 * lamda;
 			f_trial = fy_inf + (fy - fy_inf) * exp(-d * kxi_trial) + HT * kxi_trial;
@@ -341,8 +335,8 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 			iteration_counter++;
 
 			if (iteration_counter > 100) {
-				opserr << "More than 100" ;
-				opserr << " iterations in constituive subroutine J2-plasticity \n";
+				//opserr << "More than 100" ;
+				//opserr << " iterations in constituive subroutine J2-plasticity \n";
 				break;
 			} //end if 
 
@@ -355,11 +349,20 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 		
 		kxi = kxi_trial;
 		fyt = fy_inf+ (fy - fy_inf)*exp(-d*kxi)+ HT*kxi;
-
+		Snorm = root23* fyt;
 		//now determine damage variables
 		//-----------------------------------------------------------------------
+		double Tsigma1 = sigma1; double Tsigma2 = sigma2; double TSnorm = 0;
+		for (int i = 0; i < 50; i++) {
+			Tsigma1 = SigtrPr(0) -lamda * (2 * G * (sigma1 - (sigma1 + sigma2) / 3)) / Snorm;
+			Tsigma2 = SigtrPr(1) - lamda * (2 * G * (sigma2 - (sigma1 + sigma2) / 3)) / Snorm;
+			TSnorm = sqrt(2.0 / 3.0 * (Tsigma1 * Tsigma1 + Tsigma2 * Tsigma2 - Tsigma1 * Tsigma2));
+			sigma1 = Tsigma1; sigma2 = Tsigma2;
+			if (abs((TSnorm - Snorm) / Snorm) < 1e-5)
+				break;
+		}
+		
 
-		//double gt, gc;  //failure energy
 		sigPr(0) = sigma1; sigPr(1) = sigma2;
 
 		//calculate increment of eps_principle
