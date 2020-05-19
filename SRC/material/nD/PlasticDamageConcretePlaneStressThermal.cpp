@@ -45,6 +45,7 @@ static Matrix Id(6, 6);
 
 static int matTag;
 
+
 //static const signed char b_A[3] = { -1, 1, 0 };
 //static const signed char c_a[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
 //static const signed char iv1[3] = { 0, 0, 1 };
@@ -164,6 +165,7 @@ PlasticDamageConcretePlaneStressThermal::PlasticDamageConcretePlaneStressThermal
 	Tchange = 0;
 	Temp = 0;
 	TempT = 0;
+	epsLitsp = 0;
 
 	this->commitState();
 }
@@ -172,7 +174,7 @@ PlasticDamageConcretePlaneStressThermal::PlasticDamageConcretePlaneStressThermal
 	:NDMaterial(0, 0),
 	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
 	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3), sigePCommit(3),
-	Ce(3, 3), C(3, 3), Ccommit(3, 3), At(0), Ac(0), Dbarc(0), Dbart(0)
+	Ce(3, 3), C(3, 3), Ccommit(3, 3), At(0), Ac(0), Dbarc(0), Dbart(0), epsLitsp(0)
 {
 
 }
@@ -1221,13 +1223,18 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 		//E = -fc*0.0025 / epsc0 / fc0*E0;
 	//Elong = (1 - dt)* ThermalElongation;
 	//Es = -fc*0.0025/epsc0/fc0*Es0;
+
+   if (sigCommit(0) < 0&& sigCommit(1) < 0) {
+		double Sig_factor = -(sigCommit(0)+sigCommit(1))/2 / fc0/ 1.562491022;
+		Eps_lits = (4.12e-5 * Temp - 1.72e-7 * Temp * Temp + 3.3e-10 * Temp * Temp * Temp)* Sig_factor;
+		if (Eps_lits > epsLitsp)
+			epsLitsp = Eps_lits;
+		
+	}
+   if (epsLitsp > 0)
+	   ThermalElongation = ThermalElongation - epsLitsp;
 	
-   //if (this->getStress()(0) < 0) {
-	//	double Sig_factor = (sigCommit(0)+sigCommit(1))/2 / fc0/ 1.562491022;
-//		Eps_lits = (4.12e-5 * Temp - 1.72e-7 * Temp * Temp + 3.3e-10 * Temp * Temp * Temp)* Sig_factor;
-	//	ThermalElongation = ThermalElongation+ Eps_lits;
-	//}
-	//else
+   //else
 	//	ThermalElongation = 0;
 
 
