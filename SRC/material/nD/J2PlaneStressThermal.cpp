@@ -664,7 +664,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	//typeTag:3   EC3 Structural Steel
 	//typeTag:21  EC2 Reinforcing Steel EC2 NHotRolled
 	//typeTag:22  EC2 Reinforcing Steel EC2 NCold formed
-	//typeTag:23  EC2 Reinforcing Steel EC2 X
+	//typeTag:23  EC2 Reinforcing Steel EC2 X  
 
 	double FyRfactors[12];
 	double FpRfactors[12];
