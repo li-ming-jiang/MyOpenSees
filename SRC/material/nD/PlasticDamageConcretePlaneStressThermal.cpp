@@ -1251,8 +1251,8 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 	gt = gt0*ft / ft0*E0 / E;
 	gc = gc0*fc*epscu / fc0/(-0.02);
 	
-	TempAndElong(0) = Temp;
-	TempAndElong(1) = ThermalElongation;
+	TempAndElong(0) = dt;
+	TempAndElong(1) = dc;
 	//TempAndElong(1) = E;
 	ET = E;
 	Tchange = 1;
