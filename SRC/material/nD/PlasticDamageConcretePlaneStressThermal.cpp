@@ -58,7 +58,7 @@ OPS_PlasticDamageConcretePlaneStressThermal(void)
 	int numArgs = OPS_GetNumRemainingInputArgs();
 
 	if (numArgs < 5 || numArgs > 11) {
-		opserr << "Want: nDMaterial PlasticDamageConcretePlaneStressThermal $tag $E $nu $ft $fc <$beta $Ap $An $Bn>\n";
+		opserr << "Want: nDMaterial PlasticDamageConcretePlaneStressThermal $tag $E $nu $ft $fc <$gt $gc $An $Bn>\n";
 		return 0;
 	}
 
@@ -904,8 +904,8 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 		opserr << "invalid sig" << sig(0) << endln;
 
 	// TempAndElong(0) = kc;
-	//TempAndElong(0) = dt;
-	//TempAndElong(1) = dt;
+	TempAndElong(0) = sigPr(0);
+	TempAndElong(1) = sigPr(1);
 
 
 	//-================================
@@ -1253,8 +1253,10 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 	gt = gt0*ft / ft0*E0 / E;
 	gc = gc0*fc*epscu / fc0/(-0.02);
 	
-	TempAndElong(0) = Temp;
-	TempAndElong(1) = ThermalElongation;
+//TempAndElong(0) = kt;
+//TempAndElong(1) = dt;
+	//TempAndElong(0) = Temp;
+	//TempAndElong(1) = ThermalElongation;
 	//TempAndElong(1) = E;
 	ET = E;
 	Tchange = 1;
