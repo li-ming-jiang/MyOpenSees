@@ -51,6 +51,8 @@
 #include <elementAPI.h>
 #include <string>
 
+static Matrix CoupledZeroLengthM6(6, 6);   // class wide matrix for 6*6
+
 void* OPS_BeamColumnJoint2dThermal()
 {
     if (OPS_GetNumRemainingInputArgs() < 6) {
@@ -96,7 +98,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 				     UniaxialMaterial& theMat1,
 				     UniaxialMaterial& theMat2,
 				     UniaxialMaterial& theMat3):
-  Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(4),
+  Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
   nodeDbTag(0), dofDbTag(0), elemActHeight(0.0), elemActWidth(0.0), 
   elemWidth(0.0), elemHeight(0.0), HgtFac(1.0), WdtFac(1.0),
   Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4), 
@@ -199,7 +201,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 
 // default constructor:
 BeamColumnJoint2dThermal::BeamColumnJoint2dThermal():
-  Element(0,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(4),
+  Element(0,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
   nodeDbTag(0), dofDbTag(0), elemActHeight(0.0), elemActWidth(0.0),
   elemWidth(0.0), elemHeight(0.0), HgtFac(1.0), WdtFac(1.0),
   Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4),
@@ -295,7 +297,7 @@ BeamColumnJoint2dThermal::setDomain(Domain *theDomain)
 	Vector Node2(end2Crd);
 
 
-	// set the height and width of the element and perform check   
+	/* set the height and width of the element and perform check   
 	//Node3 = Node3 - Node1;
 	//Node2 = Node2 - Node4;
 
@@ -313,9 +315,9 @@ BeamColumnJoint2dThermal::setDomain(Domain *theDomain)
 		exit(-1); // donot go any further - otherwise segmentation fault
 	}
 
-	getBCJoint();
-	getdg_df();
-	getdDef_du();
+	//getBCJoint();
+	//getdg_df();
+	//getdDef_du(); */
 }   
 
 int
@@ -328,7 +330,7 @@ BeamColumnJoint2dThermal::commitState(void)
 
 	// store material history data.
 	int mcs = 0;
-		for (int j=0; j<13; j++)
+		for (int j=0; j<3; j++)
 		{
 			if (MaterialPtr[j] != 0) mcs = MaterialPtr[j]->commitState();
 			if (mcs != 0) break;
@@ -417,31 +419,28 @@ void BeamColumnJoint2dThermal::getGlobalDispls(Vector &dg)
 	double dLoadStep = 1.0;
 	double stepSize = 0.0;
 
-	Vector uExtOld(12);   uExtOld.Zero();
-	Vector uExt(12);      uExt.Zero();
-	Vector duExt(12);     duExt.Zero();
+	Vector uExtOld(6);   uExtOld.Zero();
+	Vector uExt(6);      uExt.Zero();
+	Vector duExt(6);     duExt.Zero();
 	Vector uIntOld(4);    uIntOld.Zero(); 
 	Vector uInt(4);       uInt.Zero();
 	Vector duInt(4);      duInt.Zero(); 
 	Vector duIntTemp(4);  duIntTemp.Zero();
 	Vector intEq(4);      intEq.Zero();
 	Vector intEqLast(4);  intEqLast.Zero();
-	Vector Uepr(12);      Uepr.Zero();
+	Vector Uepr(6);      Uepr.Zero();
 	Vector UeprInt(4);    UeprInt.Zero();
-	Vector Ut(12);        Ut.Zero();
+	Vector Ut(6);        Ut.Zero();
 	
 
     Vector disp1 = nodePtr[0]->getTrialDisp(); 
     Vector disp2 = nodePtr[1]->getTrialDisp();
-    Vector disp3 = nodePtr[2]->getTrialDisp();
-    Vector disp4 = nodePtr[3]->getTrialDisp();
+
 
 	for (int i = 0; i < 3; i++)
     {
       Ut(i)     = disp1(i);
       Ut(i+3)   = disp2(i);
-      Ut(i+6)   = disp3(i);
-      Ut(i+9)   = disp4(i);
     }
 
 	Uepr = Uecommit;   
@@ -694,19 +693,6 @@ void BeamColumnJoint2dThermal::getMatResponse(Vector U, Vector &fS, Vector &kS)
 
 	defSpring.addMatrixVector(0.0, BCJoint, U, 1.0);
 
-/*  // formulation 2 (abandoned Oct 19, 2004)
-	// slip @ bar = slip @ spring * tc couple
-
-	defSpring(0) = defSpring(0)*jw;                   // new model applied on 
-	defSpring(1) = defSpring(1)*jw;                   // 4th June 2004
-	defSpring(6) = defSpring(6)*jw;                   // h, h_bar distinction was
-	defSpring(7) = defSpring(7)*jw;                   // removed from the previous model
-
-	defSpring(3)  = defSpring(3)*jh;                  // by making h = h_bar
-	defSpring(4)  = defSpring(4)*jh;                  // similar case done for width
-	defSpring(9) = defSpring(9)*jh;
-	defSpring(10) = defSpring(10)*jh;
-*/
 	for (int j=0; j<3; j++)
 	{
 		MaterialPtr[j]->setTrialStrain(defSpring(j));
@@ -714,31 +700,6 @@ void BeamColumnJoint2dThermal::getMatResponse(Vector U, Vector &fS, Vector &kS)
 		fS(j) = MaterialPtr[j]->getStress();
 	}
 
-/*  // formulation 2
-	// force @ spring = force @ bar * tc couple
-
-	fS(0) = fS(0)*jw;
-	fS(1) = fS(1)*jw;
-	fS(6) = fS(6)*jw;
-	fS(7) = fS(7)*jw;
-
-	fS(3) = fS(3)*jh;
-	fS(4) = fS(4)*jh;
-	fS(9) = fS(9)*jh;
-	fS(10) = fS(10)*jh;
-
-	// stiffness @ spring = stiffness @ bar * (tc couple)^2
-
-	kS(0) = kS(0)*jw*jw;
-	kS(1) = kS(1)*jw*jw;
-	kS(6) = kS(6)*jw*jw;
-	kS(7) = kS(7)*jw*jw;
-
-	kS(3) = kS(3)*jh*jh;
-	kS(4) = kS(4)*jh*jh;
-	kS(9) = kS(9)*jh*jh;
-	kS(10) = kS(10)*jh*jh;
-*/
 }
 
 void BeamColumnJoint2dThermal::getdDef_du()
@@ -749,8 +710,7 @@ void BeamColumnJoint2dThermal::getdDef_du()
 	{
 		dDef_du(jb,0) = BCJoint(jb,12);
 		dDef_du(jb,1) = BCJoint(jb,13);
-		dDef_du(jb,2) = BCJoint(jb,14);
-		dDef_du(jb,3) = BCJoint(jb,15);
+
 	}
 }
 
@@ -776,69 +736,23 @@ void BeamColumnJoint2dThermal::formR(Vector f)
 
 void BeamColumnJoint2dThermal::formK(Vector k)
 {
-    // develops the element stiffness matrix
-	Matrix kSprDiag(13,13);
-	kSprDiag.Zero();
-    Matrix kRForce(16,16);
-	kRForce.Zero();
-	Matrix kRFT1(4,12);
-	kRFT1.Zero();
-	Matrix kRFT2(4,4);
-	kRFT2.Zero();
-	Matrix kRFT3(12,4);
-	kRFT3.Zero();
-	Matrix I(4,4);
-	I.Zero();
-	Matrix kRSTinv(4,4);
-	kRSTinv.Zero();
-    Matrix kRF(12,12);
-	kRF.Zero();
-	Matrix K2Temp(12,4);
-	K2Temp.Zero();
-	Matrix K2(12,12);
-	K2.Zero();
+	// come back later and redo this if too slow
+	/*Matrix& stiff = *theMatrix;
 
-	matDiag(k,kSprDiag);
-
-	kRForce.addMatrixTripleProduct(0.0,BCJoint,kSprDiag,1.0);    // kRForce = BCJoint'*kSprDiag*BCJoint
-	kRFT2.Extract(kRForce,12,12,1.0);
-	kRFT1.Extract(kRForce,12,0,1.0);
-	kRFT3.Extract(kRForce,0,12,1.0);
-	kRF.Extract(kRForce,0,0,1.0);
-	
-    for (int ic=0; ic<4; ic++)
-	{
-		I(ic,ic) = 1.0;
-	}
-	kRFT2.Solve(I,kRSTinv);
-	
-	K2Temp.addMatrixProduct(0.0,kRFT3,kRSTinv,1.0);
-
-	// loop done for some idiotic reason
-	for(int i = 0; i < 12; ++i)
-	{	
-		for(int j = 0; j < 4; ++j)
-		{
-			if(fabs(K2Temp(i,j)) < 1e-15)
-				K2Temp(i,j) = 0.;
+	int numDOF2 = numDOF / 2;
+	double temp;
+	double EAoverL = E * A / L;
+	for (int i = 0; i < dimension; i++) {
+		for (int j = 0; j < dimension; j++) {
+			temp = cosX[i] * cosX[j] * EAoverL;
+			stiff(i, j) = temp;
+			stiff(i + numDOF2, j) = -temp;
+			stiff(i, j + numDOF2) = -temp;
+			stiff(i + numDOF2, j + numDOF2) = temp;
 		}
 	}
-
-	K2.addMatrixProduct(0.0,K2Temp,kRFT1,1.0);
-
-	// loop done for some idiotic reason
-	for(int i1 = 0; i1 < 12; ++i1)
-	{	
-		for(int j1 = 0; j1 < 12; ++j1)
-		{
-			if(fabs(K2(i1,j1)) < 1e-15)
-				K2(i1,j1) = 0.;
-		}
-	}
-
-	kRF.addMatrix(1.0,K2,-1.0);
 	
-	K = kRF;    // K = kRF - kRFT3*kRSTinv*kRFT1
+	return *theMatrix;*/
 }
 
 void BeamColumnJoint2dThermal::getdg_df()
