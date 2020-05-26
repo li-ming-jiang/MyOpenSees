@@ -70,123 +70,115 @@ class BeamColumnJoint2dThermal : public Element
   ~BeamColumnJoint2dThermal();
 
 
-  
+
+
   ////////////// public methods to obtain information about dof & connectivity    
-  bool	isSubdomain(void) { return false; } ;
-  
+  bool	isSubdomain(void) { return false; };
+
   // get number of external nodes
   int getNumExternalNodes(void) const;
-  
+
   // return connected external nodes
-  const ID &getExternalNodes(void);
-  Node **getNodePtrs(void);
-  
+  const ID& getExternalNodes(void);
+  Node** getNodePtrs(void);
+
   // return number of DOFs
-  int getNumDOF(void);	
-  
+  int getNumDOF(void);
+
   // set domain performs check on dof and associativity with node
-  void setDomain(Domain *theDomain);
-  
+  void setDomain(Domain* theDomain);
+
   //////////////////////////// public methods to set the state of the element    
-  
+
   // commit state
   int commitState(void);
-  
+
   // revert to last commit
-  int revertToLastCommit(void);        
-  
+  int revertToLastCommit(void);
+
   // revert to start
-  int revertToStart(void);        
-  
+  int revertToStart(void);
+
   // determine current strain and set strain in material
   int update(void);
-  
+
   //////////////////////// public methods to obtain stiffness, mass, damping and 
   ////////////////////////////////////// residual information    
-  
-  // returns converged tangent stiffness matrix
-  const Matrix &getTangentStiff(void);
-  const Matrix &getInitialStiff(void);   
-  
-  // not required for this element formulation
-  const Matrix &getDamp(void);    
-  const Matrix &getMass(void);    
-  
-  // not required for this element formulation
-  void zeroLoad(void);	
-  int addLoad(ElementalLoad *theLoad, double loadFactor);
-  int addInertiaLoadToUnbalance(const Vector &accel);
-  
-  // get converged residual
-  const Vector &getResistingForce(void);
-  
-  // get converged residual with inertia terms
-  const Vector &getResistingForceIncInertia(void);            
-  
-  // public methods for element output for parallel and database processing
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
-  
-  // display element graphically
-  int displaySelf(Renderer &, int mode, float fact, const char **displayModes=0, int numModes=0);
-  
-  // print out element data
-  void Print(OPS_Stream &s, int flag =0);    
-  
-  // implemented to print into file
-  const char *getClassType(void) const {return "BeamColumnJoint2dThermal";};
 
-  Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-  int getResponse(int responseID, Information &eleInformation);
-  
-  int setParameter (char **argv, int argc, Information &info);
-  int updateParameter (int parameterID, Information &info);
-  
-  
- protected:
-  
- private:
-  
-  // private methods
-  void getGlobalDispls(Vector&) ;
-  void getBCJoint(void);
-  void getdg_df(void);
-  void getdDef_du(void);
-  void matDiag(Vector, Matrix&);
-  void getMatResponse(Vector, Vector&, Vector&);
-  void formR(Vector);
-  void formK(Vector);
-  double getStepSize(double,double,Vector,Vector,Vector,Vector,double);
-  
-  // material info
-  UniaxialMaterial **MaterialPtr;  // pointer to the 13 different materials
-  
-  // node info
-  ID  connectedExternalNodes;   // contains the tags of the end nodes
-  Node* nodePtr[2];             // pointers to four nodes
-  
-  
-  int nodeDbTag, dofDbTag;
-  
-  // various other element parameters
-  double elemActHeight;
-  double elemActWidth;
-  double elemWidth;
-  double elemHeight;
-  double HgtFac;               // distance in between the tension compression couple in the height direction 
-  double WdtFac;               // distance in between the tension compression couple in the width direction      
-  
-  Vector Uecommit;             // vector of external committed displacements
-  Vector UeIntcommit;          // vector of internal committed displacements   
-  Vector UeprCommit;           // vector of previous external committed displacements
-  Vector UeprIntCommit;        // vector of previous internal committed displacements  
-  Matrix BCJoint;       // matrix describing relation between the component deformations and the external and internal deformations
-  Matrix dg_df;         // matrix of derivative of internal equilibrium 
-  Matrix dDef_du;       // matrix of a portion of BCJoint reqd. for static condensation
-  
-  Matrix K;              // element stiffness matrix
-  Vector R;              // element residual matrix  
+  // returns converged tangent stiffness matrix
+  const Matrix& getTangentStiff(void);
+  const Matrix& getInitialStiff(void);
+
+  // not required for this element formulation
+  const Matrix& getDamp(void);
+  const Matrix& getMass(void);
+
+  // not required for this element formulation
+  void zeroLoad(void);
+  int addLoad(ElementalLoad* theLoad, double loadFactor);
+  int addInertiaLoadToUnbalance(const Vector& accel);
+
+  // get converged residual
+  const Vector& getResistingForce(void);
+
+  // get converged residual with inertia terms
+  const Vector& getResistingForceIncInertia(void);
+
+  // public methods for element output for parallel and database processing
+  int sendSelf(int commitTag, Channel& theChannel);
+  int recvSelf(int commitTag, Channel& theChannel,
+      FEM_ObjectBroker& theBroker);
+
+  // display element graphically
+  int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
+
+  // print out element data
+  void Print(OPS_Stream& s, int flag = 0);
+
+  // implemented to print into file
+  const char* getClassType(void) const { return "BeamColumnJoint2d"; };
+
+  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
+  int getResponse(int responseID, Information& eleInformation);
+
+  int setParameter(char** argv, int argc, Information& info);
+  int updateParameter(int parameterID, Information& info);
+
+
+protected:
+
+private:
+
+    // private methods
+    //void setUp();
+    //void setTranGlobalLocal();
+    //void setTranLocalBasic();
+   // void addPDeltaForces(Vector& pLocal);
+   // void addPDeltaStiff(Matrix& kLocal);
+
+    // material info
+    UniaxialMaterial** MaterialPtr;  // pointer to the 13 different materials
+
+    // node info
+    ID  connectedExternalNodes;   // contains the tags of the end nodes
+    Node* nodePtr[2];             // pointers to four nodes
+
+
+    int nodeDbTag, dofDbTag;
+
+    // various other element parameters
+
+    Vector ub;          // trial displacements in basic system
+    Vector ubdot;       // trial velocities in basic system
+    Vector qb;          // measured forces in basic system
+    Vector ul;          // displacements in local system
+    Matrix Tgl;         // transformation matrix from global to local system
+    Matrix Tlb;         // transformation matrix from local to basic system
+
+    Matrix* theMatrix;  // pointer to objects matrix (a class wide Matrix)
+    Vector* theVector;  // pointer to objects vector (a class wide Vector)
+    Vector* theLoad;    // pointer to the load vector 
+
 };
 
 #endif

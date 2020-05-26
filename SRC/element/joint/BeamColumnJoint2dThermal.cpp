@@ -51,7 +51,9 @@
 #include <elementAPI.h>
 #include <string>
 
-static Matrix CoupledZeroLengthM6(6, 6);   // class wide matrix for 6*6
+//static Matrix CoupledZeroLengthM6(6, 6);   // class wide matrix for 6*6
+static Matrix TwoNodeM6;   // class wide matrix for 6*6
+static Vector TwoNodeV6;   // class wide Vector for size 6
 
 void* OPS_BeamColumnJoint2dThermal()
 {
@@ -99,10 +101,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 				     UniaxialMaterial& theMat2,
 				     UniaxialMaterial& theMat3):
   Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
-  nodeDbTag(0), dofDbTag(0), elemActHeight(0.0), elemActWidth(0.0), 
-  elemWidth(0.0), elemHeight(0.0), HgtFac(1.0), WdtFac(1.0),
-  Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4), 
-  BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
+  nodeDbTag(0), dofDbTag(0), theMatrix(0),ub(0), ubdot(0), qb(0), ul(0), Tgl(0, 0), Tlb(0, 0), theVector(0), theLoad(0)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
  
@@ -118,15 +117,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 	for (int x = 0; x <3; x++)
 	{	MaterialPtr[x] = 0; }
 
-	Uecommit.Zero();
-	UeIntcommit.Zero();
-	UeprCommit.Zero();
-	UeprIntCommit.Zero();
 
-	BCJoint.Zero(); dg_df.Zero(); dDef_du.Zero();
-
-	K.Zero();
-	R.Zero();
 
 	nodePtr[0] = 0;
 	nodePtr[1] = 0;
@@ -152,10 +143,8 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 				     UniaxialMaterial& theMat3,
 					 double elHgtFac, double elWdtFac):
   Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(4),
-  nodeDbTag(0), dofDbTag(0), elemActHeight(0.0), elemActWidth(0.0),
-  elemWidth(0.0), elemHeight(0.0), HgtFac(elHgtFac), WdtFac(elWdtFac),
-  Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4),
-  BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
+  nodeDbTag(0), dofDbTag(0), ub(0), ubdot(0), qb(0), ul(0),
+	Tgl(0, 0), Tlb(0, 0), theMatrix(0), theVector(0), theLoad(0)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
  
@@ -171,15 +160,6 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 	for (int x = 0; x <3; x++)
 	{	MaterialPtr[x] = 0; }
 
-	Uecommit.Zero();
-	UeIntcommit.Zero();
-	UeprCommit.Zero();
-	UeprIntCommit.Zero();
-
-	BCJoint.Zero(); dg_df.Zero(); dDef_du.Zero();
-
-	K.Zero();
-	R.Zero();
 
 	// added
 	nodePtr[0] = 0;
@@ -202,10 +182,8 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 // default constructor:
 BeamColumnJoint2dThermal::BeamColumnJoint2dThermal():
   Element(0,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
-  nodeDbTag(0), dofDbTag(0), elemActHeight(0.0), elemActWidth(0.0),
-  elemWidth(0.0), elemHeight(0.0), HgtFac(1.0), WdtFac(1.0),
-  Uecommit(12), UeIntcommit(4), UeprCommit(12), UeprIntCommit(4),
-  BCJoint(13,16), dg_df(4,13), dDef_du(13,4), K(12,12), R(12)
+  nodeDbTag(0), dofDbTag(0), ub(0), ubdot(0), qb(0), ul(0),
+	Tgl(0, 0), Tlb(0, 0), theMatrix(0), theVector(0), theLoad(0)
 {
 	nodePtr[0] = 0;
 	nodePtr[1] = 0;
@@ -296,64 +274,36 @@ BeamColumnJoint2dThermal::setDomain(Domain *theDomain)
 	Vector Node1(end1Crd);
 	Vector Node2(end2Crd);
 
+	theMatrix = &TwoNodeM6;
+	theVector = &TwoNodeV6;
 
-	/* set the height and width of the element and perform check   
-	//Node3 = Node3 - Node1;
-	//Node2 = Node2 - Node4;
-
-	double beam = HgtFac; //1.0;
-	double col = WdtFac; //1.0;
-
-	elemActHeight = 0;
-	elemActWidth = 0;
-	elemHeight = beam*elemActHeight;
-	elemWidth = col*elemActWidth;
-
-	if ((elemHeight <= 1e-12) || (elemWidth <= 1e-12))
-	{
-		opserr << "ERROR : BeamColumnJoint::setDomain -- length or width not correct, division by zero occurs"<< endln;
-		exit(-1); // donot go any further - otherwise segmentation fault
-	}
-
-	//getBCJoint();
-	//getdg_df();
-	//getdDef_du(); */
 }   
 
 int
 BeamColumnJoint2dThermal::commitState(void)
 {
-	// store committed external nodal displacements
-	Uecommit = UeprCommit;
-	// store committed internal nodal displacements
-	UeIntcommit = UeprIntCommit;
 
-	// store material history data.
-	int mcs = 0;
-		for (int j=0; j<3; j++)
-		{
-			if (MaterialPtr[j] != 0) mcs = MaterialPtr[j]->commitState();
-			if (mcs != 0) break;
-		}
-    
-	return mcs;
+	int errCode = 0;
+
+	// commit material models
+	for (int i = 0; i < 3; i++)
+		errCode += MaterialPtr[i]->commitState();
+
+	// commit the base class
+	errCode += this->Element::commitState();
+
+	return errCode;
 }
 
 int
 BeamColumnJoint2dThermal::revertToLastCommit(void)
 {
-	int mcs = 0;
-	for (int j=0; j<3; j++)
-	{
-		if (MaterialPtr[j] != 0) mcs = MaterialPtr[j]->revertToLastCommit();
-		if (mcs != 0) break;
-	}
-	UeprCommit = Uecommit;
-	UeprIntCommit = UeIntcommit;   
-	
-	this->update();
+	int errCode = 0;
+	// revert material models
+	for (int i = 0; i < 3; i++)
+		errCode += MaterialPtr[i]->revertToLastCommit();
 
-  return mcs;
+	return errCode;
 }
 
 int
@@ -372,24 +322,46 @@ BeamColumnJoint2dThermal::revertToStart(void)
 int
 BeamColumnJoint2dThermal::update(void)
 {	
-		Vector Ue(16);
-		Ue.Zero();
+	int errCode = 0;
 
-	// determine committed displacements given trial displacements
-		getGlobalDispls(Ue);
- 
-		// update displacements for the external nodes
-		UeprCommit.Extract(Ue,0,1.0); 
-		// update displacement for the internal nodes
-		UeprIntCommit.Extract(Ue,12,1.0);
+	// get global trial response
+	const Vector& dsp1 = nodePtr[0]->getTrialDisp();
+	const Vector& dsp2 = nodePtr[1]->getTrialDisp();
+	const Vector& vel1 = nodePtr[0]->getTrialVel();
+	const Vector& vel2 = nodePtr[1]->getTrialVel();
 
-		return 0;
+	int numDOF = 6;
+	int numDOF2 = 3;
+	Vector ug(numDOF), ugdot(numDOF), uldot(numDOF);
+	for (int i = 0; i < numDOF2; i++) {
+		ug(i) = dsp1(i);  ugdot(i) = vel1(i);
+		ug(i + numDOF2) = dsp2(i);  ugdot(i + numDOF2) = vel2(i);
+	}
+
+	// transform response from the global to the local system
+	ul.addMatrixVector(0.0, Tgl, ug, 1.0);
+	uldot.addMatrixVector(0.0, Tgl, ugdot, 1.0);
+
+	// transform response from the local to the basic system
+	ub.addMatrixVector(0.0, Tlb, ul, 1.0);
+	ubdot.addMatrixVector(0.0, Tlb, uldot, 1.0);
+	//ub = (Tlb*Tgl)*ug;
+	//ubdot = (Tlb*Tgl)*ugdot;
+
+	// set trial response for material models
+	for (int i = 0; i < 3; i++)
+		errCode += MaterialPtr[i]->setTrialStrain(ub(i), ubdot(i));
+
+	return errCode;
 }
 
 const Matrix &
 BeamColumnJoint2dThermal::getTangentStiff(void)
 {
-	return K;
+	// zero the matrix
+	theMatrix->Zero();
+
+	return *theMatrix;
 }
 
 const Matrix &
@@ -401,609 +373,39 @@ BeamColumnJoint2dThermal::getInitialStiff(void)
 const Vector &
 BeamColumnJoint2dThermal::getResistingForce(void)
 {
-  return R;
-}
+	// zero the residual
+	theVector->Zero();
 
-void BeamColumnJoint2dThermal::getGlobalDispls(Vector &dg) 
-{
-	// local variables that will be used in this method
-	int converge = 0;
-	int linesearch = 0;
-	int totalCount = 0;
-	int dtConverge = 0;
-	int incCount = 0;
-	int count = 0;
-	int maxTotalCount = 1000;
-	int maxCount = 20;
-	double loadStep = 0.0;
-	double dLoadStep = 1.0;
-	double stepSize = 0.0;
-
-	Vector uExtOld(6);   uExtOld.Zero();
-	Vector uExt(6);      uExt.Zero();
-	Vector duExt(6);     duExt.Zero();
-	Vector uIntOld(4);    uIntOld.Zero(); 
-	Vector uInt(4);       uInt.Zero();
-	Vector duInt(4);      duInt.Zero(); 
-	Vector duIntTemp(4);  duIntTemp.Zero();
-	Vector intEq(4);      intEq.Zero();
-	Vector intEqLast(4);  intEqLast.Zero();
-	Vector Uepr(6);      Uepr.Zero();
-	Vector UeprInt(4);    UeprInt.Zero();
-	Vector Ut(6);        Ut.Zero();
-	
-
-    Vector disp1 = nodePtr[0]->getTrialDisp(); 
-    Vector disp2 = nodePtr[1]->getTrialDisp();
-
-
+	// get resisting forces
 	for (int i = 0; i < 3; i++)
-    {
-      Ut(i)     = disp1(i);
-      Ut(i+3)   = disp2(i);
-    }
+		qb(i) = MaterialPtr[i]->getStress();
 
-	Uepr = Uecommit;   
+	// determine resisting forces in local system
+	//Vector ql(6);
+	//ql.addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
 
-	UeprInt = UeprIntCommit;  
+	// add P-Delta effects to local forces
 
-	uExtOld = Uepr;
-	duExt = Ut -Uepr;
+	// determine resisting forces in global system    
+	//theVector->addMatrixTransposeVector(0.0, Tgl, ql, 1.0);
 
-	uExt = uExtOld;
-
-	uIntOld = UeprInt;
-	uInt = uIntOld;
-
-	double tol = 1e-12;
-	double tolIntEq = tol;
-	double toluInt = (tol>tol*uInt.Norm())? tol:tol*uInt.Norm();
-	double tolIntEqdU = tol;
-	double ctolIntEqdU = tol;
-	double ctolIntEq = tol;
-	double normDuInt = toluInt;
-	double normIntEq = tolIntEq;
-	double normIntEqdU = tolIntEqdU;
-	   
-	Vector u(16);
-	u.Zero();
-
-	double engrLast = 0.0;
-	double engr = 0.0;
-
-	Vector fSpring(13);   fSpring.Zero();
-	Vector kSpring(13);   kSpring.Zero();
-    Matrix dintEq_du(4,4);     dintEq_du.Zero();
-    Matrix df_dDef(13,13);     df_dDef.Zero();
-    Matrix tempintEq_du (4,13);  tempintEq_du.Zero();
-
-	
- 	while ((loadStep < 1.0) && (totalCount < maxTotalCount))
-	{
-		count = 0;
-		converge = 0;
-		dtConverge = 0;
-		while ((!converge) && (count < maxCount))
-		{
-			if (dLoadStep <= 1e-3)
-			{
-				dLoadStep = dLoadStep;
-			}
-			totalCount ++;
-			count ++;
-			
-			for (int ic = 0; ic < 12; ic++ ) {
-				u(ic) = uExt(ic) + duExt(ic);
-			}
-			u(12) = uInt(0);
-			u(13) = uInt(1);
-			u(14) = uInt(2);
-			u(15) = uInt(3);
-			
-			fSpring.Zero(); kSpring.Zero();
-
-			getMatResponse(u,fSpring,kSpring);		
-
-/*		// performs internal equilibrium (formulation 2)
-
-		intEq(0) = -fSpring(2)-fSpring(3)+fSpring(9)-fSpring(12)/elemHeight; 
-		intEq(1) = fSpring(1)-fSpring(5)-fSpring(7)+fSpring(12)/elemWidth; 
-		intEq(2) = -fSpring(4)-fSpring(8)+fSpring(10)+fSpring(12)/elemHeight; 
-		intEq(3) = fSpring(0)-fSpring(6)-fSpring(11)-fSpring(12)/elemWidth; 
-*/
-
-		// performs internal equilibrium (formulation 3) Oct 19, 2004
-
-		intEq(0) = -fSpring(2)-((1+HgtFac)/2)*(fSpring(3)-fSpring(9))-((1-HgtFac)/2)*(fSpring(4)-fSpring(10))-fSpring(12)/elemActHeight; 
-		intEq(1) = ((1-WdtFac)/2)*(fSpring(0)-fSpring(6))+((1+WdtFac)/2)*(fSpring(1)-fSpring(7))-fSpring(5)+fSpring(12)/elemActWidth; 
-		intEq(2) = -((1+HgtFac)/2)*(fSpring(4)-fSpring(10))-((1-HgtFac)/2)*(fSpring(3)-fSpring(9))-fSpring(8)+fSpring(12)/elemActHeight; 
-		intEq(3) = ((1+WdtFac)/2)*(fSpring(0)-fSpring(6))+((1-WdtFac)/2)*(fSpring(1)-fSpring(7))-fSpring(11)-fSpring(12)/elemActWidth; 
-
-
-		df_dDef.Zero();
-		matDiag(kSpring, df_dDef);
-
-		//////////////////////// dintEq_du = dg_df*df_dDef*dDef_du
-		tempintEq_du.Zero(); dintEq_du.Zero();
-
-		tempintEq_du.addMatrixProduct(0.0,dg_df,df_dDef,1.0);
-		dintEq_du.addMatrixProduct(0.0,tempintEq_du,dDef_du,1.0);
-
-		normIntEq = intEq.Norm();
-		normIntEqdU = 0.0;
-		for (int jc = 0; jc<4 ; jc++)
-		{
-			normIntEqdU += intEq(jc)*duInt(jc);
-		}
-		normIntEqdU = fabs(normIntEqdU);
-
-		if (totalCount == 1)
-		{
-			tolIntEq = (tol>tol*normIntEq) ? tol:tol*normIntEq;
-			tolIntEqdU = tol;
-		}
-		else if (totalCount == 2)
-		{
-			tolIntEqdU = (tol>tol*normIntEqdU) ? tol:tol*normIntEqdU;
-		}
-		ctolIntEq = (tolIntEq*dLoadStep > tol) ? tolIntEq*dLoadStep:tol;
-		ctolIntEqdU = (tolIntEqdU*dLoadStep > tol) ? tolIntEqdU*dLoadStep:tol;
-
-		
-		// check for convergence starts  
-
-      if ((normIntEq < ctolIntEq) || ((normIntEqdU < ctolIntEqdU) && (count >1)) || (normDuInt < toluInt) || (dLoadStep < 1e-3))
-		{
-			converge = 1;
-			loadStep = loadStep + dLoadStep;
-			if (fabs(1.0 - loadStep) < tol)
-			{
-				loadStep = 1.0;
-			}
-		}
-		else
-		{
-			////////////// duInt = -dintEq_du/intEq
-			dintEq_du.Solve(intEq,duInt);
-			duInt *= -1;
-
-			normDuInt = duInt.Norm();
-			if (!linesearch)
-			{
-				uInt = uInt + duInt;
-			}
-			else
-			{
-				engrLast = 0.0;
-				engr = 0.0;
-
-				for (int jd = 0; jd<4 ; jd++)
-				{
-					engrLast += duInt(jd)*intEqLast(jd);
-					engr += duInt(jd)*intEq(jd);
-				}
-
-				if (fabs(engr) > tol*engrLast)
-				{
-					duIntTemp = duInt;
-					duIntTemp *= -1;
-					// lineSearch algorithm requirement
-					stepSize = getStepSize(engrLast,engr,uExt,duExt,uInt,duIntTemp,tol);
-					
-					if (fabs(stepSize) > 0.001)
-					{
-						uInt = uInt + stepSize*duInt;
-					}
-					else
-					{
-						uInt = uInt + duInt;
-					}
-				}
-				else
-				{
-					uInt = uInt + duInt;
-				}
-				intEqLast = intEq;
-			}
-		}
-	}
-
-		if (!converge && loadStep < 1.0)
-		{
-	
-			incCount = 0;
-			maxCount = 25;
-			if (!linesearch)
-			{
-				linesearch = 1;
-				uInt = uIntOld;
-				duInt.Zero();
-			}
-			else
-			{					
-				uInt = uIntOld;
-				duInt.Zero();
-				duExt = duExt*0.1;
-
-				dLoadStep = dLoadStep*0.1;
-			}
-		}
-		else if (loadStep < 1.0)
-		{
-			maxCount = 10;
-			incCount ++;
-			normDuInt = toluInt;
-			if ((incCount < maxCount) || dtConverge)
-			{
-				uExt = uExt + duExt;
-				if (loadStep + dLoadStep > 1.0)
-				{
-					duExt = duExt*(1.0 - loadStep)/dLoadStep;
-					dLoadStep = 1.0 - loadStep;
-					incCount = 9;
-				}
-			}
-			else
-			{
-				incCount = 0;
-
-				uExt = uExt + duExt;
-				dLoadStep = dLoadStep*10;
-				if (loadStep + dLoadStep > 1.0)
-				{
-					uExt = uExt + duExt*(1.0 - loadStep)/dLoadStep;
-					dLoadStep = 1.0 - loadStep;
-					incCount = 9;
-				}
-			}
-		}
-	}
-
-	// determination of stiffness matrix and the residual force vector for the element
-
-	formR(fSpring);
-
-	formK(kSpring);
-
-	dg.Zero();
-	// commmited external and internal displacement update
-	for (int ig = 0; ig < 13; ig++ ) {
-		if (ig<12)
-		{
-			dg(ig) = Ut(ig);
-		}		
-	}
-	dg(12) = uInt(0);
-	dg(13) = uInt(1);
-	dg(14) = uInt(2);
-	dg(15) = uInt(3);
+	return *theVector;
 }
 
-void BeamColumnJoint2dThermal::getMatResponse(Vector U, Vector &fS, Vector &kS)
-{
-// formulation 2 (abandoned Oct 19, 2004)
-//	double jh = HgtFac;            // factor for beams
-//	double jw = WdtFac;            // factor for column
 
-	// obtains the material response from the material class
-	Vector defSpring(13);
-	defSpring.Zero();
-	fS.Zero();
-	kS.Zero();
-
-	defSpring.addMatrixVector(0.0, BCJoint, U, 1.0);
-
-	for (int j=0; j<3; j++)
-	{
-		MaterialPtr[j]->setTrialStrain(defSpring(j));
-		kS(j) = MaterialPtr[j]->getTangent();
-		fS(j) = MaterialPtr[j]->getStress();
-	}
-
-}
-
-void BeamColumnJoint2dThermal::getdDef_du()
-{	
-	dDef_du.Zero();
-	
-	for (int jb=0; jb<3; jb++)
-	{
-		dDef_du(jb,0) = BCJoint(jb,12);
-		dDef_du(jb,1) = BCJoint(jb,13);
-
-	}
-}
-
-void BeamColumnJoint2dThermal::matDiag(Vector k,Matrix &dfd)
-{
-	dfd.Zero();
-	// takes in a vector and converts it to a diagonal matrix (could have been placed as a method in matrix class)
-	for (int ja=0; ja<3; ja++)
-	{
-		dfd(ja,ja) = k(ja);
-	}
-}
-
-void BeamColumnJoint2dThermal::formR(Vector f)
-{
-	// develops the element residual force vector
-	Vector rForceTemp(16);
-	rForceTemp.Zero();
-	
-	rForceTemp.addMatrixTransposeVector(0.0,BCJoint,f,1.0);   // rForceTemp = BCJoint'*f
-	R.Extract(rForceTemp,0,1.0);
-}
-
-void BeamColumnJoint2dThermal::formK(Vector k)
-{
-	// come back later and redo this if too slow
-	/*Matrix& stiff = *theMatrix;
-
-	int numDOF2 = numDOF / 2;
-	double temp;
-	double EAoverL = E * A / L;
-	for (int i = 0; i < dimension; i++) {
-		for (int j = 0; j < dimension; j++) {
-			temp = cosX[i] * cosX[j] * EAoverL;
-			stiff(i, j) = temp;
-			stiff(i + numDOF2, j) = -temp;
-			stiff(i, j + numDOF2) = -temp;
-			stiff(i + numDOF2, j + numDOF2) = temp;
-		}
-	}
-	
-	return *theMatrix;*/
-}
-
-void BeamColumnJoint2dThermal::getdg_df()
-{
-		dg_df.Zero();        // basically derivative of intEq
-
-/*      // formulation 2
-		dg_df(0,2) = -1;
-		dg_df(0,3) = -1;
-		dg_df(0,9) = 1;
-		dg_df(0,12) = -1/elemHeight; 
-		dg_df(1,1) = 1;
-		dg_df(1,5) = -1;
-		dg_df(1,7) = -1;
-		dg_df(1,12) = 1/elemWidth;
-		dg_df(2,4) = -1;
-		dg_df(2,8) = -1;
-		dg_df(2,10) = 1;
-		dg_df(2,12) = 1/elemHeight;
-		dg_df(3,0) = 1;
-		dg_df(3,6) = -1;
-		dg_df(3,11) = -1;
-		dg_df(3,12) = -1/elemWidth;
-*/
-
-      // formulation 3 (Oct 19, 2004)
-		dg_df(0,2) = -1;
-		dg_df(0,3) = -(1+HgtFac)/2;
-		dg_df(0,4) = -(1-HgtFac)/2;
-		dg_df(0,9) =  (1+HgtFac)/2;
-		dg_df(0,10) = (1-HgtFac)/2;
-		dg_df(0,12) = -1/elemActHeight; 
-		dg_df(1,0) = (1-WdtFac)/2;
-		dg_df(1,1) = (1+WdtFac)/2;
-		dg_df(1,5) = -1;
-		dg_df(1,6) = -(1-WdtFac)/2;
-		dg_df(1,7) = -(1+WdtFac)/2;
-		dg_df(1,12) = 1/elemActWidth;
-		dg_df(2,3) = -(1-HgtFac)/2;
-		dg_df(2,4) = -(1+HgtFac)/2;
-		dg_df(2,8) = -1;
-		dg_df(2,9) = (1-HgtFac)/2;
-		dg_df(2,10) = (1+HgtFac)/2;	
-		dg_df(2,12) = 1/elemActHeight;
-		dg_df(3,0) = (1+WdtFac)/2;
-		dg_df(3,1) = (1-WdtFac)/2;
-		dg_df(3,6) = -(1+WdtFac)/2;
-		dg_df(3,7) = -(1-WdtFac)/2;
-		dg_df(3,11) = -1;
-		dg_df(3,12) = -1/elemActWidth;
-
-
-}
-
-void BeamColumnJoint2dThermal::getBCJoint() 
-{
-	BCJoint.Zero();                  // basically the transformation matrix for the element
-
-// changes incorporated for formulation 3 (previously it was done @ Formulation 2) dt. Oct 19, 2004
-	BCJoint(0,1) =  -1;
-	BCJoint(0,2) =  elemWidth/2;
-	BCJoint(0,13) = (1-WdtFac)/2; BCJoint(0,15) = (1+WdtFac)/2; //BCJoint(0,15) = 1;
-	BCJoint(1,1) =  -1;
-	BCJoint(1,2) =  -elemWidth/2;
-	BCJoint(1,13) = (1+WdtFac)/2; BCJoint(1,15) = (1-WdtFac)/2; //BCJoint(1,13) = 1;
-	BCJoint(2,0) =  1;
-	BCJoint(2,12) = -1;
-	BCJoint(3,3) =  1;
-	BCJoint(3,5) =  elemHeight/2;
-	BCJoint(3,12) = -(1+HgtFac)/2; BCJoint(3,14) = -(1-HgtFac)/2; //BCJoint(3,12) = -1;
-	BCJoint(4,3) = 1;
-	BCJoint(4,5) = -elemHeight/2;
-	BCJoint(4,12) = -(1-HgtFac)/2; BCJoint(4,14) = -(1+HgtFac)/2; //BCJoint(4,14) = -1;
-	BCJoint(5,4) = 1;
-	BCJoint(5,13) = -1;
-	BCJoint(6,7) =  1;
-	BCJoint(6,8) =  -elemWidth/2;
-	BCJoint(6,13) = -(1-WdtFac)/2; BCJoint(6,15) = -(1+WdtFac)/2; //BCJoint(6,15) = -1;
-	BCJoint(7,7) =  1;
-	BCJoint(7,8) =  elemWidth/2;
-	BCJoint(7,13) = -(1+WdtFac)/2; BCJoint(7,15) = -(1-WdtFac)/2; //BCJoint(7,13) = -1;
-	BCJoint(8,6) =  1;
-	BCJoint(8,14) = -1;
-	BCJoint(9,9) =  -1;
-	BCJoint(9,11) =  -elemHeight/2;
-	BCJoint(9,12) = (1+HgtFac)/2; BCJoint(9,14) = (1-HgtFac)/2; //BCJoint(9,12) = 1;
-	BCJoint(10,9) = -1;
-	BCJoint(10,11) = elemHeight/2;
-	BCJoint(10,12) = (1-HgtFac)/2; BCJoint(10,14) = (1+HgtFac)/2; //BCJoint(10,14) = 1;
-	BCJoint(11,10) = 1;
-	BCJoint(11,15) = -1;
-	BCJoint(12,12) = -1/elemActHeight; //BCJoint(12,12) = -1/elemHeight;
-	BCJoint(12,13) = 1/elemActWidth; //BCJoint(12,13) = 1/elemWidth;
-	BCJoint(12,14) = 1/elemActHeight; //BCJoint(12,14) = 1/elemHeight;
-	BCJoint(12,15) = -1/elemActWidth; //BCJoint(12,15) = -1/elemWidth;
-
-/*	// based upon the new formulation (formulation 1 & 2)
-	BCJoint(2,2) = -(elemActHeight - elemHeight)/2;
-	BCJoint(5,5) = -(elemActWidth - elemWidth)/2;
-	BCJoint(8,8) = (elemActHeight - elemHeight)/2;
-	BCJoint(11,11) = (elemActWidth - elemWidth)/2;
-*/
-}
-
-double BeamColumnJoint2dThermal::getStepSize(double s0,double s1,Vector uExt,Vector duExt,Vector uInt,Vector duInt,double tol)
-{
-	Vector u(16);    u.Zero();
-	Vector fSpr(13); fSpr.Zero();
-	Vector kSpr(13); kSpr.Zero();
-	Vector intEq(4); intEq.Zero();
-
-	double r0 = 0.0;            // tolerance check for line-search
-	double tolerance = 0.8;     // slack region tolerance set for line-search
-    
-	if (s0 != 0.0)
-		r0 = fabs(s1/s0);
-
-	if (r0 <= tolerance)
-		return 1.0;   // Linsearch Not required residual decrease less than tolerance
-
-	if (s1 == s0)
-		return 1.0;   // Bisection would have divide by zero error if continued
-
-	// set some variables
-	double etaR;
-	double eta = 1.0;
-	double s = s1;
-	double etaU = 1.0;
-	double etaL = 0.0;
-	double sU = s1;
-	double sL = s0;
-	double r = r0;
-	double etaJ = 1.0;
-
-	double minEta = 0.1;
-	double maxEta = 10.0;
-	int maxIter = 20;
-
-	// bracket the region
-	int count = 0;
-	while ((sU*sL > 0.0) && (etaU < maxEta)) {
-		count ++;
-		etaU *= 2.0;
-		etaR = etaU - etaJ;
-
-		for (int i = 0; i < 12; i++) {
-			u(i) = uExt(i) + duExt(i);
-		}
-		u(12) = uInt(0) - etaR*duInt(0);
-		u(13) = uInt(1) - etaR*duInt(1);
-		u(14) = uInt(2) - etaR*duInt(2);
-		u(15) = uInt(3) - etaR*duInt(3);
-
-		getMatResponse(u,fSpr,kSpr);
-
-/*      // formualtion 2 (abandoned Oct 19 2004)
-
-		intEq(0) = -fSpr(2) - fSpr(3) + fSpr(9) - fSpr(12)/elemHeight;
-		intEq(1) = fSpr(1) - fSpr(5) - fSpr(7) + fSpr(12)/elemWidth;
-		intEq(2) = -fSpr(4) - fSpr(8) + fSpr(10) + fSpr(12)/elemHeight;
-		intEq(3) = fSpr(0) - fSpr(6) - fSpr(11) - fSpr(12)/elemWidth;
-*/
-
-
-//      formulation 3
-		intEq(0) = -fSpr(2)-((1+HgtFac)/2)*(fSpr(3)-fSpr(9))-((1-HgtFac)/2)*(fSpr(4)-fSpr(10))-fSpr(12)/elemActHeight; 
-		intEq(1) = ((1-WdtFac)/2)*(fSpr(0)-fSpr(6))+((1+WdtFac)/2)*(fSpr(1)-fSpr(7))-fSpr(5)+fSpr(12)/elemActWidth; 
-		intEq(2) = -((1+HgtFac)/2)*(fSpr(4)-fSpr(10))-((1-HgtFac)/2)*(fSpr(3)-fSpr(9))-fSpr(8)+fSpr(12)/elemActHeight; 
-		intEq(3) = ((1+WdtFac)/2)*(fSpr(0)-fSpr(6))+((1-WdtFac)/2)*(fSpr(1)-fSpr(7))-fSpr(11)-fSpr(12)/elemActWidth; 
-
-		sU = duInt^intEq;
-
-		// check if we are happy with the solution
-		r = fabs(sU/s0);
-		if (r < tolerance)
-			return etaU;
-
-		etaJ = etaU;
-	}
-
-	if (sU*sL > 0.0)   // no bracketing could be done
-		return 1.0;
-
-	count = 0;
-	while (r > tolerance && count < maxIter) {
-		count ++;
-		eta = (etaU + etaL)/2.0;
-
-		if (r > r0) eta = 1.0;
-
-		etaR = eta - etaJ;
-
-		for (int i = 0; i < 12; i++) {
-			u(i) = uExt(i) + duExt(i);
-		}
-		u(12) = uInt(0) - etaR*duInt(0);
-		u(13) = uInt(1) - etaR*duInt(1);
-		u(14) = uInt(2) - etaR*duInt(2);
-		u(15) = uInt(3) - etaR*duInt(3);
-
-		getMatResponse(u,fSpr,kSpr);
-
-/*		intEq(0) = -fSpr(2) - fSpr(3) + fSpr(9) - fSpr(12)/elemHeight;
-		intEq(1) = fSpr(1) - fSpr(5) - fSpr(7) + fSpr(12)/elemWidth;
-		intEq(2) = -fSpr(4) - fSpr(8) + fSpr(10) + fSpr(12)/elemHeight;
-		intEq(3) = fSpr(0) - fSpr(6) - fSpr(11) - fSpr(12)/elemWidth;
-*/
-		// formulation 3
-		intEq(0) = -fSpr(2)-((1+HgtFac)/2)*(fSpr(3)-fSpr(9))-((1-HgtFac)/2)*(fSpr(4)-fSpr(10))-fSpr(12)/elemActHeight; 
-		intEq(1) = ((1-WdtFac)/2)*(fSpr(0)-fSpr(6))+((1+WdtFac)/2)*(fSpr(1)-fSpr(7))-fSpr(5)+fSpr(12)/elemActWidth; 
-		intEq(2) = -((1+HgtFac)/2)*(fSpr(4)-fSpr(10))-((1-HgtFac)/2)*(fSpr(3)-fSpr(9))-fSpr(8)+fSpr(12)/elemActHeight; 
-		intEq(3) = ((1+WdtFac)/2)*(fSpr(0)-fSpr(6))+((1-WdtFac)/2)*(fSpr(1)-fSpr(7))-fSpr(11)-fSpr(12)/elemActWidth; 
-
-		s = duInt^intEq;
-
-		// check if we are happy with the solution
-		r = fabs(s/s0);
-
-		// set variables for next iteration 
-		etaJ = eta;
-		
-		if (s*sU < 0.0) {
-			etaL = eta;
-			sL = s;
-		} else if (s*sU == 0.0) {
-			count = maxIter;
-		} else {
-			etaU = eta;
-			sU = s;
-		}
-
-		if (sL == sU)
-			count = maxIter;
-
-	}
-
-	return eta;
-}
     
 const Matrix &
 BeamColumnJoint2dThermal::getDamp(void)
 {
 	//not applicable (stiffness being returned)
-	return K;
+	return *theMatrix;
 }
 
 const Matrix &
 BeamColumnJoint2dThermal::getMass(void)
 { 
 	//not applicable  (stiffness being returned)
-	return K;
+	return *theMatrix;
 }
 
 void 
@@ -1032,7 +434,7 @@ const Vector &
 BeamColumnJoint2dThermal::getResistingForceIncInertia()
 {	
   //not applicable (residual being returned)
-	return R;
+	return *theVector;
 }
 
 int
@@ -1054,45 +456,24 @@ BeamColumnJoint2dThermal::displaySelf(Renderer &theViewer, int displayMode, floa
 {
 	const Vector &node1Crd = nodePtr[0]->getCrds();
 	const Vector &node2Crd = nodePtr[1]->getCrds();	
-	const Vector &node3Crd = nodePtr[2]->getCrds();
-	const Vector &node4Crd = nodePtr[3]->getCrds();
+
 
 	const Vector &node1Disp = nodePtr[0]->getDisp();
 	const Vector &node2Disp = nodePtr[1]->getDisp();    
-	const Vector &node3Disp = nodePtr[2]->getDisp();
-	const Vector &node4Disp = nodePtr[3]->getDisp();  
+ 
 
 	static Vector v1(3);
 	static Vector v2(3);
-	static Vector v3(3);
-	static Vector v4(3);
+
 	
 	// calculate the current coordinates of four external nodes
 	for (int i=0; i<2; i++) 
     {
 		v1(i) = node1Crd(i)+node1Disp(i)*fact;
 		v2(i) = node2Crd(i)+node2Disp(i)*fact;
-		v3(i) = node3Crd(i)+node3Disp(i)*fact;
-		v4(i) = node4Crd(i)+node4Disp(i)*fact;
+
 	}
 	
-	// calculate four corners of the element
-	Vector vb(3);
-	Vector vc(3);
-
-	vb = v1 - v3;
-	vc = v2 - v4;
-
-	v1 = v1 - 0.5 * vc;
-	v2 = v1 + vc;
-	v3 = v4 + 0.5 * vb;
-	v4 = v4 + vb;
-	
-	int dummy;
-	dummy = theViewer.drawLine(v1, v2, 1.0, 1.0);
-	dummy = theViewer.drawLine(v2, v4, 1.0, 1.0);
-	dummy = theViewer.drawLine(v4, v3, 1.0, 1.0);
-	dummy = theViewer.drawLine(v3, v1, 1.0, 1.0);
 
 	return 0;
 
@@ -1102,7 +483,7 @@ void
 BeamColumnJoint2dThermal::Print(OPS_Stream &s, int flag)
 {
 	s << "Element: " << this->getTag() << " Type: Beam Column Joint " << endln;
-	for (int i = 0; i<4; i++)
+	for (int i = 0; i<2; i++)
 	{
 		s << "Node :" << connectedExternalNodes(i);
 		s << "DOF :" << nodePtr[i]->getNumberDOF();
@@ -1132,35 +513,7 @@ BeamColumnJoint2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
   
   else if (strcmp(argv[0],"node2InterfaceShear") == 0 || strcmp(argv[0],"node2Interfaceshear") ==0 || strcmp(argv[0],"Node2InterfaceShear") ==0 )
     return MaterialPtr[5]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node3BarSlipL") == 0 || strcmp(argv[0],"node3BarslipL") ==0 || strcmp(argv[0],"Node3BarSlipL") == 0)
-    return MaterialPtr[6]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node3BarSlipR") == 0 || strcmp(argv[0],"node3BarslipR") ==0 || strcmp(argv[0],"Node3BarSlipR") == 0)
-    return MaterialPtr[7]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node3InterfaceShear") == 0 || strcmp(argv[0],"node3Interfaceshear") ==0 || strcmp(argv[0],"Node3InterfaceShear") ==0 )
-    return MaterialPtr[8]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node4BarSlipB") == 0 || strcmp(argv[0],"node4BarslipB") ==0 || strcmp(argv[0],"Node4BarSlipB") == 0)
-    return MaterialPtr[9]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node4BarSlipT") == 0 || strcmp(argv[0],"node4BarslipT") ==0 || strcmp(argv[0],"Node4BarSlipT") == 0)
-    return MaterialPtr[10]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node4InterfaceShear") == 0 || strcmp(argv[0],"node4Interfaceshear") ==0 || strcmp(argv[0],"Node4InterfaceShear") ==0 )
-    return MaterialPtr[11]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"shearpanel") == 0 || strcmp(argv[0],"shearPanel") ==0)
-    return MaterialPtr[12]->setResponse(&argv[1], argc-1, output);
-  
-  
-  else if (strcmp(argv[0],"externalDisplacement") == 0 || strcmp(argv[0],"externaldisplacement") == 0)
-    return new ElementResponse(this,1,Vector(12));
-  
-  else if (strcmp(argv[0],"internalDisplacement") == 0 || strcmp(argv[0],"internaldisplacement") == 0)
-    return new ElementResponse(this,2,Vector(4));
-  
+
   else if (strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"Deformation") == 0)
     return new ElementResponse(this,3,Vector(4));
   
@@ -1171,75 +524,10 @@ BeamColumnJoint2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
 int 
 BeamColumnJoint2dThermal::getResponse(int responseID, Information &eleInfo)
 {
-	static Vector delta(13);
-	static Vector def(4);
-	static Vector U(16);
-	int tr,ty;
-	double bsFa, bsFb, bsFc, bsFd;
-	double bsFac, bsFbd, isFac, isFbd; 
-
 	switch (responseID) {
-	case 1:       
-		if(eleInfo.theVector!=0)
-		{
-			(*(eleInfo.theVector))(0) = UeprCommit(0);
-			(*(eleInfo.theVector))(1) = UeprCommit(1);
-			(*(eleInfo.theVector))(2) = UeprCommit(2);
-			(*(eleInfo.theVector))(3) = UeprCommit(3);
-			(*(eleInfo.theVector))(4) = UeprCommit(4);
-			(*(eleInfo.theVector))(5) = UeprCommit(5);
-			(*(eleInfo.theVector))(6) = UeprCommit(6);
-			(*(eleInfo.theVector))(7) = UeprCommit(7);
-			(*(eleInfo.theVector))(8) = UeprCommit(8);
-			(*(eleInfo.theVector))(9) = UeprCommit(9);
-			(*(eleInfo.theVector))(10) = UeprCommit(10);
-			(*(eleInfo.theVector))(11) = UeprCommit(11);
-		}
-		return 0;
+	case 1:  // global forces
+		return eleInfo.setVector(this->getResistingForce());
 
-	case 2:
-		if (eleInfo.theVector !=0) {
-			(*(eleInfo.theVector))(0) = UeprIntCommit(0);
-			(*(eleInfo.theVector))(1) = UeprIntCommit(1);
-			(*(eleInfo.theVector))(2) = UeprIntCommit(2);
-			(*(eleInfo.theVector))(3) = UeprIntCommit(3);
-		}
-		return 0;
-
-	case 3:
-
-		for (ty =0; ty <12; ty++)
-		{
-			U(ty) = UeprCommit(ty);
-		}
-		for (tr = 0; tr <4 ; tr++)
-		{
-			U(12+tr) = UeprIntCommit(tr);
-		}
-
-		delta.addMatrixVector(0.0,BCJoint,U,1.0);
-		
-		bsFa = fabs(delta(0) - delta(1))/elemWidth;
-		bsFc = fabs(delta(7) - delta(6))/elemWidth;
-		bsFac = bsFa + bsFc;
-		bsFb = fabs(delta(4) - delta(3))/elemHeight;
-		bsFd = fabs(delta(10) - delta(9))/elemHeight;
-		bsFbd = bsFb + bsFd;
-
-		def(0) = bsFac + bsFbd; // contribution of bar slip deformation
-		
-		
-		isFac = (delta(2) + delta(8))/elemHeight;
-		isFbd = (delta(5) + delta(11))/elemWidth;
-
-		def(1) = isFac + isFbd;  // contribution due to interface shear spring
-
-		def(2) = delta(12);  // contribution due to shear panel
-
-		def(3) = def(0) + def(1) + def(2);  // total joint deformation
-
-
-		return eleInfo.setVector(def);
 	default:
 		return -1;
 	}
