@@ -52,8 +52,9 @@
 #include <string>
 
 //static Matrix CoupledZeroLengthM6(6, 6);   // class wide matrix for 6*6
-static Matrix TwoNodeM6;   // class wide matrix for 6*6
-static Vector TwoNodeV6;   // class wide Vector for size 6
+static Matrix TwoNodeM6(6,6);   // class wide matrix for 6*6
+static Vector TwoNodeV6(6);   // class wide Vector for size 6
+int  numMaterials1d = 3;
 
 void* OPS_BeamColumnJoint2dThermal()
 {
@@ -101,12 +102,13 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 				     UniaxialMaterial& theMat2,
 				     UniaxialMaterial& theMat3):
   Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
-  nodeDbTag(0), dofDbTag(0), theMatrix(0),ub(0), ubdot(0), qb(0), ul(0), Tgl(0, 0), Tlb(0, 0), theVector(0), theLoad(0)
+ theMatrix(0), d0(0), v0(0), theVector(0), theLoad(0), elemType(1),
+	dimension(2), nDOF(0), transformation(3, 3)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
  
 	if (connectedExternalNodes.Size() != 2)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
+      opserr << "ERROR : BeamColumnJoint::BeamColumnJointThermal " << tag << "failed to create an ID of size 2" << endln;
 
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
@@ -133,7 +135,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
   if (!MaterialPtr[2]){
 		opserr << "ERROR : BeamColumnJoint::Constructor failed to get a copy of material 3"<< endln;}
   
-
+  mInitialize = 1;
 }
 
 // full constructors:
@@ -142,14 +144,14 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 				     UniaxialMaterial& theMat2,
 				     UniaxialMaterial& theMat3,
 					 double elHgtFac, double elWdtFac):
-  Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(4),
-  nodeDbTag(0), dofDbTag(0), ub(0), ubdot(0), qb(0), ul(0),
-	Tgl(0, 0), Tlb(0, 0), theMatrix(0), theVector(0), theLoad(0)
+  Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
+	d0(0), v0(0), theMatrix(0), theVector(0), theLoad(0), elemType(1),
+	dimension(2), nDOF(0), transformation(3, 3)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
  
 	if (connectedExternalNodes.Size() != 2)
-      opserr << "ERROR : BeamColumnJoint::BeamColumnJoint " << tag << "failed to create an ID of size 4" << endln;
+      opserr << "ERROR : BeamColumnJoint::BeamColumnJointThermal " << tag << "failed to create an ID of size 2" << endln;
 
 	connectedExternalNodes(0) = Nd1 ;
     connectedExternalNodes(1) = Nd2 ;
@@ -176,19 +178,19 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
   MaterialPtr[2] = theMat3.getCopy();
   if (!MaterialPtr[2]){
 		opserr << "ERROR : BeamColumnJoint::Constructor failed to get a copy of material 3"<< endln;}
-
+  mInitialize = 1;
 }
 
 // default constructor:
 BeamColumnJoint2dThermal::BeamColumnJoint2dThermal():
   Element(0,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
-  nodeDbTag(0), dofDbTag(0), ub(0), ubdot(0), qb(0), ul(0),
-	Tgl(0, 0), Tlb(0, 0), theMatrix(0), theVector(0), theLoad(0)
+ d0(0), v0(0), theMatrix(0), theVector(0), theLoad(0),elemType(1)
 {
 	nodePtr[0] = 0;
 	nodePtr[1] = 0;
 	for (int x = 0; x <3; x++)
 	{	MaterialPtr[x] = 0; }
+	mInitialize = 0;
    // does nothing (invoked by FEM_ObjectBroker)
 }
 
@@ -251,31 +253,56 @@ BeamColumnJoint2dThermal::setDomain(Domain *theDomain)
 		}
 	}
 
-    // call the base class method
-    this->DomainComponent::setDomain(theDomain);
-
 	// ensure connected nodes have correct dof's
 	int dofNd1 = nodePtr[0]->getNumberDOF();
 	int dofNd2 = nodePtr[1]->getNumberDOF();
 
 
-	if ((dofNd1 != 3) || (dofNd2 != 3) ) 
-	{
-			opserr << "ERROR : BeamColumnJoint::setDomain -- number of DOF associated with the node incorrect"<< endln;
-			exit(-1); // donot go any further - otherwise segmentation fault
+	// if differing dof at the ends - print a warning message
+	if (dofNd1 != dofNd2) {
+		opserr << "WARNING ZeroLength::setDomain(): nodes " << connectedExternalNodes <<
+			"have differing dof at ends for ZeroLength " << this->getTag() << endln;
+		return;
 	}
 
 
-    // obtain the nodal coordinates    
-	const Vector &end1Crd = nodePtr[0]->getCrds();
-	const Vector &end2Crd = nodePtr[1]->getCrds();
+	// Check that length is zero within tolerance
+	const Vector& end1Crd = nodePtr[0]->getCrds();
+	const Vector& end2Crd = nodePtr[1]->getCrds();
+	Vector diff = end1Crd - end2Crd;
+	double L = diff.Norm();
+	double v1 = end1Crd.Norm();
+	double v2 = end2Crd.Norm();
+	double vm;
 
+	vm = (v1 < v2) ? v2 : v1;
+
+	// call the base class method
+	this->DomainComponent::setDomain(theDomain);
 
 	Vector Node1(end1Crd);
 	Vector Node2(end2Crd);
 
 	theMatrix = &TwoNodeM6;
 	theVector = &TwoNodeV6;
+
+	// get trial displacements and take difference
+	const Vector& disp1 = nodePtr[0]->getTrialDisp();
+	const Vector& disp2 = nodePtr[1]->getTrialDisp();
+	Vector  diffD = disp2 - disp1;
+	const Vector& vel1 = nodePtr[0]->getTrialVel();
+	const Vector& vel2 = nodePtr[1]->getTrialVel();
+	Vector  diffV = vel2 - vel1;
+
+	// to avoid incorrect results, do not set initial disp/vel upon call of null constructor
+	// when using database commands
+	if (mInitialize == 1) {
+		if (diffD != 0.0)
+			d0 = new Vector(diffD);
+
+		if (diffV != 0)
+			v0 = new Vector(diffV);
+	}
 
 }   
 
@@ -322,46 +349,74 @@ BeamColumnJoint2dThermal::revertToStart(void)
 int
 BeamColumnJoint2dThermal::update(void)
 {	
-	int errCode = 0;
 
-	// get global trial response
-	const Vector& dsp1 = nodePtr[0]->getTrialDisp();
-	const Vector& dsp2 = nodePtr[1]->getTrialDisp();
+	double strain;
+	double strainRate;
+
+	// get trial displacements and take difference
+	const Vector& disp1 = nodePtr[0]->getTrialDisp();
+	const Vector& disp2 = nodePtr[1]->getTrialDisp();
+	Vector  diff = disp2 - disp1;
 	const Vector& vel1 = nodePtr[0]->getTrialVel();
 	const Vector& vel2 = nodePtr[1]->getTrialVel();
+	Vector  diffv = vel2 - vel1;
 
-	int numDOF = 6;
-	int numDOF2 = 3;
-	Vector ug(numDOF), ugdot(numDOF), uldot(numDOF);
-	for (int i = 0; i < numDOF2; i++) {
-		ug(i) = dsp1(i);  ugdot(i) = vel1(i);
-		ug(i + numDOF2) = dsp2(i);  ugdot(i + numDOF2) = vel2(i);
+	if (d0 != 0)
+		diff -= *d0;
+
+	if (v0 != 0)
+		diffv -= *v0;
+
+	// loop over 1d materials
+
+	//    Matrix& tran = *t1d;
+	int ret = 0;
+	for (int mat = 0; mat < numMaterials1d; mat++) {
+		// compute strain and rate; set as current trial for material
+		strain = this->computeCurrentStrain1d(mat, diff);
+		//strainRate = this->computeCurrentStrain1d(mat, diffv);
+		ret += MaterialPtr[mat]->setTrialStrain(strain);
 	}
 
-	// transform response from the global to the local system
-	ul.addMatrixVector(0.0, Tgl, ug, 1.0);
-	uldot.addMatrixVector(0.0, Tgl, ugdot, 1.0);
-
-	// transform response from the local to the basic system
-	ub.addMatrixVector(0.0, Tlb, ul, 1.0);
-	ubdot.addMatrixVector(0.0, Tlb, uldot, 1.0);
-	//ub = (Tlb*Tgl)*ug;
-	//ubdot = (Tlb*Tgl)*ugdot;
-
-	// set trial response for material models
-	for (int i = 0; i < 3; i++)
-		errCode += MaterialPtr[i]->setTrialStrain(ub(i), ubdot(i));
-
-	return errCode;
+	return ret;
 }
 
 const Matrix &
 BeamColumnJoint2dThermal::getTangentStiff(void)
 {
-	// zero the matrix
-	theMatrix->Zero();
+	double E;
 
-	return *theMatrix;
+
+	// stiff is a reference to the matrix holding the stiffness matrix
+	Matrix& stiff = *theMatrix;
+
+	// zero stiffness matrix
+	stiff.Zero();
+
+	// loop over 1d materials
+
+	//Matrix& tran = *t1d;;
+	for (int mat = 0; mat < numMaterials1d; mat++) {
+
+		// get tangent for material
+		E = MaterialPtr[mat]->getTangent();
+
+		// compute contribution of material to tangent matrix
+	
+		stiff(mat, mat) = E ;
+		stiff(mat+3, mat+3) = E;
+
+	}
+
+	// end loop over 1d materials 
+
+	// complete symmetric stiffness matrix
+	//for (int i = 0; i < 6; i++)
+	//	for (int j = 0; j < i; j++)
+	//		stiff(j, i) = stiff(i, j);
+
+	return stiff;
+
 }
 
 const Matrix &
@@ -373,22 +428,23 @@ BeamColumnJoint2dThermal::getInitialStiff(void)
 const Vector &
 BeamColumnJoint2dThermal::getResistingForce(void)
 {
+	double force;
 	// zero the residual
 	theVector->Zero();
 
-	// get resisting forces
-	for (int i = 0; i < 3; i++)
-		qb(i) = MaterialPtr[i]->getStress();
+	// loop over 1d materials
+	for (int mat = 2; mat < numMaterials1d; mat++) {
 
-	// determine resisting forces in local system
-	//Vector ql(6);
-	//ql.addMatrixTransposeVector(0.0, Tlb, qb, 1.0);
+		// get resisting force for material
+		force = MaterialPtr[mat]->getStress();
 
-	// add P-Delta effects to local forces
+		// compute residual due to resisting force
 
-	// determine resisting forces in global system    
-	//theVector->addMatrixTransposeVector(0.0, Tgl, ql, 1.0);
+		(*theVector)(mat) = -force;
+		(*theVector)(mat+3) = force;
+	} // end loop over 1d materials 
 
+	opserr << "Resisting F: " << *theVector << endln;
 	return *theVector;
 }
 
@@ -543,4 +599,178 @@ int
 BeamColumnJoint2dThermal::updateParameter (int parameterID, Information &info)
 {
   return -1;
+}
+
+
+// Compute current strain for 1d material mat
+// dispDiff are the displacements of node 2 minus those
+// of node 1
+double
+BeamColumnJoint2dThermal::computeCurrentStrain1d(int mat,
+	const Vector& dispDiff) const
+{
+	double strain = 0.0;
+
+	for (int i = 0; i < 6 / 2; i++) {
+		strain += -dispDiff(i) ;
+	}
+
+	return strain;
+}
+
+
+
+void
+BeamColumnJoint2dThermal::updateDir(const Vector& x, const Vector& y)
+{
+	this->setUp(connectedExternalNodes(0), connectedExternalNodes(1), x, y);
+	this->setTran1d(elemType, numMaterials1d);
+}
+
+
+// Set basic deformation-displacement transformation matrix for 1d
+// uniaxial materials
+void
+BeamColumnJoint2dThermal::setTran1d(int elemType,
+	int   numMat)
+{
+	int nDoF;
+	enum Dtype { TRANS, ROTATE };
+
+	int   indx, dir;
+	Dtype dirType;
+
+	// Create 1d transformation matrix
+	if (elemType == 1)
+		nDoF = 6;
+	else if(elemType == 2)
+		nDoF = 6;
+	else if (elemType == 3)
+		nDoF = 12;
+
+	t1d = new Matrix(numMat, nDoF);
+
+	if (t1d == 0)
+		opserr << "FATAL ZeroLength::setTran1d - can't allocate 1d transformation matrix\n";
+
+	// Use reference for convenience and zero matrix.
+	Matrix& tran = *t1d;
+	tran.Zero();
+
+	// loop over materials, setting row in tran for each material depending on dimensionality of element
+
+	for (int i = 0; i < numMat; i++) {
+
+		dir = (*dir1d)(i);	// direction 0 to 5;
+		indx = dir % 3;		// direction 0, 1, 2 for axis of translation or rotation
+
+		// set direction type to translation or rotation
+		dirType = (dir < 3) ? TRANS : ROTATE;
+
+		// now switch on dimensionality of element
+
+		switch (elemType) {
+//D2N6
+		case 1:
+			if (dirType == TRANS) {
+				tran(i, 3) = transformation(indx, 0);
+				tran(i, 4) = transformation(indx, 1);
+				tran(i, 5) = 0.0;
+			}
+			else if (dirType == ROTATE) {
+				tran(i, 3) = 0.0;
+				tran(i, 4) = 0.0;
+				tran(i, 5) = transformation(indx, 2);
+			}
+			break;
+//D3N6
+		case 2:
+			if (dirType == TRANS) {
+				tran(i, 3) = transformation(indx, 0);
+				tran(i, 4) = transformation(indx, 1);
+				tran(i, 5) = transformation(indx, 2);
+			}
+			break;
+//D3N12
+		case 3:
+			if (dirType == TRANS) {
+				tran(i, 6) = transformation(indx, 0);
+				tran(i, 7) = transformation(indx, 1);
+				tran(i, 8) = transformation(indx, 2);
+				tran(i, 9) = 0.0;
+				tran(i, 10) = 0.0;
+				tran(i, 11) = 0.0;
+			}
+			else if (dirType == ROTATE) {
+				tran(i, 6) = 0.0;
+				tran(i, 7) = 0.0;
+				tran(i, 8) = 0.0;
+				tran(i, 9) = transformation(indx, 0);
+				tran(i, 10) = transformation(indx, 1);
+				tran(i, 11) = transformation(indx, 2);
+			}
+			break;
+
+		} // end switch
+
+		// fill in first half of transformation matrix with
+		// negative sign
+
+		for (int j = 0; j < nDOF / 2; j++)
+			tran(i, j) = -tran(i, j + nDOF / 2);
+
+	} // end loop over 1d materials
+}
+
+
+void
+BeamColumnJoint2dThermal::setUp(int Nd1, int Nd2,
+	const Vector& x,
+	const Vector& yp)
+{
+	// ensure the connectedExternalNode ID is of correct size & set values
+	if (connectedExternalNodes.Size() != 2)
+		opserr << "FATAL ZeroLength::setUp - failed to create an ID of correct size\n";
+
+	connectedExternalNodes(0) = Nd1;
+	connectedExternalNodes(1) = Nd2;
+
+	int i;
+	for (i = 0; i < 2; i++)
+		nodePtr[i] = 0;
+
+	// check that vectors for orientation are correct size
+	if (x.Size() != 3 || yp.Size() != 3)
+		opserr << "FATAL ZeroLength::setUp - incorrect dimension of orientation vectors\n";
+
+	// establish orientation of element for the transformation matrix
+	// z = x cross yp
+	Vector z(3);
+	z(0) = x(1) * yp(2) - x(2) * yp(1);
+	z(1) = x(2) * yp(0) - x(0) * yp(2);
+	z(2) = x(0) * yp(1) - x(1) * yp(0);
+
+	// y = z cross x
+	Vector y(3);
+	y(0) = z(1) * x(2) - z(2) * x(1);
+	y(1) = z(2) * x(0) - z(0) * x(2);
+	y(2) = z(0) * x(1) - z(1) * x(0);
+
+	// compute length(norm) of vectors
+	double xn = x.Norm();
+	double yn = y.Norm();
+	double zn = z.Norm();
+
+	// check valid x and y vectors, i.e. not parallel and of zero length
+	if (xn == 0 || yn == 0 || zn == 0) {
+		opserr << "FATAL ZeroLength::setUp - invalid vectors to constructor\n";
+	}
+
+	// create transformation matrix of direction cosines
+	for (i = 0; i < 3; i++) {
+		transformation(0, i) = x(i) / xn;
+		transformation(1, i) = y(i) / yn;
+		transformation(2, i) = z(i) / zn;
+	}
+
 }

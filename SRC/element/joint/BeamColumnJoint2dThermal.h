@@ -144,17 +144,18 @@ class BeamColumnJoint2dThermal : public Element
   int setParameter(char** argv, int argc, Information& info);
   int updateParameter(int parameterID, Information& info);
 
+  void updateDir(const Vector& x, const Vector& y);
 
 protected:
 
 private:
-
+    int elemType;
     // private methods
-    //void setUp();
-    //void setTranGlobalLocal();
-    //void setTranLocalBasic();
-   // void addPDeltaForces(Vector& pLocal);
-   // void addPDeltaStiff(Matrix& kLocal);
+    void   setUp(int Nd1, int Nd2, const Vector& x, const Vector& y);
+   // void   checkDirection(ID& dir) const;
+
+    void   setTran1d(int e, int n);
+    double computeCurrentStrain1d(int mat, const Vector& diff) const;
 
     // material info
     UniaxialMaterial** MaterialPtr;  // pointer to the 13 different materials
@@ -162,22 +163,24 @@ private:
     // node info
     ID  connectedExternalNodes;   // contains the tags of the end nodes
     Node* nodePtr[2];             // pointers to four nodes
+    int dimension;                      // = 1, 2, or 3 dimensions
+    int nDOF;	                        // number of dof for ZeroLength
+    Matrix transformation;		// transformation matrix for orientation
 
 
-    int nodeDbTag, dofDbTag;
+    ID* dir1d;     	   // array of directions 0-5 for 1d materials
+    Matrix* t1d; 	   // hold the transformation matrix
 
-    // various other element parameters
+    // vector pointers to initial disp and vel if present
+    Vector* d0;
+    Vector* v0;
 
-    Vector ub;          // trial displacements in basic system
-    Vector ubdot;       // trial velocities in basic system
-    Vector qb;          // measured forces in basic system
-    Vector ul;          // displacements in local system
-    Matrix Tgl;         // transformation matrix from global to local system
-    Matrix Tlb;         // transformation matrix from local to basic system
 
     Matrix* theMatrix;  // pointer to objects matrix (a class wide Matrix)
     Vector* theVector;  // pointer to objects vector (a class wide Vector)
     Vector* theLoad;    // pointer to the load vector 
+
+    int mInitialize;  // tag to fix bug in recvSelf/setDomain when using database command
 
 };
 
