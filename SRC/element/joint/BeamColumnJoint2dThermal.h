@@ -174,6 +174,7 @@ private:
     // vector pointers to initial disp and vel if present
     Vector* d0;
     Vector* v0;
+    Vector deform;
 
 
     Matrix* theMatrix;  // pointer to objects matrix (a class wide Matrix)

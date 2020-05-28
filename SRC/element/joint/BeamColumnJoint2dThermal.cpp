@@ -159,6 +159,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
     
 
 	MaterialPtr = new UniaxialMaterial*[3];
+	deform = Vector(3);
 
 	for (int x = 0; x <3; x++)
 	{	MaterialPtr[x] = 0; }
@@ -375,6 +376,7 @@ BeamColumnJoint2dThermal::update(void)
 	for (int mat = 0; mat < numMaterials1d; mat++) {
 		// compute strain and rate; set as current trial for material
 		strain = this->computeCurrentStrain1d(mat, diff);
+		deform(mat) = strain;
 		//opserr << "  strain " << mat << " " << strain;
 		//strainRate = this->computeCurrentStrain1d(mat, diffv);
 		ret += MaterialPtr[mat]->setTrialStrain(strain);
@@ -467,7 +469,7 @@ BeamColumnJoint2dThermal::getResistingForce(void)
 
 	} // end loop over 1d materials 
 
-	opserr << "   Resisting F: " << *theVector << endln;
+	//opserr << "   Resisting F: " << *theVector << endln;
 	return *theVector;
 }
 
@@ -500,20 +502,38 @@ BeamColumnJoint2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 	//aDD THERMAL ACTION
 	int type;
 	const Vector& data = theLoad->getData(type, loadFactor);
+	//opserr << "Tmp Data " << data << endln;
 	if (type == LOAD_TAG_Beam2dThermalAction) {
 		// load not inside fire load pattern
 		//const Vector &data = theLoad->getData(type, loadFactor);
 
 		/// This code block is added by LJ and copied from DispBeamColumn2d(Modified edition) for 'FireLoadPattern'--08-May-2012--//[END]
-
-			Vector dataMixV(27);
+		double tangent = 0.0;
+		double ThermalElongation = 0.0;
+		double FiberTemperature = 0;
+		double FiberTempMax = 0;
+		/*
+		Vector dataMixV(27);
 			for (int m = 0; m < 9; m++) {
 				dataMixV(2 * m) = data(2 * m); //Linear temperature interpolation
 				dataMixV(2 * m + 1) = data(2 * m + 1);
 				dataMixV(18 + m) = 1000;
 			}
-			for (int mat = 0; mat < numMaterials1d; mat++) {
+		*/
+			
+			FiberTemperature = data(0);
+			static Vector tData(4);
+			static Information iData(tData);
+			tData(0) = FiberTemperature;
+			tData(1) = tangent;
+			tData(2) = ThermalElongation;
+			tData(3) = FiberTempMax;
+			iData.setVector(tData);
+			
 
+			for (int mat = 0; mat < numMaterials1d; mat++) {
+				MaterialPtr[mat]->getVariable("ElongTangent", iData);
+				tData = iData.getData();
 			}
 			//const Vector& s = MaterialPtr[i]->data(1);    //contribuited by ThermalElongation
 #ifdef _BDEBUG
@@ -524,8 +544,6 @@ BeamColumnJoint2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 
 
 	}
-
-
 
 
 	return 0;
@@ -591,7 +609,7 @@ BeamColumnJoint2dThermal::displaySelf(Renderer &theViewer, int displayMode, floa
 void
 BeamColumnJoint2dThermal::Print(OPS_Stream &s, int flag)
 {
-	s << "Element: " << this->getTag() << " Type: Beam Column Joint " << endln;
+	s << "Element: " << this->getTag() << " Type: Beam Column Joint Thermal" << endln;
 	for (int i = 0; i<2; i++)
 	{
 		s << "Node :" << connectedExternalNodes(i);
@@ -605,26 +623,10 @@ BeamColumnJoint2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
 {
   // we will compare argv[0] to determine the type of response required
   
-  if (strcmp(argv[0],"node1BarSlipL") == 0 || strcmp(argv[0],"node1BarslipL") ==0 || strcmp(argv[0],"Node1BarSlipL") == 0)
-    return MaterialPtr[0]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node1BarSlipR") == 0 || strcmp(argv[0],"node1BarslipR") ==0 || strcmp(argv[0],"Node1BarSlipR") == 0)
-    return MaterialPtr[1]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node1InterfaceShear") == 0 || strcmp(argv[0],"node1Interfaceshear") ==0 || strcmp(argv[0],"Node1InterfaceShear") ==0 )
-    return MaterialPtr[2]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node2BarSlipB") == 0 || strcmp(argv[0],"node2BarslipB") ==0 || strcmp(argv[0],"Node2BarSlipB") == 0)
-    return MaterialPtr[3]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node2BarSlipT") == 0 || strcmp(argv[0],"node2BarslipT") ==0 || strcmp(argv[0],"Node2BarSlipT") == 0)
-    return MaterialPtr[4]->setResponse(&argv[1], argc-1, output);
-  
-  else if (strcmp(argv[0],"node2InterfaceShear") == 0 || strcmp(argv[0],"node2Interfaceshear") ==0 || strcmp(argv[0],"Node2InterfaceShear") ==0 )
-    return MaterialPtr[5]->setResponse(&argv[1], argc-1, output);
-
-  else if (strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"Deformation") == 0)
-    return new ElementResponse(this,3,Vector(4));
+ if (strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"Deformation") == 0 || strcmp(argv[0], "deform") == 0 || strcmp(argv[0], "Deform") == 0)
+    return new ElementResponse(this,1,Vector(3));
+ else if (strcmp(argv[0], "force") == 0 || strcmp(argv[0], "Force") == 0 || strcmp(argv[0], "forces") == 0 || strcmp(argv[0], "Forces") == 0)
+	 return new ElementResponse(this, 2, Vector(6));
   
   else
     return 0;
@@ -634,7 +636,9 @@ int
 BeamColumnJoint2dThermal::getResponse(int responseID, Information &eleInfo)
 {
 	switch (responseID) {
-	case 1:  // global forces
+	case 1:  // deform
+		return eleInfo.setVector(deform);
+	case 2:  // global forces
 		return eleInfo.setVector(this->getResistingForce());
 
 	default:
