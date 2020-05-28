@@ -43,6 +43,7 @@
 #include <FEM_ObjectBroker.h>
 #include <Renderer.h>
 #include <MatrixUtil.h>
+#include <ElementalLoad.h>
 
 #include <UniaxialMaterial.h>
 #include <string.h>
@@ -374,6 +375,7 @@ BeamColumnJoint2dThermal::update(void)
 	for (int mat = 0; mat < numMaterials1d; mat++) {
 		// compute strain and rate; set as current trial for material
 		strain = this->computeCurrentStrain1d(mat, diff);
+		//opserr << "  strain " << mat << " " << strain;
 		//strainRate = this->computeCurrentStrain1d(mat, diffv);
 		ret += MaterialPtr[mat]->setTrialStrain(strain);
 	}
@@ -402,9 +404,19 @@ BeamColumnJoint2dThermal::getTangentStiff(void)
 		E = MaterialPtr[mat]->getTangent();
 
 		// compute contribution of material to tangent matrix
-	
-		stiff(mat, mat) = E ;
-		stiff(mat+3, mat+3) = E;
+		if (mat == 0) {
+			stiff(mat, mat) = E;
+			stiff(mat + 3, mat + 3) = E;
+		}
+		else if (mat == 1) {
+			stiff(mat, mat) = E;
+			stiff(mat + 3, mat + 3) = E;
+		}
+		else if (mat == 2) {
+			stiff(mat, mat) = E;
+			stiff(mat + 3, mat + 3) = E;
+		}
+		
 
 	}
 
@@ -428,23 +440,34 @@ BeamColumnJoint2dThermal::getInitialStiff(void)
 const Vector &
 BeamColumnJoint2dThermal::getResistingForce(void)
 {
+	//Global forces at two nodes (Fx, Fy, M)
 	double force;
 	// zero the residual
 	theVector->Zero();
 
 	// loop over 1d materials
-	for (int mat = 2; mat < numMaterials1d; mat++) {
+	for (int mat = 0; mat < numMaterials1d; mat++) {
 
 		// get resisting force for material
 		force = MaterialPtr[mat]->getStress();
 
 		// compute residual due to resisting force
+		if (mat == 0) {
+			(*theVector)(mat) = -force;
+			(*theVector)(mat + 3) = force;
+		}
+		else if (mat == 1) {
+			(*theVector)(mat) = -force;
+			(*theVector)(mat + 3) = force;
+		}
+		else if (mat == 2) {
+			(*theVector)(mat) = -force;
+			(*theVector)(mat + 3) = force;
+		}
 
-		(*theVector)(mat) = -force;
-		(*theVector)(mat+3) = force;
 	} // end loop over 1d materials 
 
-	opserr << "Resisting F: " << *theVector << endln;
+	opserr << "   Resisting F: " << *theVector << endln;
 	return *theVector;
 }
 
@@ -474,7 +497,37 @@ BeamColumnJoint2dThermal::zeroLoad(void)
 int 
 BeamColumnJoint2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-	//not applicable
+	//aDD THERMAL ACTION
+	int type;
+	const Vector& data = theLoad->getData(type, loadFactor);
+	if (type == LOAD_TAG_Beam2dThermalAction) {
+		// load not inside fire load pattern
+		//const Vector &data = theLoad->getData(type, loadFactor);
+
+		/// This code block is added by LJ and copied from DispBeamColumn2d(Modified edition) for 'FireLoadPattern'--08-May-2012--//[END]
+
+			Vector dataMixV(27);
+			for (int m = 0; m < 9; m++) {
+				dataMixV(2 * m) = data(2 * m); //Linear temperature interpolation
+				dataMixV(2 * m + 1) = data(2 * m + 1);
+				dataMixV(18 + m) = 1000;
+			}
+			for (int mat = 0; mat < numMaterials1d; mat++) {
+
+			}
+			//const Vector& s = MaterialPtr[i]->data(1);    //contribuited by ThermalElongation
+#ifdef _BDEBUG
+			if (this->getTag() == 1)
+				opserr << "Thermal Stress " << s << endln;
+#endif
+		
+
+
+	}
+
+
+
+
 	return 0;
 }
 
@@ -611,9 +664,9 @@ BeamColumnJoint2dThermal::computeCurrentStrain1d(int mat,
 {
 	double strain = 0.0;
 
-	for (int i = 0; i < 6 / 2; i++) {
-		strain += -dispDiff(i) ;
-	}
+	//for (int i = 0; i < 6 / 2; i++) {
+		strain = dispDiff(mat) ;
+	//}
 
 	return strain;
 }
