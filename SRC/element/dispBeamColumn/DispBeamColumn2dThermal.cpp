@@ -983,6 +983,12 @@ else {
     
     return -1;
   }
+
+  //For nearly zero increment of thermal elongation at high temp (smaller tolerance for disp control also works)
+  if (counterTemperature == 1&&abs((q0Temperature[0])/ q0TemperatureP[0]) < 1e-4) {
+      this->update();
+      counterTemperature++;
+  }
   
   return 0;
 }
@@ -1099,6 +1105,11 @@ DispBeamColumn2dThermal::addLoad(ElementalLoad *theLoad, const Vector &factors)
 		  << "unknown for element with tag: " << this->getTag() << "\n"; 
     return -1;
   }
+
+  if (abs((q0Temperature[0]- q0TemperatureP[0])/ q0TemperatureP[0])<1e-6) {
+      this->update();
+      counterTemperature++;
+  }
   
   return 0;
 }
@@ -1148,10 +1159,6 @@ DispBeamColumn2dThermal::getResistingForce()
   // Zero for integration
   q.Zero();
   
-  if (counterTemperature ==1 ) {
-     // this->update();
-	 // counterTemperature++;
-  }
   // Loop over the integration points
   for (int i = 0; i < numSections; i++) {
     
@@ -1196,10 +1203,15 @@ DispBeamColumn2dThermal::getResistingForce()
 #ifdef _BDEBUG
       opserr << " Ele: " << this->getTag() << " ,q before Thermal force" << q << endln;
 #endif
+      //incremental thermal force is calculated in section
 
       q(0) -= (q0Temperature[0]);
       q(1) -= (q0Temperature[1]);
       q(2) -= (q0Temperature[2]);
+      q0TemperatureP[0]= q0Temperature[0];
+      q0TemperatureP[1]= q0Temperature[1];
+      q0TemperatureP[2]= q0Temperature[2];
+      
 
       counterTemperature++;
   }

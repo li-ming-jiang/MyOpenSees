@@ -489,7 +489,7 @@ SteelECThermal::getElongTangent(double TempT, double &ET, double &Elong, double 
       ThermalElongation = -2.416e-4 + 1.2e-5 *(TempT+20) + 0.4e-8 *(TempT+20)*(TempT+20);
   }
   else if (TempT <= 840) {
-      ThermalElongation = 11e-3;
+      ThermalElongation = 11e-3; 
   }
   else if (TempT <= 1180) {
       ThermalElongation = -6.2e-3 + 2e-5*(TempT+20);

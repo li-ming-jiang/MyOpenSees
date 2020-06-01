@@ -408,14 +408,20 @@ BeamColumnJoint2dThermal::getTangentStiff(void)
 		// compute contribution of material to tangent matrix
 		if (mat == 0) {
 			stiff(mat, mat) = E;
+			stiff(mat, mat+3) = -E;
+			stiff(mat+3, mat) = -E;
 			stiff(mat + 3, mat + 3) = E;
 		}
 		else if (mat == 1) {
 			stiff(mat, mat) = E;
+			stiff(mat, mat + 3) = -E;
+			stiff(mat + 3, mat) = -E;
 			stiff(mat + 3, mat + 3) = E;
 		}
 		else if (mat == 2) {
 			stiff(mat, mat) = E;
+			stiff(mat, mat + 3) = -E;
+			stiff(mat + 3, mat) = -E;
 			stiff(mat + 3, mat + 3) = E;
 		}
 		
@@ -424,11 +430,11 @@ BeamColumnJoint2dThermal::getTangentStiff(void)
 
 	// end loop over 1d materials 
 
-	// complete symmetric stiffness matrix
+	//complete symmetric stiffness matrix
 	//for (int i = 0; i < 6; i++)
 	//	for (int j = 0; j < i; j++)
 	//		stiff(j, i) = stiff(i, j);
-
+	//opserr << "stiff " << stiff << endln;
 	return stiff;
 
 }
