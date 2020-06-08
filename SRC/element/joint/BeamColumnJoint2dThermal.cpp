@@ -381,6 +381,10 @@ BeamColumnJoint2dThermal::update(void)
 		//strainRate = this->computeCurrentStrain1d(mat, diffv);
 		ret += MaterialPtr[mat]->setTrialStrain(strain);
 	}
+	if (this->getTag() == 10100 && abs(deform(2)) > 0.3) {
+		Domain* theDomain = OPS_GetDomain();
+		theDomain->removeElement(this->getTag());
+	}
 
 	return ret;
 }
