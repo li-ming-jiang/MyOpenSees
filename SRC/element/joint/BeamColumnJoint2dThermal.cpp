@@ -380,9 +380,10 @@ BeamColumnJoint2dThermal::update(void)
 		//opserr << "  strain " << mat << " " << strain;
 		//strainRate = this->computeCurrentStrain1d(mat, diffv);
 		ret += MaterialPtr[mat]->setTrialStrain(strain);
-	}
-	if (this->getTag() == 10100 && abs(deform(2)) > 0.3) {
+	} 
+	if (abs(deform(2)) > 0.2) { 
 		Domain* theDomain = OPS_GetDomain();
+		opserr << "WARNing::Connection Failure! Element removed";
 		theDomain->removeElement(this->getTag());
 	}
 

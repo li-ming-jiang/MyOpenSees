@@ -1239,7 +1239,7 @@ DispBeamColumn2dThermal::getResistingForce()
   P(5) -= Q(5);
 
 
-#ifdef _DEBUG
+#ifdef _BDEBUG
   if(this->getTag()==1)
   opserr << " Ele: " << this->getTag() << ", Residual force" << P << endln;
 #endif
