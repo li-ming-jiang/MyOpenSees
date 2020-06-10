@@ -34,7 +34,7 @@
 // Mitra and Lowes, J. Struct. Eng. ASCE, Volume 133, Number 1 (January 2007), pp. 105-120
 // Updates: Several concerning Joint formulation (presently a revised formulation for joints)
                                                                         
-#ifndef eamColumnJoint2dThermal_h
+#ifndef BeamColumnJoint2dThermal_h
 #define BeamColumnJoint2dThermal_h
 
 #include <Element.h>

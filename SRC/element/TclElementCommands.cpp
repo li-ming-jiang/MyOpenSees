@@ -153,6 +153,7 @@ extern void *OPS_PFEMElement2D();
 
 extern void *OPS_ShellMITC4Thermal(void);//Added by L.Jiang [SIF]
 extern void *OPS_ShellNLDKGQThermal(void);//Added by L.Jiang [SIF]
+extern void* OPS_ShellNLComThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_BeamColumnJoint2dThermal(void);//Added by L.Jiang [SIF]
 
 extern  void *OPS_CatenaryCableElement(void);
@@ -727,6 +728,17 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
       //end of adding thermo-mechanical shell elements by L.Jiang [SIF]  
   }
   //-----------------[Added for SIF, by LMJ]--------------------------------------
+  else if ((strcmp(argv[1], "shellNLComThermal") == 0) || (strcmp(argv[1], "ShellNLComThermal") == 0)) {
+
+  void* theEle = OPS_ShellNLComThermal();
+  if (theEle != 0)
+      theElement = (Element*)theEle;
+  else {
+      opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
+      return TCL_ERROR;
+  }
+  //end of adding thermo-mechanical shell elements by L.Jiang [SIF]  
+  }
     else if (strcmp(argv[1], "beamColumnJointThermal") == 0) {
     void* theEle = OPS_BeamColumnJoint2dThermal();
     if (theEle != 0)

@@ -20,9 +20,9 @@
                                                                         
 // $Revision: 1.10 $
 // $Date: 2014/09/30 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/ShellNLDKGQThermal/ShellNLDKGQThermal.h,v $
+// $Source: /usr/local/cvs/OpenSees/SRC/element/ShellNLComThermal/ShellNLComThermal.h,v $
 
-// Written: Lisha Wang, Xinzheng Lu, Linlin Xie, Song Cen & Quan Gu
+// Written: Liming Jiang, based on ShellNLDKGQThermal
 //
 //  four node flat shell element with membrane and drill DOF
 //  considering geometric nonlinear, form nonlinear shell element
@@ -44,7 +44,7 @@
 #include <SectionForceDeformation.h>
 #include <Domain.h>
 #include <ErrorHandler.h>
-#include <ShellNLDKGQThermal.h>
+#include <ShellNLComThermal.h>
 #include <R3vectors.h>
 #include <Renderer.h>
 #include <ElementResponse.h>
@@ -61,10 +61,10 @@
 static int numShellNLDKGQThermal = 0;
 
 void *
-OPS_ShellNLDKGQThermal(void)
+OPS_ShellNLComThermal(void)
 {
   if (numShellNLDKGQThermal == 0) {
-//    opserr << "Using ShellNLDKGQThermal - Developed by: Lisha Wang,Xinzheng Lu and Quan Gu, Modified by Liming Jiang for thermo-mechanical analyses\n";
+//    opserr << "Using ShellNLComThermal - Developed by Liming Jiang for thermo-mechanical analyses\n";
     numShellNLDKGQThermal++;
   }
 
@@ -73,25 +73,25 @@ OPS_ShellNLDKGQThermal(void)
   int numArgs = OPS_GetNumRemainingInputArgs();
   
   if (numArgs < 6) {
-    opserr << "Want: element ShellNLDKGQThermal $tag $iNode $jNoe $kNode $lNode $secTag";
+    opserr << "Want: element ShellNLComThermal $tag $iNode $jNoe $kNode $lNode $secTag";
     return 0;	
   }
   
   int iData[6];
   int numData = 6;
   if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag: element ShellNLDKGQThermal \n";
+    opserr << "WARNING invalid integer tag: element ShellNLComThermal \n";
     return 0;
   }
 
   SectionForceDeformation *theSection = OPS_getSectionForceDeformation(iData[5]);
 
   if (theSection == 0) {
-    opserr << "ERROR:  element ShellNLDKGQThermal " << iData[0] << "section " << iData[5] << " not found\n";
+    opserr << "ERROR:  element ShellNLComThermal " << iData[0] << "section " << iData[5] << " not found\n";
     return 0;
   }
   
-  theElement = new ShellNLDKGQThermal(iData[0], iData[1], iData[2], iData[3],
+  theElement = new ShellNLComThermal(iData[0], iData[1], iData[2], iData[3],
 			      iData[4], *theSection);
 
   return theElement;
@@ -99,23 +99,23 @@ OPS_ShellNLDKGQThermal(void)
 
 
 //static data
-Matrix  ShellNLDKGQThermal::stiff(24,24) ;
-Vector  ShellNLDKGQThermal::resid(24) ;
-Matrix  ShellNLDKGQThermal::mass(24,24) ;
+Matrix  ShellNLComThermal::stiff(24,24) ;
+Vector  ShellNLComThermal::resid(24) ;
+Matrix  ShellNLComThermal::mass(24,24) ;
 
 
 //quadrature data
-const double  ShellNLDKGQThermal::root3 = sqrt(3.0) ;
-const double  ShellNLDKGQThermal::one_over_root3 = 1.0 / root3 ;
+const double  ShellNLComThermal::root3 = sqrt(3.0) ;
+const double  ShellNLComThermal::one_over_root3 = 1.0 / root3 ;
 
-double ShellNLDKGQThermal::sg[4] ;
-double ShellNLDKGQThermal::tg[4] ;
-double ShellNLDKGQThermal::wg[4] ;
+double ShellNLComThermal::sg[4] ;
+double ShellNLComThermal::tg[4] ;
+double ShellNLComThermal::wg[4] ;
 
  
 
 //null constructor
-ShellNLDKGQThermal::ShellNLDKGQThermal( ) :
+ShellNLComThermal::ShellNLComThermal( ) :
 Element( 0, ELE_TAG_ShellNLDKGQThermal ),
 connectedExternalNodes(4), CstrainGauss(32),TstrainGauss(32),load(0), Ki(0)  //modify for geometric nonlinearity
 { 
@@ -141,7 +141,7 @@ connectedExternalNodes(4), CstrainGauss(32),TstrainGauss(32),load(0), Ki(0)  //m
 
 //*********************************************************************
 //full constructor
-ShellNLDKGQThermal::ShellNLDKGQThermal(  int tag, 
+ShellNLComThermal::ShellNLComThermal(  int tag, 
                          int node1,
                          int node2,
    	                     int node3,
@@ -162,7 +162,7 @@ connectedExternalNodes(4), CstrainGauss(32),TstrainGauss(32),load(0), Ki(0)//mod
       materialPointers[i] = theMaterial.getCopy( ) ;
 
       if (materialPointers[i] == 0) {
-	      opserr << "ShellNLDKGQThermal::constructor - failed to get a material of type: ShellSection\n";
+	      opserr << "ShellNLComThermal::constructor - failed to get a material of type: ShellSection\n";
       } //end if
       
   } //end for i 
@@ -198,7 +198,7 @@ connectedExternalNodes(4), CstrainGauss(32),TstrainGauss(32),load(0), Ki(0)//mod
 //******************************************************************
 
 //destructor 
-ShellNLDKGQThermal::~ShellNLDKGQThermal( )
+ShellNLComThermal::~ShellNLComThermal( )
 {
   int i ;
   for ( i = 0 ;  i < 4; i++ ) {
@@ -220,7 +220,7 @@ ShellNLDKGQThermal::~ShellNLDKGQThermal( )
 
 
 //set domain
-void  ShellNLDKGQThermal::setDomain( Domain *theDomain ) 
+void  ShellNLComThermal::setDomain( Domain *theDomain ) 
 {  
   int i;
 
@@ -228,12 +228,12 @@ void  ShellNLDKGQThermal::setDomain( Domain *theDomain )
   for ( i = 0; i < 4; i++ ) {
      nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
      if (nodePointers[i] == 0) {
-       opserr << "ShellNLDKGQThermal::setDomain - no node " << connectedExternalNodes(i);
+       opserr << "ShellNLComThermal::setDomain - no node " << connectedExternalNodes(i);
        opserr << " exists in the model\n";
      }
      const Vector &nodeDisp=nodePointers[i]->getTrialDisp();
      if (nodeDisp.Size() != 6) {
-       opserr << "ShellNLDKGQThermal::setDomain - node " << connectedExternalNodes(i);
+       opserr << "ShellNLComThermal::setDomain - node " << connectedExternalNodes(i);
        opserr << " NEEDS 6 dof - GARBAGE RESULTS or SEGMENTATION FAULT WILL FOLLOW\n";
      }       
   }
@@ -247,40 +247,40 @@ void  ShellNLDKGQThermal::setDomain( Domain *theDomain )
 
 
 //get the number of external nodes
-int  ShellNLDKGQThermal::getNumExternalNodes( ) const
+int  ShellNLComThermal::getNumExternalNodes( ) const
 {
   return 4 ;
 } 
  
 
 //return connected external nodes
-const ID&  ShellNLDKGQThermal::getExternalNodes( ) 
+const ID&  ShellNLComThermal::getExternalNodes( ) 
 {
   return connectedExternalNodes ;
 } 
 
 
 Node **
-ShellNLDKGQThermal::getNodePtrs(void) 
+ShellNLComThermal::getNodePtrs(void) 
 {
   return nodePointers;
 } 
 
 //return number of dofs
-int  ShellNLDKGQThermal::getNumDOF( ) 
+int  ShellNLComThermal::getNumDOF( ) 
 {
   return 24 ;
 }
 
 
 //commit state
-int  ShellNLDKGQThermal::commitState( )
+int  ShellNLComThermal::commitState( )
 {
   int success = 0 ;
 
   // call element commitState to do any base class stuff
   if ((success = this->Element::commitState()) != 0) {
-    opserr << "ShellNLDKGQThermal::commitState () - failed in base class";
+    opserr << "ShellNLComThermal::commitState () - failed in base class";
   }    
 
   for (int i = 0; i < 4; i++ ) 
@@ -295,7 +295,7 @@ int  ShellNLDKGQThermal::commitState( )
 
 
 //revert to last commit 
-int  ShellNLDKGQThermal::revertToLastCommit( ) 
+int  ShellNLComThermal::revertToLastCommit( ) 
 {
   int i ;
   int success = 0 ;
@@ -311,7 +311,7 @@ int  ShellNLDKGQThermal::revertToLastCommit( )
     
 
 //revert to start 
-int  ShellNLDKGQThermal::revertToStart( ) 
+int  ShellNLComThermal::revertToStart( ) 
 {
   int i ;
   int success = 0 ;
@@ -325,7 +325,7 @@ int  ShellNLDKGQThermal::revertToStart( )
 }
 
 //print out element data
-void  ShellNLDKGQThermal::Print(OPS_Stream &s, int flag)
+void  ShellNLComThermal::Print(OPS_Stream &s, int flag)
 {
     if (flag == -1) {
         int eleTag = this->getTag();
@@ -373,7 +373,7 @@ void  ShellNLDKGQThermal::Print(OPS_Stream &s, int flag)
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
         s << "\t\t\t{";
         s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"ShellNLDKGQThermal\", ";
+        s << "\"type\": \"ShellNLComThermal\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << ", ";
         s << connectedExternalNodes(2) << ", " << connectedExternalNodes(3) << "], ";
         s << "\"section\": \"" << materialPointers[0]->getTag() << "\"}";
@@ -381,12 +381,12 @@ void  ShellNLDKGQThermal::Print(OPS_Stream &s, int flag)
 }
 
 Response*
-ShellNLDKGQThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
+ShellNLComThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
   Response *theResponse = 0;
 
   output.tag("ElementOutput");
-  output.attr("eleType", "ShellNLDKGQThermal");
+  output.attr("eleType", "ShellNLComThermal");
   output.attr("eleTag",this->getTag());
   int numNodes = this->getNumExternalNodes();
   const ID &nodes = this->getExternalNodes();
@@ -410,7 +410,7 @@ ShellNLDKGQThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
 
   else if (strcmp(argv[0],"material") == 0 || strcmp(argv[0],"Material") == 0) {
     if (argc < 2) {
-      opserr << "ShellNLDKGQThermal::setResponse() - need to specify more data\n";
+      opserr << "ShellNLComThermal::setResponse() - need to specify more data\n";
       return 0;
     }
     int pointNum = atoi(argv[1]);
@@ -487,7 +487,7 @@ ShellNLDKGQThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
 }
 
 int
-ShellNLDKGQThermal::getResponse(int responseID, Information &eleInfo)
+ShellNLComThermal::getResponse(int responseID, Information &eleInfo)
 {
   int cnt = 0;
 
@@ -543,7 +543,7 @@ ShellNLDKGQThermal::getResponse(int responseID, Information &eleInfo)
 
 
 //return stiffness matrix 
-const Matrix&  ShellNLDKGQThermal::getTangentStiff( ) 
+const Matrix&  ShellNLComThermal::getTangentStiff( ) 
 {
   int tang_flag = 1 ; //get the tangent 
 
@@ -556,7 +556,7 @@ const Matrix&  ShellNLDKGQThermal::getTangentStiff( )
 }    
 
 //return secant matrix 
-const Matrix&  ShellNLDKGQThermal::getInitialStiff( ) 
+const Matrix&  ShellNLComThermal::getInitialStiff( ) 
 {
 	if(Ki!=0)
 		return *Ki;
@@ -979,7 +979,7 @@ const Matrix&  ShellNLDKGQThermal::getInitialStiff( )
     
 
 //return mass matrix
-const Matrix&  ShellNLDKGQThermal::getMass( ) 
+const Matrix&  ShellNLComThermal::getMass( ) 
 {
   int tangFlag = 1 ;
 
@@ -989,7 +989,7 @@ const Matrix&  ShellNLDKGQThermal::getMass( )
 } 
 
 
-void  ShellNLDKGQThermal::zeroLoad( )
+void  ShellNLComThermal::zeroLoad( )
 {
   if (load != 0)
     load->Zero();
@@ -999,7 +999,7 @@ void  ShellNLDKGQThermal::zeroLoad( )
 
 
 int 
-ShellNLDKGQThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
+ShellNLComThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
   int type;
     const Vector &data = theLoad->getData(type, loadFactor);
@@ -1098,7 +1098,7 @@ ShellNLDKGQThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 
 	 for(int i =0; i<9;i++){
 		 if(data0(2*i+1)-data1(2*i+1)>1e-8||data0(2*i+1)-data1(2*i+1)<-1e-8){
-			 opserr<<"Warning:The NodalThermalAction in ShellNLDKGQThermal "<<this->getTag()
+			 opserr<<"Warning:The NodalThermalAction in ShellNLComThermal "<<this->getTag()
 			      << "incompatiable loc input for datapoint "<< i << endln;
 			 }
 		 else{
@@ -1186,8 +1186,8 @@ ShellNLDKGQThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
   }
   //end of thermalActionWrapper
   else {
-    opserr << "ShellNLDKGQThermal::ShellNLDKGQThermal -- load type unknown for element with tag: "
-	   << this->getTag() << "ShellNLDKGQThermal::addLoad()\n"; 
+    opserr << "ShellNLComThermal::ShellNLComThermal -- load type unknown for element with tag: "
+	   << this->getTag() << "ShellNLComThermal::addLoad()\n"; 
 			    
     return -1;
   }
@@ -1199,7 +1199,7 @@ ShellNLDKGQThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 
 
 int 
-ShellNLDKGQThermal::addInertiaLoadToUnbalance(const Vector &accel)
+ShellNLComThermal::addInertiaLoadToUnbalance(const Vector &accel)
 {
   int tangFlag = 1 ;
   static Vector r(24);
@@ -1235,7 +1235,7 @@ ShellNLDKGQThermal::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 //get residual
-const Vector&  ShellNLDKGQThermal::getResistingForce( ) 
+const Vector&  ShellNLComThermal::getResistingForce( ) 
 {
   int tang_flag = 0 ; //don't get the tangent
 
@@ -1259,7 +1259,7 @@ counterTemperature++;
 
 
 //get residual with inertia terms
-const Vector&  ShellNLDKGQThermal::getResistingForceIncInertia( )
+const Vector&  ShellNLComThermal::getResistingForceIncInertia( )
 {
   static Vector res(24);
   int tang_flag = 0 ; //don't get the tangent
@@ -1285,7 +1285,7 @@ const Vector&  ShellNLDKGQThermal::getResistingForceIncInertia( )
 //form inertia terms
 
 void   
-ShellNLDKGQThermal::formInertiaTerms( int tangFlag ) 
+ShellNLComThermal::formInertiaTerms( int tangFlag ) 
 {
 
   //translational mass only
@@ -1384,7 +1384,7 @@ ShellNLDKGQThermal::formInertiaTerms( int tangFlag )
 
 //form residual and tangent
 int 
-ShellNLDKGQThermal::formResidAndTangent( int tang_flag ) 
+ShellNLComThermal::formResidAndTangent( int tang_flag ) 
 {
 	//
 	//six(6) nodal dof's ordered:
@@ -1910,7 +1910,7 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 //compute local coordinates and basis
 
 void   
-ShellNLDKGQThermal::computeBasis( ) 
+ShellNLComThermal::computeBasis( ) 
 {  
   //could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 } 
   //                     and  \frac{ \partial {\bf x} }{ \partial L_2 }
@@ -1999,7 +1999,7 @@ ShellNLDKGQThermal::computeBasis( )
 //compute local coordinates and basis
 
 void   
-ShellNLDKGQThermal::updateBasis( ) 
+ShellNLComThermal::updateBasis( ) 
 {
 
   //could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 } 
@@ -2095,7 +2095,7 @@ ShellNLDKGQThermal::updateBasis( )
 //assemble a B matrix
 
 const Matrix&  
-ShellNLDKGQThermal::assembleB( const Matrix &Bmembrane,
+ShellNLComThermal::assembleB( const Matrix &Bmembrane,
                                const Matrix &Bbend, 
                                const Matrix &Bshear ) 
 {
@@ -2151,7 +2151,7 @@ ShellNLDKGQThermal::assembleB( const Matrix &Bmembrane,
 //compute Bmembrane matrix
 
 const Matrix&
-ShellNLDKGQThermal::computeBmembrane(int node, const double shp[3][4],
+ShellNLComThermal::computeBmembrane(int node, const double shp[3][4],
 							const double shpDrill[4][4])
 {
 	static Matrix Bmembrane(3,3);
@@ -2182,7 +2182,7 @@ ShellNLDKGQThermal::computeBmembrane(int node, const double shp[3][4],
 //compute Bbend matrix
 
 const Matrix&
- ShellNLDKGQThermal::computeBbend(int node ,const double shpBend[6][12])
+ ShellNLComThermal::computeBbend(int node ,const double shpBend[6][12])
  {
 	 static Matrix Bbend(3,3);
 
@@ -2220,7 +2220,7 @@ const Matrix&
 //*************************************************************************
 //compute BG matrix
 const Matrix&
- ShellNLDKGQThermal::computeBG(int node ,const double shpBend[6][12])
+ ShellNLComThermal::computeBG(int node ,const double shpBend[6][12])
  {
 	 static Matrix BG(2,3);
 
@@ -2251,7 +2251,7 @@ const Matrix&
 //************************************************************************
 //compute the nonlinearity strain Increment associated with BG & bending
 const Vector&
- ShellNLDKGQThermal::computeNLdstrain(const Matrix &BG,const Vector &dispIncLocalBend)
+ ShellNLComThermal::computeNLdstrain(const Matrix &BG,const Vector &dispIncLocalBend)
 {
 	static Vector dstrain_nl(3);
 	static Vector strainInc(2);
@@ -2267,7 +2267,7 @@ const Vector&
 //shape function routine for four node quads
 
 void  
-ShellNLDKGQThermal::shape2d( double ss, double tt, 
+ShellNLComThermal::shape2d( double ss, double tt, 
 		           const double x[2][4], 
 		           double shp[3][4], 
 		           double &xsj, double sx[2][2] )
@@ -2326,7 +2326,7 @@ ShellNLDKGQThermal::shape2d( double ss, double tt,
 
 //Added by LMJ-UoE
 double
-ShellNLDKGQThermal::shapefn2d( double ss, double tt ,int i)
+ShellNLComThermal::shapefn2d( double ss, double tt ,int i)
 
 { 
    double shpVal = 0;
@@ -2341,7 +2341,7 @@ ShellNLDKGQThermal::shapefn2d( double ss, double tt ,int i)
 	   case 4:
 		   shpVal = 0.25*(1-ss)*(1+tt);break;
 	   default:
-		   opserr<<"ShellNLDKGQThermal::shapefn2d received an invalid i: "<<i <<endln ;
+		   opserr<<"ShellNLComThermal::shapefn2d received an invalid i: "<<i <<endln ;
 	   }
    return shpVal;
 }
@@ -2349,7 +2349,7 @@ ShellNLDKGQThermal::shapefn2d( double ss, double tt ,int i)
 //**********************************************************************
 
 /*Matrix  
-ShellNLDKGQThermal::transpose( int dim1, 
+ShellNLComThermal::transpose( int dim1, 
                                        int dim2, 
 		                       const Matrix &M ) 
 {
@@ -2369,7 +2369,7 @@ ShellNLDKGQThermal::transpose( int dim1,
 //**********************************************************************
 // shape function for drill dof
 void
-ShellNLDKGQThermal::shapeDrill(double ss, double tt, 
+ShellNLComThermal::shapeDrill(double ss, double tt, 
 					  const double x[2][4],
 					  double sx[2][2], double shpDrill[4][4])
 {
@@ -2439,7 +2439,7 @@ ShellNLDKGQThermal::shapeDrill(double ss, double tt,
 //*********************************************************************
 //shape function for bending plate
 void
-ShellNLDKGQThermal::shapeBend(double ss, double tt, const double x[2][4],
+ShellNLComThermal::shapeBend(double ss, double tt, const double x[2][4],
 					 double sx[2][2], double shpBend[6][12])
 {
 	//static Vector N(8);
@@ -2648,7 +2648,7 @@ ShellNLDKGQThermal::shapeBend(double ss, double tt, const double x[2][4],
 
 //**********************************************************************
 
-int  ShellNLDKGQThermal::sendSelf (int commitTag, Channel &theChannel)
+int  ShellNLComThermal::sendSelf (int commitTag, Channel &theChannel)
 {
   int res = 0;
 
@@ -2685,7 +2685,7 @@ int  ShellNLDKGQThermal::sendSelf (int commitTag, Channel &theChannel)
 
   res += theChannel.sendID(dataTag, commitTag, idData);
   if (res < 0) {
-    opserr << "WARNING ShellNLDKGQThermal::sendSelf() - " << this->getTag() << " failed to send ID\n";
+    opserr << "WARNING ShellNLComThermal::sendSelf() - " << this->getTag() << " failed to send ID\n";
     return res;
   }
 
@@ -2698,7 +2698,7 @@ int  ShellNLDKGQThermal::sendSelf (int commitTag, Channel &theChannel)
 
   res += theChannel.sendVector(dataTag, commitTag, vectData);
   if (res < 0) {
-    opserr << "WARNING ShellNLDKGQThermal::sendSelf() - " << this->getTag() << " failed to send ID\n";
+    opserr << "WARNING ShellNLComThermal::sendSelf() - " << this->getTag() << " failed to send ID\n";
     return res;
   }
 
@@ -2706,7 +2706,7 @@ int  ShellNLDKGQThermal::sendSelf (int commitTag, Channel &theChannel)
   for (i = 0; i < 4; i++) {
     res += materialPointers[i]->sendSelf(commitTag, theChannel);
     if (res < 0) {
-      opserr << "WARNING ShellNLDKGQThermal::sendSelf() - " << this->getTag() << " failed to send its Material\n";
+      opserr << "WARNING ShellNLComThermal::sendSelf() - " << this->getTag() << " failed to send its Material\n";
       return res;
     }
   }
@@ -2714,7 +2714,7 @@ int  ShellNLDKGQThermal::sendSelf (int commitTag, Channel &theChannel)
   return res;
 }
     
-int  ShellNLDKGQThermal::recvSelf (int commitTag, 
+int  ShellNLComThermal::recvSelf (int commitTag, 
 		       Channel &theChannel, 
 		       FEM_ObjectBroker &theBroker)
 {
@@ -2726,7 +2726,7 @@ int  ShellNLDKGQThermal::recvSelf (int commitTag,
   // Quad now receives the tags of its four external nodes
   res += theChannel.recvID(dataTag, commitTag, idData);
   if (res < 0) {
-    opserr << "WARNING ShellNLDKGQThermal::recvSelf() - " << this->getTag() << " failed to receive ID\n";
+    opserr << "WARNING ShellNLComThermal::recvSelf() - " << this->getTag() << " failed to receive ID\n";
     return res;
   }
 
@@ -2739,7 +2739,7 @@ int  ShellNLDKGQThermal::recvSelf (int commitTag,
   static Vector vectData(4);
   res += theChannel.recvVector(dataTag, commitTag, vectData);
   if (res < 0) {
-    opserr << "WARNING ShellNLDKGQThermal::sendSelf() - " << this->getTag() << " failed to send ID\n";
+    opserr << "WARNING ShellNLComThermal::sendSelf() - " << this->getTag() << " failed to send ID\n";
     return res;
   }
 
@@ -2758,14 +2758,14 @@ int  ShellNLDKGQThermal::recvSelf (int commitTag,
       // Allocate new material with the sent class tag
       materialPointers[i] = theBroker.getNewSection(matClassTag);
       if (materialPointers[i] == 0) {
-	opserr << "ShellNLDKGQThermal::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;;
+	opserr << "ShellNLComThermal::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;;
 	return -1;
       }
       // Now receive materials into the newly allocated space
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "ShellNLDKGQThermal::recvSelf() - material " << i << "failed to recv itself\n";
+	opserr << "ShellNLComThermal::recvSelf() - material " << i << "failed to recv itself\n";
 	return res;
       }
     }
@@ -2781,7 +2781,7 @@ int  ShellNLDKGQThermal::recvSelf (int commitTag,
 	delete materialPointers[i];
 	materialPointers[i] = theBroker.getNewSection(matClassTag);
 	if (materialPointers[i] == 0) {
-	  opserr << "ShellNLDKGQThermal::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;
+	  opserr << "ShellNLComThermal::recvSelf() - Broker could not create NDMaterial of class type" << matClassTag << endln;
 	  exit(-1);
 	}
       }
@@ -2789,7 +2789,7 @@ int  ShellNLDKGQThermal::recvSelf (int commitTag,
       materialPointers[i]->setDbTag(matDbTag);
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-	opserr << "ShellNLDKGQThermal::recvSelf() - material " << i << "failed to recv itself\n";
+	opserr << "ShellNLComThermal::recvSelf() - material " << i << "failed to recv itself\n";
 	return res;
       }
     }
@@ -2801,7 +2801,7 @@ int  ShellNLDKGQThermal::recvSelf (int commitTag,
 
 
 int
-ShellNLDKGQThermal::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
+ShellNLComThermal::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
 {
 
 	// first determine the end points of the quad based on

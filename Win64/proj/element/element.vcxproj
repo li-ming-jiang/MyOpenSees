@@ -152,6 +152,7 @@
     <ClCompile Include="..\..\..\SRC\element\shell\ShellDKGT.cpp" />
     <ClCompile Include="..\..\..\SRC\element\shell\ShellMITC4Thermal.cpp" />
     <ClCompile Include="..\..\..\SRC\element\shell\ShellMITC9.cpp" />
+    <ClCompile Include="..\..\..\SRC\element\shell\ShellNLComThermal.cpp" />
     <ClCompile Include="..\..\..\SRC\element\shell\ShellNLDKGQ.cpp" />
     <ClCompile Include="..\..\..\SRC\element\shell\ShellNLDKGQThermal.cpp" />
     <ClCompile Include="..\..\..\SRC\element\shell\ShellNLDKGT.cpp" />
@@ -412,6 +413,7 @@
     <ClInclude Include="..\..\..\SRC\element\shell\ShellDKGT.h" />
     <ClInclude Include="..\..\..\SRC\element\shell\ShellMITC4Thermal.h" />
     <ClInclude Include="..\..\..\SRC\element\shell\ShellMITC9.h" />
+    <ClInclude Include="..\..\..\SRC\element\shell\ShellNLComThermal.h" />
     <ClInclude Include="..\..\..\SRC\element\shell\ShellNLDKGQ.h" />
     <ClInclude Include="..\..\..\SRC\element\shell\ShellNLDKGQThermal.h" />
     <ClInclude Include="..\..\..\SRC\element\shell\ShellNLDKGT.h" />
