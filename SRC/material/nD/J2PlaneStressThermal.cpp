@@ -461,8 +461,8 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 		opserr << "  Sig: " << sig << " DeltaPeps " << delta_epsPr << endln;
 	}
 #endif
-	//TempAndElong(0) = fy;
-	//TempAndElong(1) = fyt;
+	TempAndElong(0) = kxi;
+	TempAndElong(1) = fyt;
 	///////////////////////////////////////////////output for debug////////////////////////////// 
 	//#endif
 

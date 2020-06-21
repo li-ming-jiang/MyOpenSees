@@ -20,7 +20,7 @@
                                                                         
 // $Revision: 1.5 $
 // $Date: 2007-07-27 19:23:04 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/BeamColumnJoint2dThermal.h,v $
+// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/BeamColumnJoint3dThermal.h,v $
                                                                         
 // Written: NM (nmitra@calpoly.edu)
 // Created: April 2002
@@ -34,8 +34,8 @@
 // Mitra and Lowes, J. Struct. Eng. ASCE, Volume 133, Number 1 (January 2007), pp. 105-120
 // Updates: Several concerning Joint formulation (presently a revised formulation for joints)
                                                                         
-#ifndef BeamColumnJoint2dThermal_h
-#define BeamColumnJoint2dThermal_h
+#ifndef BeamColumnJoint3dThermal_h
+#define BeamColumnJoint3dThermal_h
 
 #include <Element.h>
 #include <ID.h>
@@ -51,23 +51,23 @@ class Response;
 class Renderer;
 class UniaxialMaterial;
 
-class BeamColumnJoint2dThermal : public Element
+class BeamColumnJoint3dThermal : public Element
 {
  public:
   // default constructor
-  BeamColumnJoint2dThermal(); 
+  BeamColumnJoint3dThermal(); 
   
   // defined constructor
-  BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2, 
+  BeamColumnJoint3dThermal(int tag,int Nd1, int Nd2, 
 		    UniaxialMaterial& theMat1, UniaxialMaterial& theMat2,
 		    UniaxialMaterial& theMat3);
   
-  BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
+  BeamColumnJoint3dThermal(int tag,int Nd1, int Nd2,
 		    UniaxialMaterial& theMat1, UniaxialMaterial& theMat2,
-		    UniaxialMaterial& theMat3, double axiLimit, double shLimit, double mLimit);
+		    UniaxialMaterial& theMat3, double Hgtfac, double Wdtfac);
   
   // default destructor
-  ~BeamColumnJoint2dThermal();
+  ~BeamColumnJoint3dThermal();
 
 
 
@@ -175,11 +175,6 @@ private:
     Vector* d0;
     Vector* v0;
     Vector deform;
-
-    // Limits for deformation in each direction
-    double Alimit;
-    double Slimit;
-    double Mlimit;
 
 
     Matrix* theMatrix;  // pointer to objects matrix (a class wide Matrix)

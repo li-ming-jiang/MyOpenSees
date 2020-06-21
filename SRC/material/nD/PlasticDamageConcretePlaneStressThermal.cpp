@@ -836,7 +836,7 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
 	//if (dtotal > 0.99)
 	//dtotal = 0.99;
 
-	C = Cbar;
+	C =  Cbar;
 
 #ifdef _SDEBUG
 	if (this->getTag() == 109) {

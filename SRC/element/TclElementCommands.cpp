@@ -155,6 +155,7 @@ extern void *OPS_ShellMITC4Thermal(void);//Added by L.Jiang [SIF]
 extern void *OPS_ShellNLDKGQThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_ShellNLComThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_BeamColumnJoint2dThermal(void);//Added by L.Jiang [SIF]
+extern void* OPS_BeamColumnJoint3dThermal(void); //Added by L.Jiang [SIF]
 
 extern  void *OPS_CatenaryCableElement(void);
 extern  void *OPS_ShellANDeS(void);
@@ -740,7 +741,15 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
   //end of adding thermo-mechanical shell elements by L.Jiang [SIF]  
   }
     else if (strcmp(argv[1], "beamColumnJointThermal") == 0) {
-    void* theEle = OPS_BeamColumnJoint2dThermal();
+    int ndm = OPS_GetNDM(); 
+    void* theEle = 0;
+    
+    if (ndm == 2)
+        theEle = OPS_BeamColumnJoint2dThermal();
+    else if (ndm == 3)
+        theEle = OPS_BeamColumnJoint3dThermal();
+    else
+        opserr << "Element command received an incorrect ndm" << endln;
     if (theEle != 0)
         theElement = (Element*)theEle;
     else {

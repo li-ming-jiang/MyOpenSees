@@ -20,7 +20,7 @@
                                                                         
 // $Revision: 1.6 $
 // $Date: 2007-07-27 19:23:04 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/BeamColumnJoint2dThermal.cpp,v $
+// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/BeamColumnJoint3dThermal.cpp,v $
                                                                         
 // Written: NM (nmitra@u.washington.edu)
 // Created: April 2002
@@ -35,7 +35,7 @@
 // Updates: Several concerning Joint formulation (presently a revised formulation for joints)
 
 
-#include <BeamColumnJoint2dThermal.h>
+#include <BeamColumnJoint3dThermal.h>
 
 #include <Domain.h>
 #include <Node.h>
@@ -57,7 +57,7 @@ static Matrix TwoNodeM6(6,6);   // class wide matrix for 6*6
 static Vector TwoNodeV6(6);   // class wide Vector for size 6
 int  numMaterials1d = 3;
 
-void* OPS_BeamColumnJoint2dThermal()
+void* OPS_BeamColumnJoint3dThermal()
 {
     if (OPS_GetNumRemainingInputArgs() < 6) {
 	opserr << "WARNING insufficient arguments\n";
@@ -74,19 +74,14 @@ void* OPS_BeamColumnJoint2dThermal()
 	return 0;
     }
 
-	numdata = OPS_GetNumRemainingInputArgs();
-	double data[3] = { -1.0, -1.0, -1.0 };
-	numdata = 3;
-	if (numdata > 0) {
-		const char* typeChar = OPS_GetString();
-		if ((strcmp(typeChar, "-limit") == 0) || (strcmp(typeChar, "-Limit") == 0) || (strcmp(typeChar, "limit") == 0)) {
-			if (OPS_GetDoubleInput(&numdata, data) < 0) {
-				opserr << "WARNING: invalid double inputs\n";
-				return 0;
-			}
-		}
+    double data[2] = {1.0, 1.0};
+    numdata = 2;
+    if (OPS_GetNumRemainingInputArgs() > 1) {
+	if (OPS_GetDoubleInput(&numdata, data) < 0) {
+	    opserr<<"WARNING: invalid double inputs\n";
+	    return 0;
 	}
-
+    }
 
     UniaxialMaterial* mats[3];
     for (int i = 0; i < 3; i++) {
@@ -97,13 +92,13 @@ void* OPS_BeamColumnJoint2dThermal()
 	}
     }
 
-    return new BeamColumnJoint2dThermal(idata[0],idata[1],idata[2],
-				 *mats[0],*mats[1],*mats[2],data[0],data[1], data[2]);
+    return new BeamColumnJoint3dThermal(idata[0],idata[1],idata[2],
+				 *mats[0],*mats[1],*mats[2],data[0],data[1]);
 
 }
 
 // full constructors:
-BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
+BeamColumnJoint3dThermal::BeamColumnJoint3dThermal(int tag,int Nd1, int Nd2,
 				     UniaxialMaterial& theMat1,
 				     UniaxialMaterial& theMat2,
 				     UniaxialMaterial& theMat3):
@@ -145,14 +140,13 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 }
 
 // full constructors:
-BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2, 
+BeamColumnJoint3dThermal::BeamColumnJoint3dThermal(int tag,int Nd1, int Nd2, 
 				     UniaxialMaterial& theMat1,
 				     UniaxialMaterial& theMat2,
 				     UniaxialMaterial& theMat3,
-	                 double aLimit, double sLimit, double mLimit):
-  Element(tag,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
+					 double elHgtFac, double elWdtFac):
+  Element(tag,ELE_TAG_BeamColumnJoint3d), connectedExternalNodes(2),
 	d0(0), v0(0), theMatrix(0), theVector(0), theLoad(0), elemType(1),
-	Alimit(aLimit), Slimit(sLimit), Mlimit(mLimit),
 	dimension(2), nDOF(0), transformation(3, 3)
 {
 	// ensure the connectedExternalNode ID is of correct size & set values
@@ -190,7 +184,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal(int tag,int Nd1, int Nd2,
 }
 
 // default constructor:
-BeamColumnJoint2dThermal::BeamColumnJoint2dThermal():
+BeamColumnJoint3dThermal::BeamColumnJoint3dThermal():
   Element(0,ELE_TAG_BeamColumnJoint2d), connectedExternalNodes(2),
  d0(0), v0(0), theMatrix(0), theVector(0), theLoad(0),elemType(1)
 {
@@ -203,7 +197,7 @@ BeamColumnJoint2dThermal::BeamColumnJoint2dThermal():
 }
 
 //  destructor:
-BeamColumnJoint2dThermal::~BeamColumnJoint2dThermal()
+BeamColumnJoint3dThermal::~BeamColumnJoint3dThermal()
 {
 	for (int i =0; i<3; i++)
 	{
@@ -217,30 +211,30 @@ BeamColumnJoint2dThermal::~BeamColumnJoint2dThermal()
 
 // public methods
 int
-BeamColumnJoint2dThermal::getNumExternalNodes(void) const
+BeamColumnJoint3dThermal::getNumExternalNodes(void) const
 {
     return 2;
 }
 
 const ID &
-BeamColumnJoint2dThermal::getExternalNodes(void) 
+BeamColumnJoint3dThermal::getExternalNodes(void) 
 {
     return connectedExternalNodes;
 }
 
-Node **BeamColumnJoint2dThermal::getNodePtrs(void)
+Node **BeamColumnJoint3dThermal::getNodePtrs(void)
 {
 	return nodePtr;
 }
 
 int
-BeamColumnJoint2dThermal::getNumDOF(void) 
+BeamColumnJoint3dThermal::getNumDOF(void) 
 {
     return 6;
 }
 
 void
-BeamColumnJoint2dThermal::setDomain(Domain *theDomain)
+BeamColumnJoint3dThermal::setDomain(Domain *theDomain)
 {
     if (theDomain == 0)
 	opserr << "ERROR : BeamColumnJoint::setDomain -- Domain is null" << endln;
@@ -315,7 +309,7 @@ BeamColumnJoint2dThermal::setDomain(Domain *theDomain)
 }   
 
 int
-BeamColumnJoint2dThermal::commitState(void)
+BeamColumnJoint3dThermal::commitState(void)
 {
 
 	int errCode = 0;
@@ -331,7 +325,7 @@ BeamColumnJoint2dThermal::commitState(void)
 }
 
 int
-BeamColumnJoint2dThermal::revertToLastCommit(void)
+BeamColumnJoint3dThermal::revertToLastCommit(void)
 {
 	int errCode = 0;
 	// revert material models
@@ -342,7 +336,7 @@ BeamColumnJoint2dThermal::revertToLastCommit(void)
 }
 
 int
-BeamColumnJoint2dThermal::revertToStart(void)
+BeamColumnJoint3dThermal::revertToStart(void)
 {
 	int mcs = 0;
 	for (int j=0; j<3; j++)
@@ -355,7 +349,7 @@ BeamColumnJoint2dThermal::revertToStart(void)
 }
 
 int
-BeamColumnJoint2dThermal::update(void)
+BeamColumnJoint3dThermal::update(void)
 {	
 
 	double strain;
@@ -387,21 +381,17 @@ BeamColumnJoint2dThermal::update(void)
 		//strainRate = this->computeCurrentStrain1d(mat, diffv);
 		ret += MaterialPtr[mat]->setTrialStrain(strain);
 	} 
-	if (Mlimit > 0.0) {
-		if (abs(deform(2)) > Mlimit) {
-			Domain* theDomain = OPS_GetDomain();
-			opserr << "WARNing::Connection Failure! Element removed";
-			theDomain->removeElement(this->getTag());
-		}
-
+	if (abs(deform(2)) > 0.2) { 
+		Domain* theDomain = OPS_GetDomain();
+		opserr << "WARNing::Connection Failure! Element removed";
+		theDomain->removeElement(this->getTag());
 	}
-	
 
 	return ret;
 }
 
 const Matrix &
-BeamColumnJoint2dThermal::getTangentStiff(void)
+BeamColumnJoint3dThermal::getTangentStiff(void)
 {
 	double E;
 
@@ -455,13 +445,13 @@ BeamColumnJoint2dThermal::getTangentStiff(void)
 }
 
 const Matrix &
-BeamColumnJoint2dThermal::getInitialStiff(void)
+BeamColumnJoint3dThermal::getInitialStiff(void)
 {
 	return getTangentStiff();
 }
 
 const Vector &
-BeamColumnJoint2dThermal::getResistingForce(void)
+BeamColumnJoint3dThermal::getResistingForce(void)
 {
 	//Global forces at two nodes (Fx, Fy, M)
 	double force;
@@ -497,28 +487,28 @@ BeamColumnJoint2dThermal::getResistingForce(void)
 
     
 const Matrix &
-BeamColumnJoint2dThermal::getDamp(void)
+BeamColumnJoint3dThermal::getDamp(void)
 {
 	//not applicable (stiffness being returned)
 	return *theMatrix;
 }
 
 const Matrix &
-BeamColumnJoint2dThermal::getMass(void)
+BeamColumnJoint3dThermal::getMass(void)
 { 
 	//not applicable  (stiffness being returned)
 	return *theMatrix;
 }
 
 void 
-BeamColumnJoint2dThermal::zeroLoad(void)
+BeamColumnJoint3dThermal::zeroLoad(void)
 {
 	//not applicable  
 	return;
 }
 
 int 
-BeamColumnJoint2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
+BeamColumnJoint3dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
 	//aDD THERMAL ACTION
 	int type;
@@ -571,7 +561,7 @@ BeamColumnJoint2dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 }
 
 int 
-BeamColumnJoint2dThermal::addInertiaLoadToUnbalance(const Vector &accel)
+BeamColumnJoint3dThermal::addInertiaLoadToUnbalance(const Vector &accel)
 {
 	//not applicable
 	return 0;
@@ -579,28 +569,28 @@ BeamColumnJoint2dThermal::addInertiaLoadToUnbalance(const Vector &accel)
 
 
 const Vector &
-BeamColumnJoint2dThermal::getResistingForceIncInertia()
+BeamColumnJoint3dThermal::getResistingForceIncInertia()
 {	
   //not applicable (residual being returned)
 	return *theVector;
 }
 
 int
-BeamColumnJoint2dThermal::sendSelf(int commitTag, Channel &theChannel)
+BeamColumnJoint3dThermal::sendSelf(int commitTag, Channel &theChannel)
 {
 	// yet to do.
 	return -1;
 }
 
 int
-BeamColumnJoint2dThermal::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+BeamColumnJoint3dThermal::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
 	// yet to do.
 	return -1;
 }
 
 int
-BeamColumnJoint2dThermal::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
+BeamColumnJoint3dThermal::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
 {
 	const Vector &node1Crd = nodePtr[0]->getCrds();
 	const Vector &node2Crd = nodePtr[1]->getCrds();	
@@ -628,7 +618,7 @@ BeamColumnJoint2dThermal::displaySelf(Renderer &theViewer, int displayMode, floa
 }
 
 void
-BeamColumnJoint2dThermal::Print(OPS_Stream &s, int flag)
+BeamColumnJoint3dThermal::Print(OPS_Stream &s, int flag)
 {
 	s << "Element: " << this->getTag() << " Type: Beam Column Joint Thermal" << endln;
 	for (int i = 0; i<2; i++)
@@ -640,34 +630,26 @@ BeamColumnJoint2dThermal::Print(OPS_Stream &s, int flag)
 }
 
 Response*
-BeamColumnJoint2dThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
+BeamColumnJoint3dThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
   // we will compare argv[0] to determine the type of response required
   
  if (strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"Deformation") == 0 || strcmp(argv[0], "deform") == 0 || strcmp(argv[0], "Deform") == 0)
     return new ElementResponse(this,1,Vector(3));
  else if (strcmp(argv[0], "force") == 0 || strcmp(argv[0], "Force") == 0 || strcmp(argv[0], "forces") == 0 || strcmp(argv[0], "Forces") == 0)
-	 return new ElementResponse(this, 2, Vector(3));
- else if (strcmp(argv[0], "Globalforce") == 0 || strcmp(argv[0], "GlobalForce") == 0 || strcmp(argv[0], "globalforces") == 0 || strcmp(argv[0], "globalForces") == 0)
-	 return new ElementResponse(this, 3, Vector(6));
+	 return new ElementResponse(this, 2, Vector(6));
   
   else
     return 0;
 }
 
 int 
-BeamColumnJoint2dThermal::getResponse(int responseID, Information &eleInfo)
+BeamColumnJoint3dThermal::getResponse(int responseID, Information &eleInfo)
 {
 	switch (responseID) {
 	case 1:  // deform
 		return eleInfo.setVector(deform);
-	case 2:  // local forces
-		if (eleInfo.theVector != 0) {
-			for (int i = 0; i < numMaterials1d; i++)
-				(*(eleInfo.theVector))(i) = MaterialPtr[i]->getStress();
-		}
-		return 0;
-	case 3:  // global forces
+	case 2:  // global forces
 		return eleInfo.setVector(this->getResistingForce());
 
 	default:
@@ -676,13 +658,13 @@ BeamColumnJoint2dThermal::getResponse(int responseID, Information &eleInfo)
 }
 
 int
-BeamColumnJoint2dThermal::setParameter (char **argv, int argc, Information &info)
+BeamColumnJoint3dThermal::setParameter (char **argv, int argc, Information &info)
 {
   return -1;
 }
     
 int
-BeamColumnJoint2dThermal::updateParameter (int parameterID, Information &info)
+BeamColumnJoint3dThermal::updateParameter (int parameterID, Information &info)
 {
   return -1;
 }
@@ -692,7 +674,7 @@ BeamColumnJoint2dThermal::updateParameter (int parameterID, Information &info)
 // dispDiff are the displacements of node 2 minus those
 // of node 1
 double
-BeamColumnJoint2dThermal::computeCurrentStrain1d(int mat,
+BeamColumnJoint3dThermal::computeCurrentStrain1d(int mat,
 	const Vector& dispDiff) const
 {
 	double strain = 0.0;
@@ -707,7 +689,7 @@ BeamColumnJoint2dThermal::computeCurrentStrain1d(int mat,
 
 
 void
-BeamColumnJoint2dThermal::updateDir(const Vector& x, const Vector& y)
+BeamColumnJoint3dThermal::updateDir(const Vector& x, const Vector& y)
 {
 	this->setUp(connectedExternalNodes(0), connectedExternalNodes(1), x, y);
 	this->setTran1d(elemType, numMaterials1d);
@@ -717,7 +699,7 @@ BeamColumnJoint2dThermal::updateDir(const Vector& x, const Vector& y)
 // Set basic deformation-displacement transformation matrix for 1d
 // uniaxial materials
 void
-BeamColumnJoint2dThermal::setTran1d(int elemType,
+BeamColumnJoint3dThermal::setTran1d(int elemType,
 	int   numMat)
 {
 	int nDoF;
@@ -810,7 +792,7 @@ BeamColumnJoint2dThermal::setTran1d(int elemType,
 
 
 void
-BeamColumnJoint2dThermal::setUp(int Nd1, int Nd2,
+BeamColumnJoint3dThermal::setUp(int Nd1, int Nd2,
 	const Vector& x,
 	const Vector& yp)
 {

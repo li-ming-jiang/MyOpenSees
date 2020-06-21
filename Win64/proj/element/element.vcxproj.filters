@@ -887,6 +887,9 @@
     <ClCompile Include="..\..\..\SRC\element\shell\ShellNLComThermal.cpp">
       <Filter>shell</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\element\joint\BeamColumnJoint3dThermal.cpp">
+      <Filter>joint</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\element\Element.h">
@@ -1548,6 +1551,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\element\shell\ShellNLComThermal.h">
       <Filter>shell</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\element\joint\BeamColumnJoint3dThermal.h">
+      <Filter>joint</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
