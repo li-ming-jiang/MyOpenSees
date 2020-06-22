@@ -226,6 +226,7 @@ extern void *OPS_WilsonTheta(void);
 
 // analysis
 #include <StaticAnalysis.h>
+#include <VariableTImeStepStaticAnalysis.h>
 #include <DirectIntegrationAnalysis.h>
 #include <VariableTimeStepDirectIntegrationAnalysis.h>
 #include <PFEMAnalysis.h>
@@ -2400,7 +2401,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
     }
     
     // check argv[1] for type of SOE and create it
-    if (strcmp(argv[1],"Static") == 0) {
+    if (strcmp(argv[1],"Static") == 0|| strcmp(argv[1], "VariableStepStatic") == 0|| strcmp(argv[1], "VariableStatic") == 0) {
 	// make sure all the components have been built,
 	// otherwise print a warning and use some defaults
 	if (theAnalysisModel == 0) 
@@ -2442,15 +2443,27 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 	    theSOE = new ProfileSPDLinSOE(*theSolver);      
 #endif
 	}
-    
-	theStaticAnalysis = new StaticAnalysis(theDomain,
-					       *theHandler,
-					       *theNumberer,
-					       *theAnalysisModel,
-					       *theAlgorithm,
-					       *theSOE,
-					       *theStaticIntegrator,
-					       theTest);
+    if (strcmp(argv[1], "VariableStepStatic") == 0 || strcmp(argv[1], "VariableStatic") == 0) {
+        theStaticAnalysis = new VariableTimeStepStaticAnalysis(theDomain,
+            *theHandler,
+            *theNumberer,
+            *theAnalysisModel,
+            *theAlgorithm,
+            *theSOE,
+            *theStaticIntegrator,
+            theTest);
+    }
+    else {
+        theStaticAnalysis = new StaticAnalysis(theDomain,
+            *theHandler,
+            *theNumberer,
+            *theAnalysisModel,
+            *theAlgorithm,
+            *theSOE,
+            *theStaticIntegrator,
+            theTest);
+
+    }
 
 	#ifdef _PARALLEL_INTERPRETERS
 	if (setMPIDSOEFlag) {
@@ -2465,6 +2478,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 	}
 #endif
 // AddingSensitivity:END /////////////////////////////////
+   
 #ifdef _PFEM
     } else if(strcmp(argv[1], "PFEM") == 0) {
 
