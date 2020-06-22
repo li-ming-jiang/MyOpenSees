@@ -18,47 +18,46 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.4 $
-// $Date: 2010-06-01 23:48:14 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/analysis/VariableTimeStepDirectIntegrationAnalysis.h,v $
+
+// $Source: /usr/local/cvs/OpenSees/SRC/analysis/analysis/VariableTimeStepStaticAnalysis.h,v $
                                                                         
                                                                         
-#ifndef VariableTimeStepDirectIntegrationAnalysis_h
-#define VariableTimeStepDirectIntegrationAnalysis_h
+#ifndef VariableTimeStepStaticAnalysis_h
+#define VariableTimeStepStaticAnalysis_h
 
 // Written: fmk 
 // Created: 10/00
 // Revision: A
 //
 // Description: This file contains the class definition for 
-// VariableTimeStepDirectIntegrationAnalysis. VariableTimeStepDirectIntegrationAnalysis 
+// VariableTimeStepStaticAnalysis. VariableTimeStepStaticAnalysis 
 // is a subclass of DirectIntegrationAnalysis. It is used to perform a 
 // dynamic analysis on the FE\_Model using a direct integration scheme.  
 //
-// What: "@(#) VariableTimeStepDirectIntegrationAnalysis.h, revA"
+// What: "@(#) VariableTimeStepStaticAnalysis.h, revA"
 
-#include <DirectIntegrationAnalysis.h>
+#include <StaticAnalysis.h>
 
 class ConstraintHandler;
 class DOF_Numberer;
 class AnalysisModel;
-class TransientIntegrator;
+class StaticIntegrator;
 class LinearSOE;
 class EquiSolnAlgo;
 class ConvergenceTest;
 
-class VariableTimeStepDirectIntegrationAnalysis: public DirectIntegrationAnalysis
+class VariableTimeStepStaticAnalysis: public StaticAnalysis
 {
   public:
-    VariableTimeStepDirectIntegrationAnalysis(Domain &theDomain,
+    VariableTimeStepStaticAnalysis(Domain &theDomain,
 					      ConstraintHandler &theHandler,
 					      DOF_Numberer &theNumberer,
 					      AnalysisModel &theModel,
 					      EquiSolnAlgo &theSolnAlgo,
 					      LinearSOE &theSOE,
-					      TransientIntegrator &theIntegrator,
+                          StaticIntegrator &theIntegrator,
 					      ConvergenceTest *theTest =0);
-    virtual ~VariableTimeStepDirectIntegrationAnalysis();
+    virtual ~VariableTimeStepStaticAnalysis();
 
     int analyze(int numSteps, double dT, double dtMin, double dtMax, int Jd);
 

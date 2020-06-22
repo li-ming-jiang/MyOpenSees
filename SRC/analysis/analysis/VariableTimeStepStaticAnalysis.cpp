@@ -20,57 +20,60 @@
                                                                         
 // $Revision: 1.7 $
 // $Date: 2009-05-11 21:32:27 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/analysis/VariableTimeStepDirectIntegrationAnalysis.cpp,v $
+// $Source: /usr/local/cvs/OpenSees/SRC/analysis/analysis/VariableTimeStepStaticAnalysis.cpp,v $
                                                                         
                                                                         
-// File: ~/analysis/analysis/VariableTimeStepDirectIntegrationAnalysis.C
+// File: ~/analysis/analysis/VariableTimeStepStaticAnalysis.C
 // 
 // Written: fmk 
 // Created: 10/00
 // Revision: A
 //
 // Description: This file contains the implementation of the
-// VariableTimeStepDirectIntegrationAnalysis class.
+// VariableTimeStepStaticAnalysis class.
 //
-// What: "@(#) VariableTimeStepDirectIntegrationAnalysis.C, revA"
+// What: "@(#) VariableTimeStepStaticAnalysis.C, revA"
 
-#include <VariableTimeStepDirectIntegrationAnalysis.h>
+#include <VariableTimeStepStaticAnalysis.h>
 #include <EquiSolnAlgo.h>
-#include <TransientIntegrator.h>
+#include <StaticIntegrator.h>
+#include <LoadControl.h>
 #include <Domain.h>
 #include <ConvergenceTest.h>
 #include <float.h>
 #include <AnalysisModel.h>
 
 // Constructor
-VariableTimeStepDirectIntegrationAnalysis::VariableTimeStepDirectIntegrationAnalysis(
+VariableTimeStepStaticAnalysis::VariableTimeStepStaticAnalysis(
 			      Domain &the_Domain,
 			      ConstraintHandler &theHandler,
 			      DOF_Numberer &theNumberer,
 			      AnalysisModel &theModel,
 			      EquiSolnAlgo &theSolnAlgo,		   
 			      LinearSOE &theLinSOE,
-			      TransientIntegrator &theTransientIntegrator,
+                  StaticIntegrator &theStaticIntegrator,
 			      ConvergenceTest *theTest)
 
-:DirectIntegrationAnalysis(the_Domain, theHandler, theNumberer, theModel, 
-			   theSolnAlgo, theLinSOE, theTransientIntegrator, theTest)
+:StaticAnalysis(the_Domain, theHandler, theNumberer, theModel, 
+			   theSolnAlgo, theLinSOE, theStaticIntegrator, theTest)
 {
 
 }    
 
-VariableTimeStepDirectIntegrationAnalysis::~VariableTimeStepDirectIntegrationAnalysis()
+VariableTimeStepStaticAnalysis::~VariableTimeStepStaticAnalysis()
 {
 
 }    
 
 int 
-VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, double dtMin, double dtMax, int Jd)
+VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, double dtMax, int Jd)
 {
   // get some pointers
   Domain *theDom = this->getDomainPtr();
   EquiSolnAlgo *theAlgo = this->getAlgorithm();
-  TransientIntegrator *theIntegratr = this->getIntegrator();
+  StaticIntegrator*theIntegratr = this->getIntegrator();
+  LoadControl* theLoadCtrl = (LoadControl*)theIntegratr;
+
   ConvergenceTest *theTest = theAlgo->getConvergenceTest();
   AnalysisModel *theModel = this->getModel();
 
@@ -91,18 +94,18 @@ VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, doub
       return -2;
     }
 
-    if (this->checkDomainChange() != 0) {
-      opserr << "VariableTimeStepDirectIntegrationAnalysis::analyze() - failed checkDomainChange\n";
-      return -1;
-    }
+    //if (this->checkDomainChange() != 0) {
+    //  opserr << "VariableTimeStepStaticAnalysis::analyze() - failed checkDomainChange\n";
+     // return -1;
+    //}
 
     //
     // do newStep(), solveCurrentStep() and commit() as in regular
     // DirectINtegrationAnalysis - difference is we do not return
     // if a failure - we stop the analysis & resize time step if failure
     //
-
-    if (theIntegratr->newStep(currentDt) < 0) {
+    theLoadCtrl->setDeltaLambda(currentDt);
+    if (theIntegratr->newStep() < 0) {
       result = -2;
     }
 
@@ -112,7 +115,7 @@ VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, doub
       if (result < 0) 
 	result = -3;
     }    
-
+/*
     // AddingSensitivity:BEGIN ////////////////////////////////////
 #ifdef _RELIABILITY
 
@@ -122,7 +125,7 @@ VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, doub
 	
       result = theIntegrator->computeSensitivities();
       if (result < 0) {
-	opserr << "VariableTimeStepDirectIntegrationAnalysis::analyze() - the SensitivityAlgorithm failed";
+	opserr << "VariableTimeStepStaticAnalysis::analyze() - the SensitivityAlgorithm failed";
 	opserr << " at time ";
 	opserr << theDom->getCurrentTime() << endln;
 	theDom->revertToLastCommit();
@@ -133,9 +136,9 @@ VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, doub
 
 #endif
     // AddingSensitivity:END //////////////////////////////////////
-
+*/
     if (result >= 0) {
-      result = theIntegratr->commit();
+      result = theLoadCtrl->commit();
       if (result < 0) 
 	result = -4;
     }
@@ -149,11 +152,11 @@ VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, doub
 
       // invoke the revertToLastCommit
       theDom->revertToLastCommit();	    
-      theIntegratr->revertToLastStep();
+      theLoadCtrl->revertToLastStep();
 
       // if last dT was <= min specified the analysis FAILS - return FAILURE
       if (currentDt <= dtMin) {
-	opserr << "VariableTimeStepDirectIntegrationAnalysis::analyze() - ";
+	opserr << "VariableTimeStepStaticAnalysis::analyze() - ";
 	opserr << " failed at time " << theDom->getCurrentTime() << endln;
 	return result;
       }
@@ -176,7 +179,7 @@ VariableTimeStepDirectIntegrationAnalysis::analyze(int numSteps, double dT, doub
 
 
 double 
-VariableTimeStepDirectIntegrationAnalysis::determineDt(double dT, 
+VariableTimeStepStaticAnalysis::determineDt(double dT, 
 						       double dtMin, 
 						       double dtMax, 
 						       int Jd,
