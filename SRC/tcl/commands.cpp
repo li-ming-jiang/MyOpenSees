@@ -1937,11 +1937,42 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
       return TCL_ERROR;
     }
     int numIncr;
+    if (argc < 6) {
+        if (Tcl_GetInt(interp, argv[1], &numIncr) != TCL_OK)
+            return TCL_ERROR;
 
-    if (Tcl_GetInt(interp, argv[1], &numIncr) != TCL_OK)	
-      return TCL_ERROR;	      
+        result = theStaticAnalysis->analyze(numIncr);
+    }
+    else {
+        //------------------------------------------
+        if (Tcl_GetInt(interp, argv[1], &numIncr) != TCL_OK)
+            return TCL_ERROR;
+        double dT;
+        if (Tcl_GetDouble(interp, argv[2], &dT) != TCL_OK)
+            return TCL_ERROR;
 
-    result = theStaticAnalysis->analyze(numIncr);
+        // Set global timestep variable
+        ops_Dt = dT;
+        int Jd;
+        double dtMin, dtMax;
+        if (Tcl_GetDouble(interp, argv[3], &dtMin) != TCL_OK)
+            return TCL_ERROR;
+        if (Tcl_GetDouble(interp, argv[4], &dtMax) != TCL_OK)
+            return TCL_ERROR;
+        if (Tcl_GetInt(interp, argv[5], &Jd) != TCL_OK)
+            return TCL_ERROR;
+        VariableTimeStepStaticAnalysis* theVariableStaticAnalysis = (VariableTimeStepStaticAnalysis*)theStaticAnalysis;
+        if (theVariableStaticAnalysis != 0)
+            result = theVariableStaticAnalysis->analyze(numIncr, dT, dtMin, dtMax, Jd);
+        else {
+            opserr << "WARNING analyze - no variable time step transient analysis object constructed\n";
+            return TCL_ERROR;
+        }
+
+    }
+        
+
+    //---------------------------------------------
 #ifdef _PFEM
   } else if(thePFEMAnalysis != 0) {
       result = thePFEMAnalysis->analyze();
