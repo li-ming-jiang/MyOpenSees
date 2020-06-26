@@ -57,7 +57,7 @@ VariableTimeStepStaticAnalysis::VariableTimeStepStaticAnalysis(
 :StaticAnalysis(the_Domain, theHandler, theNumberer, theModel, 
 			   theSolnAlgo, theLinSOE, theStaticIntegrator, theTest)
 {
-
+    domainStamp = 0;
 }    
 
 VariableTimeStepStaticAnalysis::~VariableTimeStepStaticAnalysis()
@@ -66,7 +66,7 @@ VariableTimeStepStaticAnalysis::~VariableTimeStepStaticAnalysis()
 }    
 
 int 
-VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, double dtMax, int Jd)
+VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, double dtmax, int Jd)
 {
   // get some pointers
   Domain *theDom = this->getDomainPtr();
@@ -83,15 +83,32 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, d
   double totalTimeIncr = numSteps * dT;
   double currentTimeIncr = 0.0;
   double currentDt = dT;
+  double dtMin = dtmin;
+  double dtMax = dtmax;
 
   // loop until analysis has performed the total time incr requested
   while (currentTimeIncr < totalTimeIncr) {
 
-    if (theModel->analysisStep(currentDt) < 0) {
+    if (theModel->analysisStep() < 0) {
       opserr << "DirectIntegrationAnalysis::analyze() - the AnalysisModel failed in newStepDomain";
       opserr << " at time " << theDom->getCurrentTime() << endln;
       theDom->revertToLastCommit();
       return -2;
+    }
+
+    int stamp = theDom->hasDomainChanged();
+
+
+    if (stamp != domainStamp) {
+        domainStamp = stamp;
+
+        result = this->domainChanged();
+
+        if (result < 0) {
+            opserr << "StaticAnalysis::analyze() - domainChanged failed";
+            opserr << " at time step " << theDom->getCurrentTime() << endln;
+            return -1;
+        }
     }
 
     //if (this->checkDomainChange() != 0) {
@@ -104,6 +121,7 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, d
     // DirectINtegrationAnalysis - difference is we do not return
     // if a failure - we stop the analysis & resize time step if failure
     //
+
     theLoadCtrl->setDeltaLambda(currentDt);
     if (theIntegratr->newStep() < 0) {
       result = -2;
@@ -113,7 +131,7 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, d
     if (result >= 0) {
       result = theAlgo->solveCurrentStep();
       if (result < 0) 
-	result = -3;
+  	    result = -3;
     }    
 /*
     // AddingSensitivity:BEGIN ////////////////////////////////////
@@ -153,6 +171,9 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, d
       // invoke the revertToLastCommit
       theDom->revertToLastCommit();	    
       theLoadCtrl->revertToLastStep();
+      double dt = currentDt;
+      currentDt = this->determineDt(dt, dtMin, dtMax, Jd, theTest);
+      opserr << "Current time:" << theDom->getCurrentTime() << ", dt: " << currentDt << endln;
 
       // if last dT was <= min specified the analysis FAILS - return FAILURE
       if (currentDt <= dtMin) {
@@ -167,7 +188,8 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, d
     }
 
     // now we determine a new delta T for next loop
-    currentDt = this->determineDt(currentDt, dtMin, dtMax, Jd, theTest);
+   
+
   }
 
 
@@ -179,11 +201,11 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtMin, d
 
 
 double 
-VariableTimeStepStaticAnalysis::determineDt(double dT, 
+VariableTimeStepStaticAnalysis::determineDt(double dT,
 						       double dtMin, 
 						       double dtMax, 
-						       int Jd,
-						       ConvergenceTest *theTest)
+						       int Jd, 
+    ConvergenceTest* theTest)
 {
   double newDt = dT;
     
@@ -194,7 +216,7 @@ VariableTimeStepStaticAnalysis::determineDt(double dT,
   
   
   // determine new dT based on last dT and Jd and #iter of last step
-  double factor = Jd/numLastIter;
+  double factor = 1/2;
   newDt *= factor;
   
   // ensure: dtMin <~~ dT <= dtMax

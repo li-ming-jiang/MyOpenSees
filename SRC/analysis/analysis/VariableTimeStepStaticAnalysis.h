@@ -62,10 +62,11 @@ class VariableTimeStepStaticAnalysis: public StaticAnalysis
     int analyze(int numSteps, double dT, double dtMin, double dtMax, int Jd);
 
   protected:
-    virtual double determineDt(double dT, double dtMin, double dtMax, int Jd,
-			       ConvergenceTest *theTest);
+    double determineDt(double dT, double dtMin, double dtMax, int Jd,
+        ConvergenceTest* theTest);
 
   private:
+      int domainStamp;
 };
 
 #endif

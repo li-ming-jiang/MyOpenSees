@@ -767,7 +767,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 
 	//ThermalElongation = ThermalElongation;
 	//(TempT -20)*1.0e-5;
-	TempAndElong(0) = tempT;
+	//TempAndElong(0) = tempT;
 	//TempAndElong(1) = fy;
 	//bulk = bulk_0;
 	//shear = shear_0;
@@ -780,7 +780,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	Elong = ThermalElongation;
 	//this->plastic_integrator();
    // TempAndElong(0) = Temp;
-	TempAndElong(1) = kxi;
+	//TempAndElong(1) = kxi;
 	Tchange++;
 	return 0;
 }
