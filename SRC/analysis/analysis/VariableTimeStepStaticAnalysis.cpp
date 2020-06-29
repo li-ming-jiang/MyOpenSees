@@ -88,7 +88,7 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, d
 
   // loop until analysis has performed the total time incr requested
   while (currentTimeIncr < totalTimeIncr) {
-
+      opserr << "Current time:" << theDom->getCurrentTime() << ", dt: " << currentDt << endln;
     if (theModel->analysisStep() < 0) {
       opserr << "DirectIntegrationAnalysis::analyze() - the AnalysisModel failed in newStepDomain";
       opserr << " at time " << theDom->getCurrentTime() << endln;
@@ -164,8 +164,10 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, d
     // if the time step was successful increment delta T for the analysis
     // otherwise revert the Domain to last committed state & see if can go on
 
-    if (result >= 0) 
-      currentTimeIncr += currentDt;
+    if (result >= 0) {
+        currentTimeIncr += currentDt;
+    }
+      
     else {
 
       // invoke the revertToLastCommit
@@ -173,7 +175,7 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, d
       theLoadCtrl->revertToLastStep();
       double dt = currentDt;
       currentDt = this->determineDt(dt, dtMin, dtMax, Jd, theTest);
-      opserr << "Current time:" << theDom->getCurrentTime() << ", dt: " << currentDt << endln;
+      opserr << "Failure- Current time:" << theDom->getCurrentTime() << ", dt: " << currentDt << endln;
 
       // if last dT was <= min specified the analysis FAILS - return FAILURE
       if (currentDt <= dtMin) {
@@ -216,7 +218,7 @@ VariableTimeStepStaticAnalysis::determineDt(double dT,
   
   
   // determine new dT based on last dT and Jd and #iter of last step
-  double factor = 1/2;
+  double factor = 1.0/2.0;
   newDt *= factor;
   
   // ensure: dtMin <~~ dT <= dtMax
