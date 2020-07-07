@@ -85,10 +85,13 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, d
   double currentDt = dT;
   double dtMin = dtmin;
   double dtMax = dtmax;
+  bool failure = false;
 
   // loop until analysis has performed the total time incr requested
   while (currentTimeIncr < totalTimeIncr) {
+      
       opserr << "Current time:" << theDom->getCurrentTime() << ", dt: " << currentDt << endln;
+
     if (theModel->analysisStep() < 0) {
       opserr << "DirectIntegrationAnalysis::analyze() - the AnalysisModel failed in newStepDomain";
       opserr << " at time " << theDom->getCurrentTime() << endln;
@@ -166,6 +169,8 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, d
 
     if (result >= 0) {
         currentTimeIncr += currentDt;
+        failure = false;
+        currentDt = this->determineDt(currentDt, dtMin, dtMax, failure, theTest);
     }
       
     else {
@@ -174,7 +179,8 @@ VariableTimeStepStaticAnalysis::analyze(int numSteps, double dT, double dtmin, d
       theDom->revertToLastCommit();	    
       theLoadCtrl->revertToLastStep();
       double dt = currentDt;
-      currentDt = this->determineDt(dt, dtMin, dtMax, Jd, theTest);
+      failure = true;
+      currentDt = this->determineDt(dt, dtMin, dtMax, failure, theTest);
       opserr << "Failure- Current time:" << theDom->getCurrentTime() << ", dt: " << currentDt << endln;
 
       // if last dT was <= min specified the analysis FAILS - return FAILURE
@@ -206,7 +212,7 @@ double
 VariableTimeStepStaticAnalysis::determineDt(double dT,
 						       double dtMin, 
 						       double dtMax, 
-						       int Jd, 
+						       bool failure, 
     ConvergenceTest* theTest)
 {
   double newDt = dT;
@@ -218,12 +224,23 @@ VariableTimeStepStaticAnalysis::determineDt(double dT,
   
   
   // determine new dT based on last dT and Jd and #iter of last step
-  double factor = 1.0/2.0;
+  double factor = 1.0;
+  
+  if(failure)
+      factor = 0.5;
+  else {
+      if (numLastIter < 10)
+          factor = 2.0;
+      else if (numLastIter < 100)
+          factor = 1.0;
+  }
+  
+
   newDt *= factor;
   
   // ensure: dtMin <~~ dT <= dtMax
   if (newDt < dtMin)
-    newDt = dtMin - DBL_EPSILON;  // to ensure we get out of the analysis 
+    newDt = dtMin;  // to ensure we get out of the analysis 
                                // loop if can't converge on next step
   else if (newDt > dtMax)
     newDt = dtMax;

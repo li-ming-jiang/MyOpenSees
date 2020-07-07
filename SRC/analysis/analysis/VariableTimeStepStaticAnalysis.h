@@ -62,7 +62,7 @@ class VariableTimeStepStaticAnalysis: public StaticAnalysis
     int analyze(int numSteps, double dT, double dtMin, double dtMax, int Jd);
 
   protected:
-    double determineDt(double dT, double dtMin, double dtMax, int Jd,
+    double determineDt(double dT, double dtMin, double dtMax, bool failure,
         ConvergenceTest* theTest);
 
   private:
