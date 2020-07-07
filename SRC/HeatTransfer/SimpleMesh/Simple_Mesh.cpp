@@ -214,7 +214,8 @@ Simple_Mesh::SelectingNodes(ID& NodesRange,int crdTag,double MinValue, double Ma
 	  
 	}
 	int NewIDsize = SelectedNodes.size();
-	opserr<<"SimpleMesh::SelectingNodes has selected "<<NewIDsize<<" Nodes for crd"<<crdTag<<endln;
+
+	//opserr<<"SimpleMesh::SelectingNodes has selected "<<NewIDsize<<" Nodes for crd"<<crdTag<<endln;
 
 	NodesRange.resize(NewIDsize);
 	for (int i = 0; i< NewIDsize; i++) {
@@ -449,7 +450,7 @@ Simple_Mesh::SelectingEles(ID& ElesRange, const ID& NodesRange, int eleFaceTag)
 			
 	}
 	int NewIDsize = SelectedEles.size();
-	opserr<<"SimpleMesh::SelectingEles has selected "<<NewIDsize<<" elements.."<<endln;
+	//opserr<<"SimpleMesh::SelectingEles has selected "<<NewIDsize<<" elements.."<<endln;
     ElesRange.Zero();
 	ElesRange.resize(NewIDsize);
 	for (int i = 0; i< NewIDsize; i++) {

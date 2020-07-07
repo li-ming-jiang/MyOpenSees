@@ -1259,9 +1259,7 @@ TclHeatTransferCommand_HTRefineMesh(ClientData clientData, Tcl_Interp *interp, i
     }
     // for geting uncertain number of doubel values
     
-//#ifdef _DEBUG
-	opserr << "HTEntity "<<HTEntityTag<< " has a refined mesh as"<<MeshVec<<endln;
-//#endif
+
   }
   
   //space info obtained
@@ -1275,6 +1273,12 @@ TclHeatTransferCommand_HTRefineMesh(ClientData clientData, Tcl_Interp *interp, i
       opserr<<"WARNING::the Entity "<<HTEntityTag<< "failed to refine Seeds "<< SeedTag1 << endln;
     }
   }
+
+  #ifdef _DEBUG
+  opserr << "HTEntity " << HTEntityTag << " has refined mesh as:" << MeshVec << endln;
+  #endif
+
+  return TCL_OK;
  
 ////////////////////////////////////////////
 }
@@ -1526,6 +1530,8 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
   if (EleRange!=0) {
     theHTEleSet->addEleID(EleRange);
   }
+
+  opserr << "NodeSet " << HTEleSetTag << " selects elements:" << EleRange << endln;
   
   if(theHTEleSet!=0){
 		theTclHTModule->addHTEleSet(theHTEleSet);
@@ -1553,7 +1559,8 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     return TCL_ERROR;
   }
   
-  HTNodeSet* theHTNodeSet=0;
+  HTNodeSet* theHTNodeSet = 0;
+  Simple_Entity* theHTEntity = 0;
   int HTNodeSetTag = 0;
   int HTEntityTag = 0;
   int FaceID =0;
@@ -1577,33 +1584,35 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     }else{
       count++;
     }
-  }
-	//HTEntityTag obtained
-  
-  
-  Simple_Entity* theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
-  
-  if(theHTEntity==0){
-    opserr<< "WARNING:: HTNodeSet failed to get the HTEntity: " <<argv[1] <<"\n";
-    return TCL_ERROR;
-  }
-  
-  int EntityMeshTag = theHTEntity->getMeshTag();
-  Simple_Mesh* theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
+    
 
-	//to obtain faceTag
-  if(strcmp(argv[count],"-face") == 0||strcmp(argv[count],"-Face") == 0||strcmp(argv[count],"face") == 0){
-    count++;
-    if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
-      opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
-      return TCL_ERROR;
-    }else{
-      count++;
+    theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
+    if (theHTEntity == 0) {
+        opserr << "WARNING:: HTNodeSet failed to get the HTEntity: " << argv[1] << "\n";
+        return TCL_ERROR;
     }
+    //HTEntityTag obtained
 
-	theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
+    int EntityMeshTag = theHTEntity->getMeshTag();
+    Simple_Mesh* theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
 
+    //to obtain faceTag
+    if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
+        count++;
+        if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
+            opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
+            return TCL_ERROR;
+        }
+        else {
+            count++;
+        }
+
+        theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
+
+    }
+  
   }
+	
 	//end of HTEntity tag 
   
   //search node in the range of xloc
@@ -1611,8 +1620,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   if(argc-count>0){
   if(strcmp(argv[count],"-Locx") == 0||strcmp(argv[count],"Locx") == 0||strcmp(argv[count],"locx") == 0||strcmp(argv[count],"-locx") == 0){
      count++;
-		 
-    
+		
     
     double xlocLB, xlocUB;
     
@@ -1638,7 +1646,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       return TCL_ERROR;
     }
     
-    theHTMesh->SelectingNodes(NodeRange, 0, xlocLB,xlocUB);
+    theHTDomain->SelectingNodes(NodeRange, 0, xlocLB,xlocUB);
     // for geting uncertain number of doubel values
   
   }
@@ -1673,7 +1681,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       return TCL_ERROR;
     }
     
-    theHTMesh->SelectingNodes(NodeRange, 1, ylocLB,ylocUB);
+    theHTDomain->SelectingNodes(NodeRange, 1, ylocLB,ylocUB);
     // for geting uncertain number of doubel values
     
   }
@@ -1706,7 +1714,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       return TCL_ERROR;
     }
     
-    theHTMesh->SelectingNodes(NodeRange, 2, zlocLB,zlocUB);
+    theHTDomain->SelectingNodes(NodeRange, 2, zlocLB,zlocUB);
     // for geting uncertain number of doubel values 
   }
   }
@@ -1726,9 +1734,9 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   else
 	opserr<<"WARNING: TclHTModule failed to add HTNodeSet: "<<argv[1]<<endln;
   
-#ifdef _DEBUG
-  opserr<<"NodeSet "<<HTNodeSetTag <<" grouped nodes:"<<NodeRange<<endln;
-#endif
+
+  opserr<<"NodeSet "<<HTNodeSetTag <<" selects nodes:"<<NodeRange<<endln;
+
 
 	return TCL_OK;
   

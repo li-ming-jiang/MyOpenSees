@@ -330,6 +330,9 @@
     <ClCompile Include="..\..\..\SRC\HeatTransfer\Interpreter\HeatTransferModule.cpp">
       <Filter>Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\HeatTransfer\HeatTransferMaterial\TimberHTMaterial.cpp">
+      <Filter>HeatTransferMaterial</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\HeatTransfer\HeatTransferMaterial\CarbonSteelEC3.h">
@@ -583,6 +586,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\HeatTransfer\Interpreter\HeatTransferModule.h">
       <Filter>Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\HeatTransfer\HeatTransferMaterial\TimberHTMaterial.h">
+      <Filter>HeatTransferMaterial</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
