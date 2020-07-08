@@ -276,6 +276,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 	I1tr = SigtrPr(0) + SigtrPr(1);
 
 	sigmaVM = sqrt(SigtrPr(0)*SigtrPr(0) + SigtrPr(1)*SigtrPr(1) - SigtrPr(0)*SigtrPr(1));
+	fyt = fy_inf + (fy - fy_inf) * exp(-d * kxi) + HT * kxi;
 
 	fyield = sigmaVM - fyt;
 
@@ -461,8 +462,7 @@ J2PlaneStressThermal::setTrialStrain(const Vector &strain)
 		opserr << "  Sig: " << sig << " DeltaPeps " << delta_epsPr << endln;
 	}
 #endif
-	TempAndElong(0) = kxi;
-	TempAndElong(1) = fyt;
+
 	///////////////////////////////////////////////output for debug////////////////////////////// 
 	//#endif
 
@@ -646,6 +646,8 @@ J2PlaneStressThermal::Print(OPS_Stream &s, int flag) {
 const Vector&
 J2PlaneStressThermal::getTempAndElong(void)
 {
+	TempAndElong(0) = kxi;
+	TempAndElong(1) = fyt;
 	return TempAndElong;
 }
 
