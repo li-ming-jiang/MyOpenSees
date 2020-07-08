@@ -53,7 +53,7 @@ NWConcreteEC2::~NWConcreteEC2()
 }
 
 int 
-NWConcreteEC2::setTrialTemperature(double temp)
+NWConcreteEC2::setTrialTemperature(double temp, int par)
 {
     trial_temp = temp - 273.15;
     return 0;

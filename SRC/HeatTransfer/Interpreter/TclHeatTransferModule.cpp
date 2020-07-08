@@ -65,6 +65,7 @@ using std::setiosflags;
 #include <ConcreteEC2.h>
 #include <SimpleMaterial.h>
 #include <SFRMCoating.h>
+#include <TimberHTMaterial.h>
 
 // includes for the analysis classes
 #include <HT_TransientAnalysis.h>
@@ -584,7 +585,29 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
     
     theHTMaterial = new SFRMCoating(HTMaterialTag, typeTag);
 
-	}else if(strcmp(argv[1],"GenericMaterial") == 0){
+	}
+    //add timber HT material
+  else if (strcmp(argv[1], "Timber") == 0 || strcmp(argv[1], "timber") == 0) {
+
+       int typeTag = 0;
+
+        if (argc == 3) {
+            typeTag = 1;
+        }
+        else if (argc == 4) {
+            if (Tcl_GetInt(interp, argv[3], &typeTag) != TCL_OK) {
+                opserr << "WARNING invalid typeTag" << endln;
+                opserr << " for HeatTransfer material: " << argv[1] << endln;
+                return TCL_ERROR;
+            }
+        }
+        else
+            opserr << "WARNING:: Defining HeatTransfer material: " << argv[1] << " recieved more than 4 arguments." << "\n";
+
+        theHTMaterial = new TimberHTMaterial(HTMaterialTag, typeTag);
+
+    }
+  else if(strcmp(argv[1],"GenericMaterial") == 0){
 	  
 		double density=0;
 		double cp =0;

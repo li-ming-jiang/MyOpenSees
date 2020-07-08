@@ -38,7 +38,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		virtual ~TimberHTMaterial();
 
 		// method for this material to update itself according to its new parameters
-		int setTrialTemperature(double );
+		int setTrialTemperature(double T, int par=0 );
 		const Matrix& getConductivity();
 		double getRho();
 		double getSpecificHeat();
@@ -57,6 +57,7 @@ class TimberHTMaterial: public HeatTransferMaterial
     
     private:
 		int TypeTag;
+		int PhaseTag;
 		double rho, cp, enthalpy;
 		double trial_temp;
 		double ini_temp;  // keep a copy of initial temperature
