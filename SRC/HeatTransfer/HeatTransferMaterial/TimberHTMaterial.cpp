@@ -66,12 +66,7 @@ TimberHTMaterial::getConductivity(void)
 {
 	double materialK = 0;
 	if(PhaseTag ==0){
-		if (trial_temp <= 300.0) 
-      materialK = 0.0778-0.000054*trial_temp;
-    else if(trial_temp <= 700.0)
-      materialK = -0.08+0.000469*trial_temp;
-    else
-      materialK = -0.08+0.000469*700;
+      materialK = 0.126;
 	}
   else if(PhaseTag ==1){
     if (trial_temp <= 200.0)
@@ -107,7 +102,7 @@ double
 TimberHTMaterial::getRho(void)
 {
   if (PhaseTag==0) {
-    rho = 298;
+    rho = 430.0;
   }
   else if (PhaseTag==1) {
     rho = 423.2;
@@ -124,16 +119,7 @@ TimberHTMaterial::getSpecificHeat(void)
 {
   
   if(PhaseTag ==0){
-	if (trial_temp < 200.0)
-      cp = 3236 + 4.16*trial_temp;
-    else if(trial_temp < 400.0)
-      cp = 6815 - 12.60*trial_temp;
-    else if(trial_temp < 700.0)
-      cp = 1645 - 0.36*trial_temp;
-    else if(trial_temp < 1200.0)
-      cp = 1645 - 0.36*700;
-	else 
-		opserr<<"SFRM Coating ,invalid temperature"<<trial_temp;
+      cp = 2300;
   }
   else if(PhaseTag ==1){
 	if (trial_temp < 100.0)
