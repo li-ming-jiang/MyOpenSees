@@ -55,7 +55,12 @@ Convection::applyFluxBC(double factor)
 
 }
 
+void 
+Convection::setParameter(double convec)
+{
+    hc = convec;
 
+}
 double 
 Convection::getParameter(void) const
 {
