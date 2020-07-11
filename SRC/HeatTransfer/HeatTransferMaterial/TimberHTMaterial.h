@@ -54,7 +54,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		void  Print(OPS_Stream&, int = 0) {return;};
 
     protected:
-    
+		int determinePhase(double temp, double time);
     private:
 		int TypeTag;
 		int PhaseTag;
@@ -62,6 +62,9 @@ class TimberHTMaterial: public HeatTransferMaterial
 		double trial_temp;
 		double ini_temp;  // keep a copy of initial temperature
 		static double epsilon;
+		double T1, T2, T3;
+		double t1, t2, t3;
+		double pht1, pht2;
 };
 
 

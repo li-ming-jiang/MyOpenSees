@@ -44,6 +44,13 @@ TimberHTMaterial::TimberHTMaterial(int tag,int typeTag)
 			exit(-1);
 			}
 		}
+
+    pht1 = 0;
+    pht2 = 0;
+    //phaseTag =0: Wet Wood
+    // phaseTag =1: Dry Wood
+    // phaseTag =2: Char 
+    //PhaseTag =3: Ash
 }
 
 
@@ -206,3 +213,20 @@ TimberHTMaterial::revertToStart(void)
 }
 
 
+int
+TimberHTMaterial::determinePhase(double temp, double t)
+{
+
+    if (temp > T1) {
+        if (pht1 == 0) {
+            pht1 = t;
+        }
+        else {
+            pht2 = t;
+        }
+
+    }
+        
+    
+    return 0;
+}

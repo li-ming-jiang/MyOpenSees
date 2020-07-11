@@ -860,7 +860,12 @@ TclHeatTransferCommand_addHTEntity(ClientData clientData, Tcl_Interp *interp, in
 		//Simple_Isection3D(int tag, double HTI_centerX, double HTI_centerY, double HTI_centerZ,
                               //double HTI_Bf, double HTI_Tf, double HTI_Hw, double HTI_Tw, double HTI_Len);
 		double HTI_centerX,HTI_centerY, HTI_centerZ, HTI_BF, HTI_Tf, HTI_HB, HTI_Tw, HTI_Len;
-
+        if (argc < 11) {
+            opserr << "WARNING insufficient parameters" << endln;
+            opserr << " for HeatTransfer entity: " << argv[1] << endln;
+            return TCL_ERROR;
+        }
+          
 		if (Tcl_GetDouble (interp, argv[3], &HTI_centerX) != TCL_OK) {
 			opserr << "WARNING invalid HTI_centerX" << endln;
 			opserr << " for HeatTransfer entity: " << argv[1] << endln;	    
@@ -1963,7 +1968,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 		theFireModel = new ParametricFireEC1(FireModelTag, thi, avent, hvent, atotal, afire, qfire, Tlim);
 	}
 	//localised fire curve;
-    else if(strcmp(argv[1],"localised") == 0||strcmp(argv[1],"Localised") == 0){
+    else if(strcmp(argv[1],"localisedSFPE") == 0||strcmp(argv[1],"LocalisedSFPE") == 0){
 		
 		count++; //count should be updated
 		double crd1=0.0; double crd2=0.0; double crd3=0.0; 
@@ -2044,8 +2049,91 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 			      <<" expects tag:-firePars or firePars" << "\n";
 		}
 
-		theFireModel = new LocalizedFireEC1(FireModelTag, crd1, crd2, crd3, D, Q, H, lineTag);
+		theFireModel = new LocalizedFireSFPE(FireModelTag, crd1, crd2, crd3, D, Q, H, H-0.15, lineTag);
     }   
+    else if (strcmp(argv[1], "localised") == 0 || strcmp(argv[1], "Localised") == 0 || strcmp(argv[1], "LocalisedEC") == 0) {
+
+    count++; //count should be updated
+    double crd1 = 0.0; double crd2 = 0.0; double crd3 = 0.0;
+    double D = 0; double Q = 0; double H = 0; int lineTag = 0;
+
+    if (argc - count <= 0)
+    {
+        opserr << "WARNING invalid aguments" << endln;
+        opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+        return TCL_ERROR;
+    }
+
+    //Add a tag for location of origin;
+    if (strcmp(argv[count], "-origin") == 0 || strcmp(argv[count], "origin") == 0) {
+        count++;
+        if (Tcl_GetDouble(interp, argv[count], &crd1) != TCL_OK) {
+            opserr << "WARNING invalid x axis coordinate of fire origin" << endln;
+            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+            return TCL_ERROR;
+        }
+        count++;
+        if (Tcl_GetDouble(interp, argv[count], &crd2) != TCL_OK) {
+            opserr << "WARNING invalid y axis coordinate of fire origin" << endln;
+            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+            return TCL_ERROR;
+        }
+        count++;
+
+        if (Tcl_GetDouble(interp, argv[count], &crd3) == TCL_OK) {
+            //if the z loc is successfully recieved, count should be added with 1;
+            count++;
+        }
+        else
+        {
+            //it it possible not to have a z loc for localised fire definiton
+            opserr << "WARNING invalid z axis coordinate of fire origin" << endln;
+            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+            crd3 = 0.0;
+        }
+    }
+    //end of fire origin, waiting for firePars;
+    if (strcmp(argv[count], "-firePars") == 0 || strcmp(argv[count], "firePars") == 0) {
+        count++;
+
+        if (Tcl_GetDouble(interp, argv[count], &D) != TCL_OK) {
+            opserr << "WARNING invalid diameter of the fire source" << endln;
+            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+            return TCL_ERROR;
+        }
+        count++;
+        if (Tcl_GetDouble(interp, argv[count], &Q) != TCL_OK) {
+            opserr << "WARNING invalid rate of heat release" << endln;
+            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+            return TCL_ERROR;
+        }
+        count++;
+        if (Tcl_GetDouble(interp, argv[count], &H) != TCL_OK) {
+            opserr << "WARNING invalid distance between the fire source and the ceiling" << endln;
+            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+            return TCL_ERROR;
+        }
+        count++;
+        //detect argument for linetag;
+        if (argc - count > 0) {
+            if (Tcl_GetInt(interp, argv[count], &lineTag) != TCL_OK) {
+                opserr << "WARNING invalid central line tag " << endln;
+                opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+                return TCL_ERROR;
+            }
+        }
+        else {
+            opserr << "Central line tag for localised fire " << argv[2] << "is set as default:3" << endln;
+            lineTag = 3;
+        }
+    }
+    else {
+        opserr << "WARNING:: Defining Localised fire " << argv[2]
+            << " expects tag:-firePars or firePars" << "\n";
+    }
+
+    theFireModel = new LocalizedFireEC1(FireModelTag, crd1, crd2, crd3, D, Q, H, lineTag);
+    }
 	//else ----------
 	else if(strcmp(argv[1],"idealised") == 0||strcmp(argv[1],"Idealised") == 0){
 		
@@ -2465,10 +2553,26 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
     count++;
     
     if (Tcl_GetInt(interp, argv[count], &HTconstantsID) != TCL_OK) {
-      opserr << "WARNING:: invalid constants tag for defining HTEleSet: " << argv[1] << "\n";
+      opserr << "WARNING:: invalid constants tag for defining Heatflux BC: " << argv[1] << "\n";
       return TCL_ERROR;
     }
+    count++;
   }
+
+  if (argc - count > 0)
+  {
+      if (strcmp(argv[count], "-par") == 0 || strcmp(argv[count], "-Par") == 0 || strcmp(argv[count], "-firePar") == 0) {
+
+          count++;
+
+          if (Tcl_GetInt(interp, argv[count], &FireType) != TCL_OK) {
+              opserr << "WARNING:: invalid par tag for defining extral fire parameter: " << argv[1] << "\n";
+              return TCL_ERROR;
+          }
+          count++;
+      }
+  }
+  
   
   if(HTconstantsID==0){
     opserr<<"WARNING::no HTConstants found for defining heat flux BC"<<endln;
@@ -2491,6 +2595,9 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
 	 return TCL_ERROR;
   }
   Vector HeatFluxConstants = theHTConstants->getConstants();
+
+
+
   
   if(HeatFluxConstants==0){
     opserr<<"WARNING TclHTModule:addHeatFluxBC failed to get HTConstants "<<HTconstantsID<<endln;
