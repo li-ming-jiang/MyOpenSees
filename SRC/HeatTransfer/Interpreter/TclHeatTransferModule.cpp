@@ -497,7 +497,73 @@ TclHeatTransferModule::getHeatTransferDomain(){
   return theHTDomain;
 }
 
+void 
+TclHeatTransferModule::clearAll()
+{
+    if(theHTDomain!=0)
+        theHTDomain->clearAll();
 
+    if (theHTMaterials != 0)
+        delete theHTMaterials;
+
+    if (theHTEntities != 0)
+        delete theHTEntities;
+
+    if (theHTCons != 0) {
+        theHTCons->clearAll();
+        delete theHTCons;
+    }
+
+    if (theHTEleSets != 0) {
+        theHTEleSets->clearAll();
+        delete theHTEleSets;
+    }
+
+    if (theHTNodeSets != 0) {
+        theHTNodeSets->clearAll();
+        delete theHTNodeSets;
+    }
+
+    if (theFireModels != 0) {
+        theFireModels->clearAll();
+        delete theFireModels;
+    }
+
+    if (theHTMeshes != 0) {
+        theHTMeshes->clearAll();
+        delete theHTMeshes;
+    }
+
+    if (theHTMeshIter != 0)
+        delete theHTMeshIter;
+
+
+    theHTDomain = 0;
+    theTclHTModule = 0;
+    theTclHTPattern = 0;
+    theHTMaterials = 0;
+    theHTEntities = 0;
+    theHTCons = 0;
+    theHTEleSets = 0;
+    theHTNodeSets = 0;
+    theFireModels = 0;
+    theHTMeshes = 0;
+    theHTMeshIter = 0;
+    if (theHTAnalysis != 0) {
+        theHTAnalysis->clearAll();
+    }
+
+    //Analysis classes
+    theAnalysisModel = 0;
+    theAlgorithm = 0;
+    theHandler = 0;
+    theNumberer = 0;
+    theSOE = 0;
+    theHTAnalysis = 0;
+    theTransientIntegrator = 0;
+    theTest = 0;
+    HTReorderTag = 0;
+}
 //-------------------------------------------------------------------------------//
 //------------------------Procedure of tcl commmands-----------------------------//
 

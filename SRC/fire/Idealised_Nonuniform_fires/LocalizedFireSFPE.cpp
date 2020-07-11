@@ -185,7 +185,7 @@ LocalizedFireSFPE::getFlux(HeatTransferNode* node, double time, int FireType)
 	// now determine the flux
 	
 	int tag = node->getTag();
-#ifdef _DEBUG
+#ifdef _FDEBUG
 	opserr<<" NodeTag: "<<node->getTag()<< " r:  "<<r<<"____ "<< " q:  "<<q_dot<<"____ ";
 #endif
 	return q_dot;
@@ -195,8 +195,24 @@ LocalizedFireSFPE::getFlux(HeatTransferNode* node, double time, int FireType)
 void
 LocalizedFireSFPE::applyFluxBC(HeatFluxBC* theFlux, double time)
 {
+	double ambTemp = 293.15;
     int flux_type = theFlux->getTypeTag();
-    if (flux_type == 3) 
+	if (flux_type == 1) {
+		Convection* convec = (Convection*)theFlux;
+		//convec->setSurroundingTemp(this->getGasTemperature(time));
+		convec->applyFluxBC(time);
+	}
+	else if (flux_type == 2) {
+		Radiation* rad = (Radiation*)theFlux;
+		double bzm = 5.67 * 1e-008;
+		//double temp = rad->;
+		//double temp = this->getGasTemperature(time);
+		double qir = bzm * pow(ambTemp, 4.0);
+		rad->setIrradiation(qir);
+		rad->applyFluxBC(time);
+	}
+	
+	else if (flux_type == 3) 
 		{
 		PrescribedSurfFlux* pflux = (PrescribedSurfFlux*) theFlux;
         int FireType = pflux->getFireType();

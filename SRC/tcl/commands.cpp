@@ -1262,8 +1262,7 @@ int
 wipeHeatTransfer(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 {
 	if (theTclHTModule != 0) {
-    delete theTclHTModule;
-    theTclHTModule = 0;
+        theTclHTModule->clearAll();
   }
   return TCL_OK;
 
@@ -1547,14 +1546,16 @@ wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 
 #ifdef _HEATTRANSFER
   if (theTclHTModule != 0) {
-    theTclHTModule = 0;
+      theTclHTModule->clearAll();
   }
+  theTclHTModule = 0;
 #endif
 
  #ifdef _SIFBUILDER
   if (theTclSIFBuilder != 0) {
-    theTclSIFBuilder =0;
+    delete theTclSIFBuilder;
   }
+  theTclSIFBuilder = 0;
 #endif				  
   return TCL_OK;  
 }

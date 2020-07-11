@@ -50,6 +50,7 @@ class Convection : public HeatFluxBC
 
   private:
 	double hc, Ta;
+	bool setIndex;
 	static const int type_tag = 1;
 };
 

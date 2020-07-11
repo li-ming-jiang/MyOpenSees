@@ -154,7 +154,7 @@ HT_TransientAnalysis::analyze(int numSteps, double dT,double& lastTime, double m
 	
     for (int i = laststep; i < numSteps; i++) {
 #ifdef _DEBUG
-		opserr<<"Current time: "<<the_domain->getCurrentTime()<<endln;
+		//opserr<<"Current time: "<<the_domain->getCurrentTime()<<endln;
 #endif
         if(displayTag ==1)
             opserr << "Current time: " << the_domain->getCurrentTime() << endln;

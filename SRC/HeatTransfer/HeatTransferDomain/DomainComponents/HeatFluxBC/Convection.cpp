@@ -32,7 +32,7 @@
 //const int Convection::type_tag;
 
 Convection::Convection(int tag, int eleTag, int fTag, double h, double T = 20.0)
-:HeatFluxBC(tag, eleTag, fTag), hc(h), Ta(T)
+:HeatFluxBC(tag, eleTag, fTag), hc(h), Ta(T),setIndex (false)
 {
 
 }
@@ -47,8 +47,12 @@ Convection::~Convection()
 void 
 Convection::applyFluxBC(double factor)
 {
-    if (theElement != 0)
-		theElement->applyConvection(this, factor);
+    if (!setIndex) {
+        if (theElement != 0)
+            theElement->applyConvection(this, factor);
+        setIndex = true;
+    }
+
 }
 
 

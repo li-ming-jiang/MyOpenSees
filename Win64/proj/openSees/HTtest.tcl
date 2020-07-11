@@ -52,7 +52,7 @@ HTPattern AmbientBC 1 {
 #puts "first entity done"
 
 FireModel standard 1; #-duration 3600; 
-FireModel UserDefined 3 -file fire.dat; #-duration 3600; 
+#FireModel UserDefined 3 -file fire.dat; #-duration 3600; 
 FireModel Localised 2 -origin 0.0 -3.0 0.0 -firePars 1.0 2E6 3.0 2 ;
 #FireModel hydroCarbon 1; 
 
@@ -74,13 +74,13 @@ HTPattern fire 2 model 1 {
 
 # End of building the heat transfer models;
 #HTNodeSet 1 -Entity 1 -Face 1  ;
-HTRecorder -file temp.out Node 1 51 101 ;
+HTRecorder -file temp.out Node 1;
 #HTNodeSet 1 -Entity 1 -Face 1 -Locx 0.0 -Locy -0.05 -Locz 0.0;
 
 	
 HTAnalysis HeatTransfer
 #HTAnalyze $numSteps $timeStep;
-HTAnalyze 360 30;	
+HTAnalyze 30 30;	
 
 wipe;
 
