@@ -656,21 +656,45 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
   else if (strcmp(argv[1], "Timber") == 0 || strcmp(argv[1], "timber") == 0) {
 
        int typeTag = 0;
+       Vector Pars = 0;
 
         if (argc == 3) {
             typeTag = 1;
         }
-        else if (argc == 4) {
+        else if (argc >3) {
             if (Tcl_GetInt(interp, argv[3], &typeTag) != TCL_OK) {
                 opserr << "WARNING invalid typeTag" << endln;
                 opserr << " for HeatTransfer material: " << argv[1] << endln;
                 return TCL_ERROR;
             }
+            int count =4;
+            if ((argc - count) > 0) {
+                Pars.resize(argc - count);
+            }
+            else {
+                opserr << "WARNING:: no parameter is defined for Timber HT Material: " << argv[1] << "\n";
+                return TCL_ERROR;
+            }
+            //-----for geting uncertain number of double data.
+            int ArgStart = count;
+            int ArgEnd = argc;
+            double data;
+
+            if (ArgStart != ArgEnd) {
+                for (int i = ArgStart; i < ArgEnd; i++) {
+                    Tcl_GetDouble(interp, argv[i], &data);
+                    Pars(i - ArgStart) = data;
+                }
+            }
+#ifdef _DEBUG
+            opserr << "HTTimber Material" << argv[1] << ": Parameters " << Pars << endln;
+#endif
+
         }
         else
             opserr << "WARNING:: Defining HeatTransfer material: " << argv[1] << " recieved more than 4 arguments." << "\n";
 
-        theHTMaterial = new TimberHTMaterial(HTMaterialTag, typeTag);
+        theHTMaterial = new TimberHTMaterial(HTMaterialTag, typeTag, theHTDomain, Pars);
 
     }
   else if(strcmp(argv[1],"GenericMaterial") == 0){
