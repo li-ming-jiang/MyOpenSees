@@ -31,10 +31,10 @@
 
 //const int Convection::type_tag;
 
-Convection::Convection(int tag, int eleTag, int fTag, double h, double T = 20.0)
-:HeatFluxBC(tag, eleTag, fTag), hc(h), Ta(T),setIndex (false)
+Convection::Convection(int tag, int eleTag, int fTag, double h, double T , int fireType )
+:HeatFluxBC(tag, eleTag, fTag), hc(h), Ta(T),setIndex (false), FireType(0)
 {
-
+    //opserr << hc << "  " << Ta << endln;
 }
 
 
@@ -79,4 +79,10 @@ void
 Convection::setSurroundingTemp(double T)
 {
     Ta = T;
+}
+
+int
+Convection::getFireType(void)
+{
+    return FireType;
 }

@@ -1485,12 +1485,14 @@ TclHeatTransferCommand_addHTConstants(ClientData clientData, Tcl_Interp *interp,
       }
 // for geting uncertain number of doubel values 
   if(argc-count==4){
-	  constants(4)= 5.67e-8*constants(1)*constants(1)*constants(1)*constants(1);
-#ifdef _DEBUG
-	  opserr<<"TclHeatTransfer:: AddHTconstants: "<<constants<<endln;
-#endif
+	  constants(4)= 5.67e-8;
+
 	  //calculating radiation from the ambient air;
   }
+
+#ifdef _DEBUG
+  opserr << "TclHeatTransfer:: AddHTconstants: " << constants << endln;
+#endif
 
   theHTConstants = new HTConstants(HTConstantTag,constants);
   
@@ -2038,7 +2040,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 		
 		count++; //count should be updated
 		double crd1=0.0; double crd2=0.0; double crd3=0.0; 
-		double D=0; double Q=0; double H=0; int lineTag=0;
+		double D=0; double Q=0; double HB=0; double HC = 0; int lineTag=0;
 		
 		if(argc-count<=0)
 		{
@@ -2091,12 +2093,18 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 			return TCL_ERROR;
 			}
 			count++;
-			if (Tcl_GetDouble(interp, argv[count], &H) != TCL_OK) {
+			if (Tcl_GetDouble(interp, argv[count], &HC) != TCL_OK) {
 			opserr << "WARNING invalid distance between the fire source and the ceiling" << endln;
 			opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;	    
 			return TCL_ERROR;
 			}
 			count++;
+            if (Tcl_GetDouble(interp, argv[count], &HB) != TCL_OK) {
+                opserr << "WARNING invalid distance between the fire source and the beam" << endln;
+                opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+                return TCL_ERROR;
+            }
+            count++;
 			//detect argument for linetag;
 			if(argc-count>0){
 				if (Tcl_GetInt(interp, argv[count], &lineTag) != TCL_OK) {
@@ -2115,7 +2123,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 			      <<" expects tag:-firePars or firePars" << "\n";
 		}
 
-		theFireModel = new LocalizedFireSFPE(FireModelTag, crd1, crd2, crd3, D, Q, H, H-0.15, lineTag);
+		theFireModel = new LocalizedFireSFPE(FireModelTag, crd1, crd2, crd3, D, Q, HC, HB, lineTag);
     }   
     else if (strcmp(argv[1], "localised") == 0 || strcmp(argv[1], "Localised") == 0 || strcmp(argv[1], "LocalisedEC") == 0) {
 
@@ -2663,11 +2671,12 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
   Vector HeatFluxConstants = theHTConstants->getConstants();
 
 
-
+  opserr << HeatFluxConstants << endln;
   
   if(HeatFluxConstants==0){
     opserr<<"WARNING TclHTModule:addHeatFluxBC failed to get HTConstants "<<HTconstantsID<<endln;
   }
+  double ambqir = HeatFluxConstants(1) * HeatFluxConstants(1) * HeatFluxConstants(1) * HeatFluxConstants(1) * HeatFluxConstants(4);
   
   //------------------Applying heat flux BC--------------------------//
   //-----------------------------------------------------------------//
@@ -2708,7 +2717,7 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
     {
       
       for(int i= 0;i<NumHeatFluxBCs; i++){  
-        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+i,ElesRange(i),FaceID,HeatFluxConstants(2),5.67e-8,HeatFluxConstants(3), HeatFluxConstants(4));
+        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+i,ElesRange(i), FaceID, HeatFluxConstants(2), HeatFluxConstants(4), HeatFluxConstants(3), ambqir);
         theHTDomain->addHeatFluxBC(Radiat_BC,PatternTag);
         
       }
@@ -2727,7 +2736,7 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
         Convection* Convec_BC = new Convection(ExistingHeatFluxBCs+2*i,ElesRange(i),FaceID,HeatFluxConstants(0),HeatFluxConstants(1));
         theHTDomain->addHeatFluxBC(Convec_BC,PatternTag);
         
-        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+2*i+1,ElesRange(i),FaceID,HeatFluxConstants(2), 5.67e-8,HeatFluxConstants(3),HeatFluxConstants(4));
+        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+2*i+1,ElesRange(i), FaceID, HeatFluxConstants(2), HeatFluxConstants(4), HeatFluxConstants(3), ambqir);
         theHTDomain->addHeatFluxBC(Radiat_BC,PatternTag);
       }
     }
@@ -2756,6 +2765,7 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
     
     Vector HeatFluxConstants = (theTclHTModule->getHTConstants(HTconstantsID))->getConstants();
     
+    
 	  if(HeatFluxConstants==0){
     opserr<<"WARNING TclHTModule:addHeatFluxBC failed to get HTConstants "<<HTconstantsID<<endln;
 	  }
@@ -2772,7 +2782,7 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
       
       for(int i= 0;i<NumHeatFluxBCs; i++){
         
-        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+i,ElesRange(i),FaceID,HeatFluxConstants(2),HeatFluxConstants(3),HeatFluxConstants(4),HeatFluxConstants(5));
+        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+i,ElesRange(i), FaceID, HeatFluxConstants(2), HeatFluxConstants(4), HeatFluxConstants(3), ambqir);
         theHTDomain->addHeatFluxBC(Radiat_BC,PatternTag);
         
       }
@@ -2791,7 +2801,7 @@ TclHeatTransferCommand_addHeatFluxBC(ClientData clientData, Tcl_Interp *interp, 
         Convection* Convec_BC = new Convection(ExistingHeatFluxBCs+2*i,ElesRange(i),FaceID,HeatFluxConstants(0),HeatFluxConstants(1));
         theHTDomain->addHeatFluxBC(Convec_BC,PatternTag);
         
-        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+2*i+1,ElesRange(i),FaceID,HeatFluxConstants(2),HeatFluxConstants(3),HeatFluxConstants(4),HeatFluxConstants(5));
+        Radiation* Radiat_BC = new Radiation(ExistingHeatFluxBCs+2*i+1,ElesRange(i),FaceID,HeatFluxConstants(2),HeatFluxConstants(4),HeatFluxConstants(3), ambqir);
         theHTDomain->addHeatFluxBC(Radiat_BC,PatternTag);
       }
     } 

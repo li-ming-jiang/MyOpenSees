@@ -36,7 +36,7 @@
 class Convection : public HeatFluxBC
 {
   public:
-    Convection(int tag, int eleTag, int fTag, double h, double T);
+    Convection(int tag, int eleTag, int fTag, double h, double T = 293.15, int fireType =0);
     ~Convection();
 
 	void applyFluxBC(double factor);
@@ -46,13 +46,16 @@ class Convection : public HeatFluxBC
 	double getSurroundingTemp(void) const;
 	void setSurroundingTemp(double T);
 	int getTypeTag(){return type_tag;};
+	int getFireType(void);
 
   protected:
 
   private:
-	double hc, Ta;
-	bool setIndex;
-	static const int type_tag = 1;
+	  int FireType;
+	  double hc;
+	  double Ta;
+	  bool setIndex;
+	  int type_tag = 1;
 };
 
 #endif
