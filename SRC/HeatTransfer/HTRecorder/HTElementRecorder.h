@@ -41,10 +41,10 @@
 #include <Information.h>
 #include <ID.h>
 
-class Domain;
+class HeatTrsansferDomain;
 class Vector;
 class Matrix;
-class Element;
+class HeatTransferElement;
 class Response;
 class FE_Datastore;
 
@@ -56,7 +56,7 @@ class HTElementRecorder: public HTRecorder
 		    const char **argv, 
 		    int argc,
 		    bool echoTime, 
-		    Domain &theDomain, 
+		    HeatTransferDomain &theDomain, 
 		    OPS_Stream &theOutputHandler,
 		    double deltaT = 0.0,
 		    const ID *dof = 0);
@@ -66,7 +66,7 @@ class HTElementRecorder: public HTRecorder
     int record(int commitTag, double timeStamp);
     int restart(void);    
 
-    int setDomain(Domain &theDomain);
+    int setDomain(HeatTransferDomain &theDomain);
     int sendSelf(int commitTag, Channel &theChannel);  
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
@@ -84,7 +84,7 @@ class HTElementRecorder: public HTRecorder
 
     Response **theResponses;
 
-    Domain *theDomain;
+    HeatTransferDomain *theDomain;
     OPS_Stream *theOutputHandler;
 
     bool echoTimeFlag;             // flag indicating if pseudo time also printed

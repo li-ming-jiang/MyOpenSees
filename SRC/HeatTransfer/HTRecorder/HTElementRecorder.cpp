@@ -200,7 +200,7 @@ HTElementRecorder::HTElementRecorder(const ID *ele,
 				 const char **argv, 
 				 int argc,
 				 bool echoTime, 
-				 Domain &theDom, 
+				 HeatTransferDomain &theDom, 
 				 OPS_Stream &theOutputHandler,
 				 double dT,
 				 const ID *theDOFs)
@@ -355,7 +355,7 @@ HTElementRecorder::restart(void)
 
 
 int 
-HTElementRecorder::setDomain(Domain &theDom)
+HTElementRecorder::setDomain(HeatTransferDomain &theDom)
 {
   theDomain = &theDom;
   return 0;
@@ -508,7 +508,7 @@ HTElementRecorder::initialize(void)
       theResponses[k] = 0;
 
     // loop over ele & set Reponses
-    ElementIter &theElements = theDomain->getElements();
+    HT_ElementIter &theElements = theDomain->getElements();
     HeatTransferElement *theEle;
 
     while ((theEle = theElements()) != 0) {

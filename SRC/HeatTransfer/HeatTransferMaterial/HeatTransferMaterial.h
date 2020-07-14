@@ -33,6 +33,8 @@
 
 //class OPS_Stream;
 class Matrix;
+class Information;
+class Response;
 
 class HeatTransferMaterial: public TaggedObject
 {
@@ -54,6 +56,10 @@ class HeatTransferMaterial: public TaggedObject
 		virtual int revertToStart() = 0;
 		virtual void update() = 0;
 		virtual void  Print(OPS_Stream&, int = 0) {return;};
+
+		virtual Response* setResponse(const char** argv, int argc,
+			OPS_Stream& theOutputStream);
+		virtual int getResponse(int responseID, Information& matInformation);
 
     protected:
 		Matrix* k;

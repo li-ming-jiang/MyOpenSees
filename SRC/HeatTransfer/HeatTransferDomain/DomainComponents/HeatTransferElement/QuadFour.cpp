@@ -851,7 +851,7 @@ QuadFour::setResponse(const char** argv, int argc, OPS_Stream& output)
 
 	 if (strcmp(argv[0], "material") == 0 || strcmp(argv[0], "Material") == 0) {
 		if (argc < 2) {
-			opserr << "ShellMITC4Thermal::setResponse() - need to specify more data\n";
+			opserr << "QuadFour::setResponse() - need to specify more data\n";
 			return 0;
 		}
 		int pointNum = atoi(argv[1]);
@@ -859,10 +859,8 @@ QuadFour::setResponse(const char** argv, int argc, OPS_Stream& output)
 
 			output.tag("GaussPoint");
 			output.attr("number", pointNum);
-			output.attr("eta", sg[pointNum - 1]);
-			output.attr("neta", tg[pointNum - 1]);
 
-			theResponse = materialPointers[pointNum - 1]->setResponse(&argv[2], argc - 2, output);
+			theResponse = theMaterial[pointNum - 1]->setResponse(&argv[2], argc - 2, output);
 
 			output.endTag();
 		}
@@ -879,7 +877,6 @@ QuadFour::getResponse(int responseID, Information& eleInfo)
 {
 	int cnt = 0;
 	static Vector stresses(32);
-	static Vector strains(32);
 
 	switch (responseID) {
 	case 1: // global forces

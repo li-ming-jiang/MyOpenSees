@@ -42,3 +42,58 @@ HeatTransferMaterial::~HeatTransferMaterial()
 
 
 }
+
+
+
+Response*
+HeatTransferMaterial::setResponse(const char** argv, int argc,
+    OPS_Stream& theOutput)
+{
+    Response* theResponse = 0;
+
+    if ((strcmp(argv[0], "TempElong") == 0) {
+            theOutput.tag("ResponseType", "temp11");
+            theOutput.tag("ResponseType", "Elong11");
+            theResponse = new MaterialResponse(this, 7, Vector(2));
+        }
+
+        theOutput.endTag();
+    }
+
+    return theResponse;
+
+}
+
+int
+HeatTransferMaterial::getResponse(int responseID, Information& matInfo)
+{
+    static Vector stressStrain(2);
+    static Vector stressStrainTangent(3);
+
+    static Vector tempData(2);  //L.jiang [SIF]
+    static Information infoData(tempData);  //L.jiang [SIF]
+
+    // each subclass must implement its own stuff   
+
+    // added for sensitivity recorder. Quan 2009
+    if ((responseID > 10000) && (responseID < 20000)) {
+        matInfo.setDouble(this->getStressSensitivity(responseID - 10000, false));
+        return 0;
+    }
+    else if (responseID > 20000) {
+        matInfo.setDouble(this->getStrainSensitivity(responseID - 20000));
+        return 0;
+    }
+
+    double kInit;
+    double stress;
+    double strain;
+
+    switch (responseID) {
+    case 1:
+        matInfo.setDouble(this->getStress());
+        return 0;
+    default:
+        return -1;
+    }
+}
