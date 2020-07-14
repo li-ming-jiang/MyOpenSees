@@ -832,4 +832,61 @@ QuadFour::getInterpolatedTemp(int tag)
 	return T_hat;
 }
 
+Response*
+QuadFour::setResponse(const char** argv, int argc, OPS_Stream& output)
+{
+	Response* theResponse = 0;
 
+	output.tag("ElementOutput");
+	output.attr("eleType", "QuadFour");
+	output.attr("eleTag", this->getTag());
+	int numNodes = this->getNumExternalNodes();
+	const ID& nodes = this->getExternalNodes();
+	static char nodeData[32];
+
+	for (int i = 0; i < numNodes; i++) {
+		sprintf(nodeData, "node%d", i + 1);
+		output.attr(nodeData, nodes(i));
+	}
+
+	 if (strcmp(argv[0], "material") == 0 || strcmp(argv[0], "Material") == 0) {
+		if (argc < 2) {
+			opserr << "ShellMITC4Thermal::setResponse() - need to specify more data\n";
+			return 0;
+		}
+		int pointNum = atoi(argv[1]);
+		if (pointNum > 0 && pointNum <= 4) {
+
+			output.tag("GaussPoint");
+			output.attr("number", pointNum);
+			output.attr("eta", sg[pointNum - 1]);
+			output.attr("neta", tg[pointNum - 1]);
+
+			theResponse = materialPointers[pointNum - 1]->setResponse(&argv[2], argc - 2, output);
+
+			output.endTag();
+		}
+
+	}
+	
+
+	output.endTag();
+	return theResponse;
+}
+
+int
+QuadFour::getResponse(int responseID, Information& eleInfo)
+{
+	int cnt = 0;
+	static Vector stresses(32);
+	static Vector strains(32);
+
+	switch (responseID) {
+	case 1: // global forces
+		return eleInfo.setVector(this->get_Q_Convection());
+		break;
+	default:
+		return -1;
+	}
+	cnt = 0;
+}

@@ -76,10 +76,11 @@ class HTElementRecorder: public HTRecorder
     
   private:	
     int initialize(void);
-
+    int numDOF;
     int numEle;
 
-    ID *eleID;
+    ID* eleID;
+    ID* dof;
 
     Response **theResponses;
 
@@ -95,6 +96,8 @@ class HTElementRecorder: public HTRecorder
     bool initializationDone;
     char **responseArgs;
     int numArgs;
+
+    int addColumnInfo;
 
 };
 

@@ -100,6 +100,7 @@ using std::setiosflags;
 //include recorders
 #include <HTNodeRecorder.h>
 #include <HTRecorderToStru.h>
+#include <HTElementRecorder.h>
 
 #include <elementAPI.h>
 #include <TclHeatTransferModule.h>
@@ -2983,7 +2984,7 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 	count += 2;
 	}
   
-  
+  ///////-----------------------HTRecorderToStructural member-----------------------------------//
   if(strcmp(argv[count],"-xloc") == 0||strcmp(argv[count],"xLoc") == 0||strcmp(argv[count],"-xLoc") == 0)
   {
 	 count++;
@@ -3035,7 +3036,8 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 	HTReorderTag++; 
    theHTRecorder = new HTRecorderToStru(HTReorderTag,*theRecVec,*theHTDomain,*theOutputStream);
    }
-  //end of if xloc is found;
+
+  ///////-----------------------HTNodeRecorder-----------------------------------//
   else if(strcmp(argv[count],"-nodeSet") == 0||strcmp(argv[count],"NodeSet") == 0||strcmp(argv[count],"-NodeSet") == 0)
   {
     count++;
@@ -3123,7 +3125,32 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
    theHTRecorder = new HTNodeRecorder(HTReorderTag++,&RecNodesID,*theHTDomain,*theOutputStream);
 
   }
+  ///////-----------------------HTEleRecorder-----------------------------------//
+ else if (strcmp(argv[count], "-EleSet") == 0 || strcmp(argv[count], "eleset") == 0 || strcmp(argv[count], "EleSet") == 0)
+  {
+     count++;
+     int EleSetID = 0;
+    if (Tcl_GetInt(interp, argv[count], &EleSetID) != TCL_OK) {
+      opserr << "WARNING:: invalid nodeSet tag for defining HTNodeRecorder : " << "\n";
+      return TCL_ERROR;
+    }
 
+    HTEleSet* theRecNodeSet = theTclHTModule->getHTEleSet(EleSetID);
+    if (theRecNodeSet == 0) {
+      opserr << "WARNING:: TclHTModule failed to get the requested NodeSet for HTNodeRecorder: " << "\n";
+      return TCL_ERROR;
+    }
+    ID RecEleID = 0;
+     RecEleID = theRecNodeSet->getEleID();
+
+    #ifdef _DEBUG
+  opserr << "TclHeatTransferModule::HTRecorder, theRecNodeID " << RecNodeID << endln;
+    #endif
+    theHTRecorder = new HTElementRecorder(HTReorderTag++, &RecEleID, *theHTDomain, *theOutputStream);
+
+
+
+  }
 	
 	//HTRecorderToStru::HTRecorderToStru(int tag, const Matrix& theCrds, HeatTransferDomain &theDom, OPS_Stream &theOutputHandler, double tolerance)
 // for geting uncertain number of doubel values 
