@@ -371,7 +371,8 @@ LocalizedFireSFPE::applyFluxBC(HeatFluxBC* theFlux, double time)
 				exit(-1);
 				}
 			nodalFlux(i) = this->getFlux(theNode,time, FireType);
-			//opserr << "Flux at node " << nodTag << " is " << nodalFlux(i) << endln;
+			//double r = (theNode->getCrds()(0)) * (theNode->getCrds()(0)) + (theNode->getCrds()(2)-1.8) * (theNode->getCrds()(2)-1.8);
+			//opserr << "Flux at node " << nodTag <<", r:"<<sqrt(r)<< " ,q=  " << nodalFlux(i) << endln;
 			}
 
 		pflux->setData(nodalFlux);
