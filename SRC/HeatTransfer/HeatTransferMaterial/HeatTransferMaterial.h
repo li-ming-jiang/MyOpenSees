@@ -31,7 +31,7 @@
 
 #include <HeatTransferDomainComponent.h>
 
-//class OPS_Stream;
+class OPS_Stream;
 class Matrix;
 class Information;
 class Response;
@@ -60,6 +60,8 @@ class HeatTransferMaterial: public TaggedObject
 		virtual Response* setResponse(const char** argv, int argc,
 			OPS_Stream& theOutputStream);
 		virtual int getResponse(int responseID, Information& matInformation);
+
+		virtual const Vector&  getPars();
 
     protected:
 		Matrix* k;

@@ -55,6 +55,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		void update();
 		void  Print(OPS_Stream&, int = 0) {return;};
 
+		const Vector& getPars();
     protected:
 		
     private:
@@ -66,6 +67,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		static double epsilon;
 		Vector MatPars;
 		double pht1, pht2;
+		double charTime;
 		HeatTransferDomain* theHTDomain;
 
 		int determinePhase(double temp, double time);

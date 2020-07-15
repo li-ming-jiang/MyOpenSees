@@ -187,7 +187,7 @@ OPS_HTElementRecorder()
 
 
 HTElementRecorder::HTElementRecorder()
-:HTRecorder(RECORDER_TAGS_ElementRecorder),
+:HTRecorder(2),
  numEle(0), numDOF(0), eleID(0), dof(0), theResponses(0), 
  theDomain(0), theOutputHandler(0),
  echoTimeFlag(true), deltaT(0), nextTimeStampToRecord(0.0), data(0), 
@@ -196,15 +196,15 @@ HTElementRecorder::HTElementRecorder()
 
 }
 
-HTElementRecorder::HTElementRecorder(const ID *ele,
-				 const char **argv, 
+HTElementRecorder::HTElementRecorder(int tag, const ID *ele,
+				 char **argv, 
 				 int argc,
 				 bool echoTime, 
 				 HeatTransferDomain &theDom, 
 				 OPS_Stream &theOutputHandler,
 				 double dT,
 				 const ID *theDOFs)
-:HTRecorder(RECORDER_TAGS_ElementRecorder),
+:HTRecorder(2),
  numEle(0), numDOF(0), eleID(0), dof(0), theResponses(0), 
  theDomain(&theDom), theOutputHandler(&theOutputHandler),
  echoTimeFlag(echoTime), deltaT(dT), nextTimeStampToRecord(0.0), data(0),
@@ -227,23 +227,23 @@ HTElementRecorder::HTElementRecorder(const ID *ele,
   // create a copy of the response request
   //
 
-  responseArgs = new char *[argc];
+  responseArgs = new char *[argc-5];
   if (responseArgs == 0) {
     opserr << "HTElementRecorder::HTElementRecorder() - out of memory\n";
     numEle = 0;
   }
   
-  for (int i=0; i<argc; i++) {
-    responseArgs[i] = new char[strlen(argv[i])+1];
+  for (int i=0; i<argc-5; i++) {
+    responseArgs[i] = new char[strlen(argv[i+5])+1];
     if (responseArgs[i] == 0) {
       delete [] responseArgs;
       opserr << "HTElementRecorder::HTElementRecorder() - out of memory\n";
       numEle = 0;
     }
-    strcpy(responseArgs[i], argv[i]);
+    strcpy(responseArgs[i], argv[i+5]);
   }
   
-  numArgs = argc;
+  numArgs = argc-5;
 }
 
 
@@ -283,7 +283,7 @@ HTElementRecorder::~HTElementRecorder()
 
 
 int 
-HTElementRecorder::record(int commitTag, double timeStamp)
+HTElementRecorder::record(double timeStamp)
 {
   // 
   // check that initialization has been done

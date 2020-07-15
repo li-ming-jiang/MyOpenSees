@@ -34,7 +34,7 @@
 double TimberHTMaterial::epsilon = 1e-5;
 
 TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theDomain, Vector matPars)
-:HeatTransferMaterial(tag), trial_temp(0.0), 
+:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0),
  ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0),TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if ( k == 0){
@@ -266,7 +266,10 @@ TimberHTMaterial::determinePhase(double temp, double time)
         if ((pht2 - pht1) > dt2) {
             PhaseTag = 2;
             pht1 = 0;
+            if (charTime < 1e-6)
+                charTime = time;
         }
+
         //char
     }
     else {
@@ -286,4 +289,15 @@ TimberHTMaterial::determinePhase(double temp, double time)
 
       
     return 0;
+}
+
+
+const Vector&
+TimberHTMaterial::getPars() {
+    static Vector pars(2);
+    pars(0) = PhaseTag;
+    pars(1) = charTime;
+
+    return pars;
+
 }

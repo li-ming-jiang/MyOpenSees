@@ -52,8 +52,8 @@ class HTElementRecorder: public HTRecorder
 {
   public:
     HTElementRecorder();
-    HTElementRecorder(const ID *eleID, 
-		    const char **argv, 
+    HTElementRecorder(int tag, const ID *eleID, 
+		    char **argv, 
 		    int argc,
 		    bool echoTime, 
 		    HeatTransferDomain &theDomain, 
@@ -63,7 +63,7 @@ class HTElementRecorder: public HTRecorder
 
     ~HTElementRecorder();
 
-    int record(int commitTag, double timeStamp);
+    int record( double timeStamp);
     int restart(void);    
 
     int setDomain(HeatTransferDomain &theDomain);

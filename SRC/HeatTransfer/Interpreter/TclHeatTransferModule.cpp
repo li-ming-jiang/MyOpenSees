@@ -1652,7 +1652,7 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
     theHTEleSet->addEleID(EleRange);
   }
 
-  opserr << "NodeSet " << HTEleSetTag << " selects elements:" << EleRange << endln;
+  opserr << "HTEleSet " << HTEleSetTag << " selects elements:" << EleRange << endln;
   
   if(theHTEleSet!=0){
 		theTclHTModule->addHTEleSet(theHTEleSet);
@@ -3144,9 +3144,10 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
      RecEleID = theRecNodeSet->getEleID();
 
     #ifdef _DEBUG
-  opserr << "TclHeatTransferModule::HTRecorder, theRecNodeID " << RecNodeID << endln;
+  opserr << "TclHeatTransferModule::HTRecorder, RecEleID " << RecEleID << endln;
     #endif
-    theHTRecorder = new HTElementRecorder(HTReorderTag++, &RecEleID, *theHTDomain, *theOutputStream);
+//    HTElementRecorder(const ID* eleID,const char** argv, int argc, bool echoTime, HeatTransferDomain& theDomain,  OPS_Stream& theOutputHandler)
+    theHTRecorder = new HTElementRecorder(2, &RecEleID, argv,argc, true, *theHTDomain, *theOutputStream);
 
 
 

@@ -336,6 +336,12 @@
     <ClCompile Include="..\..\..\SRC\HeatTransfer\HTRecorder\HTElementRecorder.cpp">
       <Filter>HTRecorder</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\HeatTransfer\HTRecorder\HTElementResponse.cpp">
+      <Filter>HTRecorder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SRC\HeatTransfer\HTRecorder\HTMaterialResponse.cpp">
+      <Filter>HTRecorder</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\HeatTransfer\HeatTransferMaterial\CarbonSteelEC3.h">
@@ -594,6 +600,12 @@
       <Filter>HeatTransferMaterial</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\HeatTransfer\HTRecorder\HTElementRecorder.h">
+      <Filter>HTRecorder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\HeatTransfer\HTRecorder\HTElementResponse.h">
+      <Filter>HTRecorder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\HeatTransfer\HTRecorder\HTMaterialResponse.h">
       <Filter>HTRecorder</Filter>
     </ClInclude>
   </ItemGroup>

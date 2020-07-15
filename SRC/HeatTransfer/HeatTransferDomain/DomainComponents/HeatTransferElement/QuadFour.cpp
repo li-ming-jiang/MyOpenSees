@@ -38,6 +38,7 @@
 #include <Radiation.h>
 #include <Convection.h>
 #include <PrescribedSurfFlux.h>
+#include <Information.h>
 
 double QuadFour::matrixData[16];
 Matrix QuadFour::K(matrixData, 4, 4);
@@ -849,7 +850,7 @@ QuadFour::setResponse(const char** argv, int argc, OPS_Stream& output)
 		output.attr(nodeData, nodes(i));
 	}
 
-	 if (strcmp(argv[0], "material") == 0 || strcmp(argv[0], "Material") == 0) {
+	 if (strcmp(argv[0], "material") == 0 || strcmp(argv[0], "Material") == 0|| strcmp(argv[0], "-material") == 0) {
 		if (argc < 2) {
 			opserr << "QuadFour::setResponse() - need to specify more data\n";
 			return 0;
