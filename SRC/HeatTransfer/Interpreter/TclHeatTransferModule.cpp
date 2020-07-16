@@ -2148,7 +2148,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 			      <<" expects tag:-firePars or firePars" << "\n";
 		}
 
-		theFireModel = new LocalizedFireSFPE(FireModelTag, crd1, crd2, crd3, D, Q, HC, HB, lineTag);
+		theFireModel = new LocalizedFireSFPE(FireModelTag, crd1, crd2, crd3, D, Q, HC, HB, lineTag, 150);
     }   
     else if (strcmp(argv[1], "localised") == 0 || strcmp(argv[1], "Localised") == 0 || strcmp(argv[1], "LocalisedEC") == 0) {
 

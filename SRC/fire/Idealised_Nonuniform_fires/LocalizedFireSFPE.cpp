@@ -120,8 +120,8 @@ LocalizedFireSFPE::getFlux(HeatTransferNode* node, double time, int FireType)
 
 	// now calculate H plus Lh
 	//double Lt = 2.9 * h * pow(Qh_ast,0.33);
-   double LB = (2.3* pow(Qhb_ast, 0.3) -1)*hb;
-	double  LC = (2.9* pow(Qhc_ast, 0.4) -1)*hc;
+   double LB = (1.82* pow(Qhb_ast, 0.3) -1)*hb;       // 2.3
+	double  LC = (2.04* pow(Qhc_ast, 0.4) -1)*hc;      //2.9
 	double LC0 = (2.9 * pow(Qhc_ast, 1.0/3.0) - 1) * hc;
 
 	// now calculate r	
