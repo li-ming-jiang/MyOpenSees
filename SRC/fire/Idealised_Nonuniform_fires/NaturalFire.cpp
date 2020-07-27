@@ -265,7 +265,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 		if (q_dot > 100000)
 			q_dot = 100000;
 
-		double q_smoke = 0.8 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15); //new to get emmisivity 
+		double q_smoke = 0.85 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15); //new to get emmisivity 
 		//adibadic temperature principle: eps*qr -eps*sigma*T^4 +h (smokeT-T)=0
 		// Gauge heat flux = eps*qr-eps*sigma*Tg^4+h(smokeT-Tg)
 		if (q_dot < q_smoke) {
