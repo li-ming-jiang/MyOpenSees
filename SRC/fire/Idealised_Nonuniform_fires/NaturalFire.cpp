@@ -217,7 +217,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 	sum = deltaX1 * deltaX1 + deltaX2 * deltaX2;
 	r = sqrt(sum);
 
-
+	double q_smoke = 0.85 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
 	if (Lf < h) {
 		//not impinge ceiling
 		
@@ -232,16 +232,23 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 		//opserr << " GAS: " << gas_t << " Q: "<< q<<" h "<< pow(q / 1000.0 / r, 2.0 / 3.0);
 		gas_t = gas_t + 293.15;
 
-		if (gas_t > smokeT) {
-		
-			q_dot = 0.8 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
-		}
-		else {
 
-			q_dot = 0.8 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+		if (addq > q_smoke)
+			addq = q_smoke;
+
+		//if (r < d)
+			q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15) + addq;
+		//else
+			//q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
+		
+
+		if (q_dot < q_smoke) {
+#ifdef _DEBUG
+			opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
+#endif
+			q_dot = q_smoke;
 
 		}
-		
 		
 	}
 	else {
@@ -261,11 +268,13 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 			q_dot = 15000 * pow(y, -3.7);
 		}
 
+		if (addq > q_smoke)
+			addq = q_smoke;
 		q_dot = q_dot +addq; //modify the maximum q
-		if (q_dot > 100000)
-			q_dot = 100000;
+		
+		if (q_dot > 120000)
+			q_dot = 120000;
 
-		double q_smoke = 0.85 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15); //new to get emmisivity 
 		//adibadic temperature principle: eps*qr -eps*sigma*T^4 +h (smokeT-T)=0
 		// Gauge heat flux = eps*qr-eps*sigma*Tg^4+h(smokeT-Tg)
 		if (q_dot < q_smoke) {

@@ -864,7 +864,7 @@ TclHeatTransferCommand_addHTEntity(ClientData clientData, Tcl_Interp *interp, in
 
 	}
 
-	else if(strcmp(argv[1],"ProtectedIsection") == 0||strcmp(argv[1],"InsIsection2D") == 0||strcmp(argv[1],"ProtectedIsection2d") == 0)
+	else if(strcmp(argv[1],"ProtectedIsection") == 0||strcmp(argv[1],"CoatIsection2D") == 0||strcmp(argv[1],"ProtectedIsection2d") == 0)
   {
 	  
 		double HTI_centerX, HTI_centerY, HTI_BF, HTI_Tf, HTI_Tw, HTI_HB ,HTI_coat;
@@ -2489,7 +2489,7 @@ TclHeatTransferCommand_setFirePars(ClientData clientData, Tcl_Interp* interp, in
     double q = 0;
     double d = 0;
     double Ts = 0;
-    double maxq = 1e5;
+    double addq = 0;
 
     if (strcmp(argv[count], "firemodel") == 0 || strcmp(argv[count], "-fireModel") == 0 || strcmp(argv[count], "fire") == 0)
     {
