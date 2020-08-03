@@ -70,13 +70,13 @@ OPS_J2PlaneStressThermal(void)
 
 	int numData = 2;
 	if (OPS_GetInt(&numData, iData) != 0) {
-		opserr << "WARNING invalid integer tag: nDMaterial EasticIsotropic \n";
+		opserr << "WARNING invalid integer tag: nDMaterial J2PlaneStressThermal \n";
 		return 0;
 	}
 
 	numData = numArgs - 2;;
 	if (OPS_GetDouble(&numData, dData) != 0) {
-		opserr << "WARNING invalid data: nDMaterial EasticIsotropic : " << iData[0] << "\n";
+		opserr << "WARNING invalid data: nDMaterial J2PlaneStressThermal : " << iData[0] << "\n";
 		return 0;
 	}
 
