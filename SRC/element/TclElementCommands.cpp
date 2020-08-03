@@ -1177,6 +1177,7 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
 	     strcmp(argv[1],"elasticForceBeamColumnWarping") == 0  || 
 	     strcmp(argv[1],"dispBeamColumnNL") == 0  || 
 	     strcmp(argv[1],"dispBeamColumnThermal") == 0  || 
+         strcmp(argv[1],"forceBeamColumnThermal") == 0 ||
 	     strcmp(argv[1],"elasticForceBeamColumn") == 0 || 
 	     strcmp(argv[1],"nonlinearBeamColumn") == 0 || 
 	     strcmp(argv[1],"dispBeamColumnWithSensitivity") == 0) {
