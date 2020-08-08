@@ -2342,7 +2342,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 		}
 		//end of fire origin, waiting for firePars;
 
-		if(strcmp(argv[count],"-Q") == 0||strcmp(argv[count],"Q")==0||strcmp(argv[count],"HRR") == 0){
+		if(strcmp(argv[count],"-q") == 0||strcmp(argv[count],"q")==0||strcmp(argv[count],"-Q") == 0){
 			count++;
 			if (Tcl_GetDouble(interp, argv[count], &Q) != TCL_OK) {
 			opserr << "WARNING invalid rate of heat release" << endln;
@@ -2411,6 +2411,11 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 			}
 			count++;
 		}
+        else if (strcmp(argv[count], "-constant") == 0 || strcmp(argv[count], "uniform") == 0 || strcmp(argv[count], "-uniform") == 0) {
+            D1 = 0.0;
+            D2 = 0.0;
+
+        }
 			//detect argument for linetag;
 		if(argc-count>0){
 			if(strcmp(argv[count],"-centreLine") == 0||strcmp(argv[count],"CentreLine")==0||strcmp(argv[count],"-centreline") == 0){
@@ -2422,10 +2427,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 				}
 			}
 		}
-		else {
-			opserr<< "WARNING:: Defining Localised fire "<<argv[2]
-			      <<" expects tag:-firePars or firePars" << "\n";
-		}
+	
 		if(typeTag ==1){
 			theFireModel = new Idealised_Local_Fire(FireModelTag, crd1, crd2, crd3, Q,D1,  D2, lineTag);
 		}
