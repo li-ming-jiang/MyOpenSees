@@ -2473,7 +2473,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 	    theSOE = new ProfileSPDLinSOE(*theSolver);      
 #endif
 	}
-    if (strcmp(argv[1], "VariableStepStatic") == 0 || strcmp(argv[1], "VariableStatic") == 0) {
+    if (strcmp(argv[1], "VariableStepStatic") == 0 || strcmp(argv[1], "VariableStatic") == 0 || strcmp(argv[1], "VarStatic") == 0) {
         theStaticAnalysis = new VariableTimeStepStaticAnalysis(theDomain,
             *theHandler,
             *theNumberer,
