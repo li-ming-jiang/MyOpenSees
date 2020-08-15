@@ -1157,6 +1157,9 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\JointEPMaterialThermal.cpp">
       <Filter>uniaxial</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\material\section\CompositeShellSectionThermal.cpp">
+      <Filter>section</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\AxialSp.h">
@@ -2167,6 +2170,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\material\uniaxial\JointEPMaterialThermal.h">
       <Filter>uniaxial</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\material\section\CompositeShellSectionThermal.h">
+      <Filter>section</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

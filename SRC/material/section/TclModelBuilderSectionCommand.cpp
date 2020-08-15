@@ -108,6 +108,7 @@ TclCommand_addFiberIntSection (ClientData clientData, Tcl_Interp *interp, int ar
 #include <FiberSectionGJThermal.h> //Added by Liming, [SIF] 2017
 #include <MembranePlateFiberSectionThermal.h> //Added by Liming, [SIF] 2017
 #include <LayeredShellFiberSectionThermal.h> //Added by Liming, [SIF] 2017
+#include <CompositeShellSectionThermal.h> //Added by Liming, [SIF] 2020
 
 int TclCommand_addFiberSectionThermal (ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv, TclModelBuilder *theBuilder);
 int buildSectionThermal(Tcl_Interp *interp, TclModelBuilder *theTclModelBuilder,int secTag, bool isTorsion, double GJ);
@@ -1504,6 +1505,59 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 		if (theMats != 0) delete[] theMats;
 	}
 	//end L.Jiang [SIF] added based on LayeredShellFiberSectionThermal section  ----
+
+	// CompositeShell Section Added by Liming Jiang
+	else if (strcmp(argv[1], "CompositeShellThermal") == 0) {
+	if (argc < 6) {
+		opserr << "WARNING insufficient arguments" << endln;
+		opserr << "Want: section CompositeShellThermal tag? SectionTag1? r1? .SectionTag2? r2? " << endln;
+		return TCL_ERROR;
+	}
+
+	int count = 2;;
+	int tag, sectag1, sectag2;
+	double ratio1, ratio2;
+	
+	double offset = 0;
+	SectionForceDeformation* theSec1 = 0;
+	SectionForceDeformation* theSec2 = 0;
+
+	if (Tcl_GetInt(interp, argv[count], &tag) != TCL_OK) {
+		opserr << "WARNING invalid section CompositeShellThermal tag" << endln;
+		return TCL_ERROR;
+	}
+	count++;
+	if (Tcl_GetInt(interp, argv[count], &sectag1) != TCL_OK) {
+		opserr << "WARNING invalid section tag 1" << endln;
+		opserr << "CompositeShellThermal section: " << tag << endln;
+		return TCL_ERROR;
+	}
+	count++;
+	if (Tcl_GetDouble(interp, argv[count], &ratio1) != TCL_OK) {
+		opserr << "WARNING invalid ratio1\n";
+		opserr << "CompositeShellThermal section:  " << tag << endln;
+		return TCL_ERROR;
+	}
+	count++;
+	if (Tcl_GetInt(interp, argv[count], &sectag2) != TCL_OK) {
+		opserr << "WARNING invalid section tag 2" << endln;
+		opserr << "CompositeShellThermal section: " << tag << endln;
+		return TCL_ERROR;
+	}
+	count++;
+	if (Tcl_GetDouble(interp, argv[count], &ratio2) != TCL_OK) {
+		opserr << "WARNING invalid ratio2\n";
+		opserr << "CompositeShellThermal section:  " << tag << endln;
+		return TCL_ERROR;
+	}
+
+	theSec1 = theTclBuilder->getSection(sectag1);
+	theSec2 = theTclBuilder->getSection(sectag2);
+
+	theSection = new CompositeShellSectionThermal(tag, theSec1,theSec2,ratio1, ratio2);
+
+	}
+	//end L.Jiang [SIF] added for CompositeShellSectionThermal section  ----
     
     else if (strcmp(argv[1],"Bidirectional") == 0) {
 	if (argc < 7) {
