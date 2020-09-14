@@ -110,7 +110,7 @@ using std::setiosflags;
  #include <DataFileStream.h>
 
  #include <SimulationInformation.h>
-
+ #include  <PathTimeSeriesThermal.h>
 
  extern SimulationInformation simulationInfo;
  extern const char * getInterpPWD(Tcl_Interp *interp);  // commands.cpp
@@ -2008,15 +2008,29 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 	}
     else if (strcmp(argv[1], "UserDefined") == 0 || strcmp(argv[1], "userDefined") == 0) {
         count++;
+        char* filename = 0;
+        int dataType = 1;
         if (argc < 3) {
             opserr << "WARNING insufficient input for UserDeifined Fire Model " << FireModelTag<< endln;
             return TCL_ERROR;
         }
 
         if (strcmp(argv[count], "-file") == 0 || strcmp(argv[1], "File") == 0 ||strcmp(argv[1], "file") == 0) {
-            theFireModel = new UserDefinedFire(FireModelTag,argv[count+1], 1);
-
+            count++;
+            filename = argv[count];
+            count++;
         }
+        if (argc - count > 0) {
+            if (strcmp(argv[count], "-type") == 0 || strcmp(argv[count], "dataType") == 0 || strcmp(argv[count], "type") == 0) {
+                count++;
+                if (Tcl_GetInt(interp, argv[count], &dataType) != TCL_OK) {
+                    opserr << "WARNING:: invalid fireModel Tag: " << argv[1] << "\n";
+                    return TCL_ERROR;
+                }
+            }
+        }
+
+        theFireModel = new UserDefinedFire(FireModelTag, filename, dataType);
 
     }
     //Paramtetric fire
@@ -2171,48 +2185,75 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
     }
 
     //end of fire origin, waiting for firePars;
-       if (strcmp(argv[count], "-firePars") == 0 || strcmp(argv[count], "firePars") == 0) {
+    if (strcmp(argv[count], "-firePars") == 0 || strcmp(argv[count], "firePars") == 0) {
         count++;
 
-        if (Tcl_GetDouble(interp, argv[count], &D) != TCL_OK) {
-            opserr << "WARNING invalid diameter of the fire source" << endln;
-            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
-            return TCL_ERROR;
+        if (strcmp(argv[count], "-file") == 0 || strcmp(argv[count], "file") == 0 || strcmp(argv[count], "-File") == 0) {
+            //Definition of Fire parameters from external file
+            count++;
+            const char* fileName = argv[count];
+            PathTimeSeriesThermal* theSeries = new PathTimeSeriesThermal(1, fileName,8, false);
+            count++;
+
+            //For lineTag if available
+            if (argc - count > 0) {
+                if (Tcl_GetInt(interp, argv[count], &lineTag) != TCL_OK) {
+                    opserr << "WARNING invalid ceiling height" << endln;
+                    opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+                    return TCL_ERROR;
+                }
+            }
+            else
+                lineTag = 2;
+
+            theFireModel = new NaturalFire(FireModelTag, lineTag, theSeries);
+
+
         }
-        count++;
-        if (Tcl_GetDouble(interp, argv[count], &Q) != TCL_OK) {
-            opserr << "WARNING invalid rate of heat release" << endln;
-            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
-            return TCL_ERROR;
-        }
-        count++;
-        if (Tcl_GetDouble(interp, argv[count], &H) != TCL_OK) {
-            opserr << "WARNING invalid distance between the fire source and the ceiling" << endln;
-            opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
-            return TCL_ERROR;
-        }
-        count++;
-        //detect argument for linetag;
-        if (argc - count > 0) {
-            if (Tcl_GetInt(interp, argv[count], &lineTag) != TCL_OK) {
-                opserr << "WARNING invalid central line tag " << endln;
+        else {
+            //Definition of Fire parameters from commandline
+            if (Tcl_GetDouble(interp, argv[count], &D) != TCL_OK) {
+                opserr << "WARNING invalid diameter of the fire source" << endln;
                 opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
                 return TCL_ERROR;
             }
             count++;
-        }
-
-
-        if (argc - count > 0) {
-            if (Tcl_GetDouble(interp, argv[count], &smokeT) != TCL_OK) {
-                opserr << "WARNING invalid smoke temperature between the fire source and the ceiling" << endln;
+            if (Tcl_GetDouble(interp, argv[count], &Q) != TCL_OK) {
+                opserr << "WARNING invalid rate of heat release" << endln;
                 opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
                 return TCL_ERROR;
             }
+            count++;
+            if (Tcl_GetDouble(interp, argv[count], &H) != TCL_OK) {
+                opserr << "WARNING invalid distance between the fire source and the ceiling" << endln;
+                opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+                return TCL_ERROR;
+            }
+            count++;
+            //detect argument for linetag;
+            if (argc - count > 0) {
+                if (Tcl_GetInt(interp, argv[count], &lineTag) != TCL_OK) {
+                    opserr << "WARNING invalid central line tag " << endln;
+                    opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+                    return TCL_ERROR;
+                }
+                count++;
+            }
+
+
+            if (argc - count > 0) {
+                if (Tcl_GetDouble(interp, argv[count], &smokeT) != TCL_OK) {
+                    opserr << "WARNING invalid smoke temperature between the fire source and the ceiling" << endln;
+                    opserr << " for HeatTransfer localised fire model: " << argv[2] << endln;
+                    return TCL_ERROR;
+                }
+            }
+            theFireModel = new NaturalFire(FireModelTag, D, Q, H, lineTag, smokeT);
+
         }
         
     }
-    theFireModel = new NaturalFire(FireModelTag, D, Q, H, lineTag, smokeT);
+    
     }
     //localised EC1
     else if (strcmp(argv[1], "localised") == 0 || strcmp(argv[1], "Localised") == 0 || strcmp(argv[1], "LocalisedEC") == 0) {
@@ -2412,8 +2453,10 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
 			count++;
 		}
         else if (strcmp(argv[count], "-constant") == 0 || strcmp(argv[count], "uniform") == 0 || strcmp(argv[count], "-uniform") == 0) {
+            count++;
             D1 = 0.0;
             D2 = 0.0;
+            count++;
 
         }
 			//detect argument for linetag;
@@ -2553,10 +2596,10 @@ TclHeatTransferCommand_setFirePars(ClientData clientData, Tcl_Interp* interp, in
         firepars(3) = data[0]; firepars(4) = data[1];
     }
     else if (numPars == 6) {
-        firepars(3) = data[0]; firepars(4) = data[1]; firepars(5) = data[2] + 273.15;
+        firepars(3) = data[0]; firepars(4) = data[1]; firepars(5) = data[2] ;
     }
     else if (numPars == 7) {
-        firepars(3) = data[0]; firepars(4) = data[1]; firepars(5) = data[2] + 273.15; firepars(6) = data[3];
+        firepars(3) = data[0]; firepars(4) = data[1]; firepars(5) = data[2]; firepars(6) = data[3];
     }
 
     FireModel* thefire = 0;

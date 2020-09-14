@@ -35,6 +35,7 @@
 #include <HeatFluxBC.h>
 #include <Convection.h>
 #include <Radiation.h>
+#include <PrescribedSurfFlux.h>
 
 using std::ios;
 using std::ifstream;
@@ -266,10 +267,68 @@ UserDefinedFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 			double qir = this->getData(time);
 			rad->setIrradiation(qir);
 			rad->applyFluxBC(time);
-			} else {
+			} 
+		else if (flux_type == 1) {
+			Convection* convec = (Convection*)theFlux;
+			//convec->setSurroundingTemp(this->getGasTemperature(time));
+			int eleTag = theFlux->getElementTag();
+			int fTag = theFlux->getFaceTag();
+			HeatTransferDomain* theDomain = theFlux->getDomain();
+			if (theDomain == 0) {
+				opserr << "Idealised_Local_Fire::applyFluxBC() - HeatFluxBC has not been associated with a domain";
+				exit(-1);
+			}
+
+			HeatTransferElement* theEle = theDomain->getElement(eleTag);
+			if (theEle == 0) {
+				opserr << "Idealised_Local_Fire::applyFluxBC() - no element with tag " << eleTag << " exists in the domain";
+				exit(-1);
+			}
+
+			const ID& faceNodes = theEle->getNodesOnFace(fTag);
+			HeatTransferNode* theNode = theDomain->getNode(faceNodes(0));
+			convec->applyFluxBC(time);
+		}
+		else if (flux_type == 3) {
+			PrescribedSurfFlux* pflux = (PrescribedSurfFlux*)theFlux;
+
+			//int flux_type = pflux->getTypeTag();
+			int eleTag = pflux->getElementTag();
+			int fTag = pflux->getFaceTag();
+			HeatTransferDomain* theDomain = pflux->getDomain();
+			if (theDomain == 0) {
+				opserr << "Idealised_Local_Fire::applyFluxBC() - HeatFluxBC has not been associated with a domain";
+				exit(-1);
+			}
+
+			HeatTransferElement* theEle = theDomain->getElement(eleTag);
+			if (theEle == 0) {
+				opserr << "Idealised_Local_Fire::applyFluxBC() - no element with tag " << eleTag << " exists in the domain";
+				exit(-1);
+			}
+
+			const ID& faceNodes = theEle->getNodesOnFace(fTag);
+			int size = faceNodes.Size();
+			Vector nodalFlux(size);
+
+			for (int i = 0; i < size; i++) {
+				int nodTag = faceNodes(i);
+				HeatTransferNode* theNode = theDomain->getNode(nodTag);
+				if (theNode == 0) {
+					opserr << "Idealised_Local_Fire::applyFluxBC() - no node with tag " << nodTag << " exists in the domain";
+					exit(-1);
+				}
+				nodalFlux(i) = this->getData(time);
+				//opserr << "Flux at node " << nodTag << " is " << nodalFlux(i) << endln;
+			}
+
+			pflux->setData(nodalFlux);
+			pflux->applyFluxBC();
+		}
+		else {
 				opserr << "UserDefinedFire::applyFluxBC() - flux_type should be 2\n";
 				exit(-1); 
-			}
+		}
 	} else {
 		opserr << "UserDefinedFire::applyFluxBC() - incorrect input type provided\n";
 		exit(-1); 

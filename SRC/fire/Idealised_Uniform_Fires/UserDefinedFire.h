@@ -22,8 +22,8 @@
 **                                                                    **
 ** ****************************************************************** */
 
-//Created: Yaqiang Jiang@ The University of Edinburgh
-//Date: 11 Mar 2012
+//Created: Liming Jiang@ PolyU (openseesforfire.git.io)
+//Date: Jan 2020
 
 //Note: This class was adapted from PathTimeSeries class in OpenSees
 
@@ -32,6 +32,9 @@
 
 #include <FireModel.h>
 #include <PathTimeSeriesThermal.h>
+#include <HeatTransferDomain.h>
+#include <HeatTransferNode.h>
+#include <HeatTransferElement.h>
 class Vector;
 
 

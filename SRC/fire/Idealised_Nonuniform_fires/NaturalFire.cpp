@@ -39,8 +39,8 @@
 
 
 NaturalFire::NaturalFire(int tag, double D,
-	double Q, double H, int lineTag, double smokeTemp, PathTimeSeriesThermal* fireLocPath)
-	:FireModel(tag, 7), FireLocPath(fireLocPath), fireLocs(3), d(D), 
+	double Q, double H, int lineTag, double smokeTemp, PathTimeSeriesThermal* FireParPath)
+	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(D), 
 	q(Q), h(H), smokeT(smokeTemp),addq(1e5),centerLine(lineTag)
 {
     // check the direction of central line of a Hasemi fire
@@ -56,6 +56,19 @@ NaturalFire::NaturalFire(int tag, double D,
 		}
 }
 
+NaturalFire::NaturalFire(int tag, int lineTag, PathTimeSeriesThermal* FireParPath)
+	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(0.0),
+	q(0.0), h(0.0), smokeT(0.0), addq(0.0), centerLine(lineTag)
+{
+	// check the direction of central line of a Hasemi fire
+	// 1 indicates it is parrallel to x1 axis, 2 indicates
+	// parallelt to x2 axis, 3 indicates parallel to x3 axis.
+	if ((lineTag != 1) && (lineTag != 2) && (lineTag != 3)) {
+		opserr << "NaturalFire::NaturalFire - invalid line tag provided for Hasemi fire.\n"
+			<< " Only 1, or 2, or 3 is correct.\n";
+	}
+	
+}
 
 NaturalFire::~NaturalFire()
 {
@@ -68,12 +81,13 @@ int
 NaturalFire::setFirePars(double time, const Vector& firePars) {
 	
 	Vector FirePars = 0;
-	if (FireLocPath != 0) {
-		FirePars = FireLocPath->getFactors(time);
+	if (FireParPath != 0) {
+		FirePars = FireParPath->getFactors(time);
 	}
-	else if (FireLocPath==0&&firePars != 0)
+	else if (FireParPath==0&&firePars != 0)
 		FirePars = firePars;
 	
+
 	if (FirePars.Size() == 3) {
 		fireLocs(0) = FirePars(0);
 		fireLocs(1) = FirePars(1);
@@ -98,7 +112,7 @@ NaturalFire::setFirePars(double time, const Vector& firePars) {
 		fireLocs(2) = FirePars(2);
 		q = FirePars(3);
 		d = FirePars(4);
-		smokeT = FirePars(5);
+		smokeT = FirePars(5)+273.15;
 	}
 	else if (FirePars.Size() == 7) {
 		fireLocs(0) = FirePars(0);
@@ -106,8 +120,19 @@ NaturalFire::setFirePars(double time, const Vector& firePars) {
 		fireLocs(2) = FirePars(2);
 		q = FirePars(3);
 		d = FirePars(4);
-		smokeT = FirePars(5);
+		smokeT = FirePars(5)+273.15;
 		addq = FirePars(6);
+
+	}
+	else if (FirePars.Size() == 8) {
+		fireLocs(0) = FirePars(0);
+		fireLocs(1) = FirePars(1);
+		fireLocs(2) = FirePars(2);
+		q = FirePars(3);
+		d = FirePars(4);
+		h = FirePars(5);
+		smokeT = FirePars(6) + 273.15;
+		addq = FirePars(7);
 
 	}
 	else {
@@ -149,7 +174,7 @@ NaturalFire::getFirePars(int ParTag) {
 double 
 NaturalFire::getFireOut( double time, const Vector& coords)
 {
-	if (FireLocPath != 0) {
+	if (FireParPath != 0) {
 		if (this->setFirePars(time) < 0)
 			exit(-1);
 	}
@@ -157,27 +182,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 	double gas_t = 0;
 	double q_dot = 0;
 
-	// first calculate flame length
-	double Lf = 0.0148 * pow(q, 0.4) - 1.02 * d;
-	
-	double constant = 1.11 * 1e6 * pow(d, 2.5);
-	double Qd_ast = q / constant;
-	double z_acute;
 
-	if (Qd_ast < 1.0) {
-		double a = 2.0 / 3.0;
-		double term = pow(Qd_ast, 0.4) - pow(Qd_ast, a);
-		z_acute = 2.4 * d * term;
-	}
-	else {
-		double term = 1.0 - pow(Qd_ast, 0.4);
-		z_acute = 2.4 * d * term;
-	}
-	double term = 1.11 * 1e6 * pow(h, 2.5);
-	double Qh_ast = q / term;
-
-	// now calculate H plus Lh
-	double Lt = 2.9 * h * pow(Qh_ast, 0.33);
 
 	// now calculate r	
 	
@@ -216,6 +221,32 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 	sum = deltaX1 * deltaX1 + deltaX2 * deltaX2;
 	r = sqrt(sum);
+
+	if(abs(h)<1e-6)
+		opserr<< "Travelling fire: h got a zero "<< endln;
+
+	// first calculate flame length
+	double Lf = 0.0148 * pow(q, 0.4) - 1.02 * d;
+
+	double constant = 1.11 * 1e6 * pow(d, 2.5);
+	double Qd_ast = q / constant;
+	double z_acute;
+
+	if (Qd_ast < 1.0) {
+		double a = 2.0 / 3.0;
+		double term = pow(Qd_ast, 0.4) - pow(Qd_ast, a);
+		z_acute = 2.4 * d * term;
+	}
+	else {
+		double term = 1.0 - pow(Qd_ast, 0.4);
+		z_acute = 2.4 * d * term;
+	}
+	double term = 1.11 * 1e6 * pow(h, 2.5);
+	double Qh_ast = q / term;
+
+	// now calculate H plus Lh
+	double Lt = 2.9 * h * pow(Qh_ast, 0.33);
+
 
 	double q_smoke = 0.85 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
 	if (Lf < h) {

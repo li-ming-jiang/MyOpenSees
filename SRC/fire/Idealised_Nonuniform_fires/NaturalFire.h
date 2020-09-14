@@ -43,7 +43,9 @@ class NaturalFire : public FireModel
 	  // 2 is for external fire curve, 3 is for hydrocarbon curve. Default 
 	  // value is 1.
 		NaturalFire(int tag, double D = 1, double Q = 1e6,
-			double H = 3, int centerLineTag = 2, double smokeTemp = 293.15, PathTimeSeriesThermal* fireLocPath = 0);
+			double H = 3, int centerLineTag = 2, double smokeTemp = 293.15, PathTimeSeriesThermal* fireParPath = 0);
+
+		NaturalFire(int tag, int centerLineTag=2, PathTimeSeriesThermal* fireParPath = 0);
 
 	  //NaturalFire(double crd1, double crd2, double crd3, const Vector& time,
 		 //              const Vector& d, const Vector& Q, double H);
@@ -59,7 +61,7 @@ class NaturalFire : public FireModel
 
     private:
 	  double getFlux(HeatTransferNode* the_node, double time);
-	  PathTimeSeriesThermal* FireLocPath;
+	  PathTimeSeriesThermal* FireParPath;
 	  Vector fireLocs;
 	  double  d, q, h;
 	  double smokeT;
