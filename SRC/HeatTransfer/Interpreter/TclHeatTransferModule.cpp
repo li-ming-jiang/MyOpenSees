@@ -663,6 +663,8 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
 
        int typeTag = 0;
        Vector Pars = 0;
+       Matrix thePars = Matrix();
+       const char* Parsfilename = 0;
 
         if (argc == 3) {
             typeTag = 1;
@@ -674,6 +676,73 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
                 return TCL_ERROR;
             }
             int count =4;
+            
+            if (strcmp(argv[count], "-file") == 0|| strcmp(argv[count], "-File") == 0 || strcmp(argv[count], "file") == 0) {
+                count++;
+                Parsfilename = argv[count];
+
+
+                //-------------------------------------------------------
+                // determine the number of data points
+                int numDataPoints = 0;
+                int numRows = 0;
+                double dataPoint;
+                ifstream theFile;
+
+                // first open and go through file containg path
+                theFile.open(Parsfilename, ios::in);
+                if (theFile.bad() || !theFile.is_open()) {
+                    opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
+                    opserr << " - could not open file " << Parsfilename << endln;
+                }
+                else {
+                    while (theFile >> dataPoint)
+                        numDataPoints++;
+                }
+
+                theFile.close();
+
+                numRows = numDataPoints / 4;
+                // check number of data entries in both are the same
+
+                if (numDataPoints != 0) {
+                    // now create the two vector
+                    thePars.resize(numRows, 4);
+
+                    // ensure did not run out of memory creating copies
+                    if (thePars.noRows() == 0) {
+                        opserr << "WARNING UserDefinedFire::UserDefinedFire() - out of memory\n ";
+                    }
+
+                    // first open the file for temperature/flux and read in the data
+
+                    theFile.open(Parsfilename, ios::in);
+                    // read in the path data and then do the time
+                    int count = 0;
+                    while (theFile >> dataPoint) {
+                        thePars(count, 0) = dataPoint;
+                        theFile >> dataPoint;
+                        thePars (count, 1) = dataPoint;
+                        theFile >> dataPoint;
+                        thePars(count, 2) = dataPoint;
+                        theFile >> dataPoint;
+                        thePars(count, 3) = dataPoint;
+                        count++;
+                    }
+
+                    // finally close the file
+                    theFile.close();
+                }
+#ifdef _DEBUG
+                opserr << "Timber Material properties: " << thePars << endln;
+#endif // _DEBUG
+
+                //----End of reading parameters--------------------------------------------------
+
+                count++;
+            }
+            
+            
             if ((argc - count) > 0) {
                 Pars.resize(argc - count);
             }
@@ -681,6 +750,8 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
                 opserr << "WARNING:: no parameter is defined for Timber HT Material: " << argv[1] << "\n";
                 return TCL_ERROR;
             }
+
+
             //-----for geting uncertain number of double data.
             int ArgStart = count;
             int ArgEnd = argc;
@@ -699,8 +770,10 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
         }
         else
             opserr << "WARNING:: Defining HeatTransfer material: " << argv[1] << " recieved more than 4 arguments." << "\n";
-
-        theHTMaterial = new TimberHTMaterial(HTMaterialTag, typeTag, theHTDomain, Pars);
+        if(Parsfilename ==0)
+            theHTMaterial = new TimberHTMaterial(HTMaterialTag, typeTag, theHTDomain, Pars);
+        else
+            theHTMaterial = new TimberHTMaterial(HTMaterialTag, typeTag, theHTDomain, thePars, Pars);
 
     }
   else if(strcmp(argv[1],"GenericMaterial") == 0){

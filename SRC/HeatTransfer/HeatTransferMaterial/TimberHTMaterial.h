@@ -37,6 +37,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 {
     public:
 		TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theDomain, Vector matPars);
+		TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* theDomain, Matrix thePars, Vector matPars);
 		virtual ~TimberHTMaterial();
 
 		// method for this material to update itself according to its new parameters
@@ -69,8 +70,11 @@ class TimberHTMaterial: public HeatTransferMaterial
 		static double epsilon;
 		Vector MatPars;
 		double pht1, pht2;
+		double HtComb;
 		double charTime;
 		HeatTransferDomain* theHTDomain;
+		const char* fileName;
+		Matrix* thePars;
 
 		int determinePhase(double temp, double time);
 };

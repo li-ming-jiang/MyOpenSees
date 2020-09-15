@@ -1858,13 +1858,27 @@ OPS_addFireModel()
 			return -1;
 		}
 		option = OPS_GetString();
+		const char* filename = 0;
+		int dataTypeTag = 1;
 		if (strcmp(option, "file") == 0 || strcmp(option, "-file" )|| strcmp(option, "File") == 0) {
-			const char* filename = OPS_GetString();
+			filename = OPS_GetString();
 			theFireModel = new UserDefinedFire(FireModelTag, filename, 1);
+		}
+		if (OPS_GetNumRemainingInputArgs() > 0) {
+			const char* dataType = OPS_GetString();
+			if (strcmp(dataType, "-type") == 0 || strcmp(dataType, "dataType") == 0 || strcmp(dataType, "type") == 0) {
+				
+				if (OPS_GetIntInput(&numData, &dataTypeTag) <0) {
+					opserr << "WARNING:: invalid Data Type Tag for user defined fire model " << dataType << "\n";
+					return -1;
+				}
+			}
+
 		}
 
 
-		theFireModel = new NorminalFireEC1(FireModelTag, 5); // hydrocarbon fire tag is 3;
+
+		theFireModel = new UserDefinedFire(FireModelTag, filename, dataTypeTag);
 	}
 	//Paramtetric fire
 	else if (strcmp(option, "parametric") == 0 || strcmp(option, "Parametric") == 0) {
@@ -2018,7 +2032,18 @@ OPS_addFireModel()
 						return -1;
 					}
 					const char* fileName = OPS_GetString();
-					theSeries = new PathTimeSeriesThermal(1, fileName, 5, false);
+					theSeries = new PathTimeSeriesThermal(1, fileName, 8, false);
+					//8 parameters in total£º firelocs(3), Q, D, 
+				}
+
+				//To get line tag if available
+				if (OPS_GetNumRemainingInputArgs() > 0) {
+					if (OPS_GetIntInput(&numData, &lineTag) < 0) {
+						opserr << "WARNING invalid distance between the fire source and the ceiling" << endln;
+						opserr << " for HeatTransfer localised fire model: " << FireModelTag << endln;
+						lineTag =2;
+					}
+
 				}
 
 			}
