@@ -2033,7 +2033,7 @@ OPS_addFireModel()
 					}
 					const char* fileName = OPS_GetString();
 					theSeries = new PathTimeSeriesThermal(1, fileName, 8, false);
-					//8 parameters in total£º firelocs(3), Q, D, 
+					//8 parameters in totalï¿½ï¿½ firelocs(3), Q, D, 
 				}
 
 				//To get line tag if available

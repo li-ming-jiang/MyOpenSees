@@ -58,13 +58,15 @@ class UserDefinedFire : public FireModel
     protected:
 
     private:
-		double getData(double time);
+		const Vector& getData(double time);
 		//double getIncidentFlux(double time);
 
 		Vector* theData;      // vector containg the data points
 		Vector* time;		  // vector containg the time values of data points
+		Vector* thePar;      // Vector containing the heat transfer parameter
 		int currentTimeLoc;   // current location in time
         int type_tag;         // 1 for gas temperature, 2 for incident radiative flux
+		static Vector thefireData;
 };
 
 #endif
