@@ -44,7 +44,7 @@ const double  LayeredShellFiberSectionThermal::root56 = 1 ; //shear correction
 //null constructor
 LayeredShellFiberSectionThermal::LayeredShellFiberSectionThermal( ) : 
 SectionForceDeformation( 0, SEC_TAG_LayeredShellFiberSectionThermal ), 
-strainResultant(8), nLayers(0),countnGauss(0),AverageThermalMomentP(0), AverageThermalForceP(0),sT(0), ThermalElongation(0), Offset(0)
+strainResultant(8), nLayers(0),countnGauss(0),AverageThermalMomentP(0), AverageThermalForceP(0),sT(0), ThermalElongation(0), Offset(0), AverageThermalElongP(0)
 {
 
 }
@@ -56,7 +56,7 @@ LayeredShellFiberSectionThermal::LayeredShellFiberSectionThermal(
                                    double *thickness, 
                                    NDMaterial **fibers, double offset) :
 SectionForceDeformation( tag, SEC_TAG_LayeredShellFiberSectionThermal ),
-strainResultant(8), countnGauss(0), AverageThermalMomentP(0), AverageThermalForceP(0),sT(0), ThermalElongation(0), Offset(offset)
+strainResultant(8), countnGauss(0), AverageThermalMomentP(0), AverageThermalForceP(0),sT(0), ThermalElongation(0), Offset(offset), AverageThermalElongP(0)
 {
   this->nLayers = iLayers;
   sg = new double[iLayers];
@@ -390,6 +390,7 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
 	double thickness = 0.5*h*wg[i];
 
     double yi = ( 0.5*h ) * sg[i] - Offset;
+     //double yi = (0.5 * h) * sg[i];
 
 	double tangent, elongation;
 
@@ -400,14 +401,15 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
 	ThermalTangent[i]=tangent;
 	ThermalElongation[i]=elongation;
 	averageThermalForce += elongation*thickness*tangent;
-	averageThermalMoment+= yi*thickness*elongation*tangent;
-	}
+	averageThermalMoment+= (yi+Offset)*thickness*(elongation- AverageThermalElongP )*tangent;
+    AverageThermalElongP += elongation * thickness;
+  }
+  AverageThermalElongP = AverageThermalElongP / h;
+  (*sT)(0) = averageThermalForce - AverageThermalForceP;
 
-      (*sT)(0) = averageThermalForce - AverageThermalForceP;
-
-      (*sT)(1) = averageThermalMoment - AverageThermalMomentP;
-	  AverageThermalForceP = averageThermalForce;
-	  AverageThermalMomentP = averageThermalMoment;
+  (*sT)(1) = averageThermalMoment - AverageThermalMomentP;
+   AverageThermalForceP = averageThermalForce;
+   AverageThermalMomentP = averageThermalMoment;
       return *sT;
 
 }
@@ -427,7 +429,8 @@ const Vector&  LayeredShellFiberSectionThermal::getStressResultant( )
 
   for ( i = 0; i < nLayers; i++ ) {
 
-      z = ( 0.5*h ) * sg[i]- Offset;  //added for offset
+     z = ( 0.5*h ) * sg[i]- Offset;  //added for offset
+      //z = (0.5 * h) * sg[i];  //without offset
 
       weight = ( 0.5*h ) * wg[i] ;
 
@@ -458,7 +461,7 @@ const Vector&  LayeredShellFiberSectionThermal::getStressResultant( )
    stressResultant(6) *= root56 ;  
    stressResultant(7) *= root56 ;
 
-
+   //opserr << this->stressResultant << endln;
    return this->stressResultant ;
 }
 
@@ -624,7 +627,7 @@ const Matrix&  LayeredShellFiberSectionThermal::getSectionTangent( )
       tangent(7,7) +=     dd(4,4) ;
 
   } //end for i
-
+  //opserr << this->tangent << endln;
   return this->tangent ;
 }
 

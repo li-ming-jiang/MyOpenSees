@@ -141,6 +141,7 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
 	int countnGauss;
 	double AverageThermalForceP ;
 	double AverageThermalMomentP;
+    double AverageThermalElongP;
 
 } ; //end of LayeredShellFiberSectionThermal declarations
 

@@ -275,7 +275,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 		if (q_dot < q_smoke) {
 #ifdef _DEBUG
-			opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
+			opserr << "Natural fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
 #endif
 			q_dot = q_smoke;
 

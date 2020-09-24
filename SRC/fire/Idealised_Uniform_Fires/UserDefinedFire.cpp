@@ -319,7 +319,11 @@ UserDefinedFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 					exit(-1);
 				}
 				nodalFlux(i) = this->getData(time);
-				//opserr << "Flux at node " << nodTag << " is " << nodalFlux(i) << endln;
+#ifdef _DEBUG
+				opserr << "Flux at node " << nodTag << " is " << nodalFlux(i) << endln;
+#endif _DEBUG
+
+				
 			}
 
 			pflux->setData(nodalFlux);
