@@ -40,7 +40,7 @@
 
 NaturalFire::NaturalFire(int tag, double D,
 	double Q, double H, int lineTag, double smokeTemp, PathTimeSeriesThermal* FireParPath)
-	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(D), 
+	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(D), hc(0),absorp(0),
 	q(Q), h(H), smokeT(smokeTemp),addq(1e5),centerLine(lineTag)
 {
     // check the direction of central line of a Hasemi fire
@@ -57,7 +57,7 @@ NaturalFire::NaturalFire(int tag, double D,
 }
 
 NaturalFire::NaturalFire(int tag, int lineTag, PathTimeSeriesThermal* FireParPath)
-	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(0.0),
+	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(0.0), hc(0), absorp(0),
 	q(0.0), h(0.0), smokeT(0.0), addq(0.0), centerLine(lineTag)
 {
 	// check the direction of central line of a Hasemi fire
@@ -248,9 +248,10 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 	double Lt = 2.9 * h * pow(Qh_ast, 0.33);
 
 
-	double q_smoke = 0.85 * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + 35 * (smokeT - 293.15);
+	double q_smoke = absorp * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + hc * (smokeT - 293.15);
+
 	if (Lf < h) {
-		//not impinge ceiling
+//------------------not impinge ceiling----------------------------------------------
 		
 		if (r/ h > 0.18) {
 			gas_t = 5.38 * pow(q / 1000.0/r, 2.0 / 3.0) / h;
@@ -268,7 +269,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 			addq = q_smoke;
 
 		//if (r < d)
-			q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15) + addq;
+			q_dot = absorp * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + hc * (gas_t - 293.15) + addq;
 		//else
 			//q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
 		
@@ -283,8 +284,8 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 		
 	}
 	else {
+//---------------------impinge ceiling--------------------------------------
 		// now calculate y
-		//impinge ceiling
 		double y = (r + h + z_acute) / (Lt + z_acute);
 
 		// now determine the flux
@@ -343,7 +344,8 @@ NaturalFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 
 	if (flux_type == 1) {
 		Convection* convec = (Convection*)theFlux;
-		
+		if(abs(hc)<1e-5)
+			hc=convec->getParameter();
 		convec->applyFluxBC(time);
 	}
 	else if (flux_type == 2) {
@@ -353,6 +355,8 @@ NaturalFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 		//double temp = this->getGasTemperature(time);
 		//double qir = bzm * pow(ambTemp, 4.0);
 		//rad->setIrradiation(qir);
+		if (abs(absorp) < 1e-5)
+			absorp = rad->getAbsorptivity();
 		rad->applyFluxBC(time);
 	}
 	else if (flux_type == 3) 
