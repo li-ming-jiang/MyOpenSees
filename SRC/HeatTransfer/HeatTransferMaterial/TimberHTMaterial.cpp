@@ -286,56 +286,69 @@ TimberHTMaterial::determinePhase(double temp, double time)
         opserr << "Timber Material recieves incorrect material properties" << endln;
 
 
-
+    //determine phase
     if (temp < T1) {
-        PhaseTag = 0;
+        //<100oC
+        if(PhaseTag<1)
+            PhaseTag = 0;
         pht1 = 0;
         //Wet wood
     }
     else if (temp < T2)
     {
-        if (pht1<1e-6 && PhaseTag<1) {
-            pht1 = time;
-        }
-        else {
-            pht2 = time;
-        }
+        //<300oC
+        if (PhaseTag < 1) {
 
-        if ((pht2 - pht1) > dt1) {
-            PhaseTag = 1;
-            pht1 = 0;
+            if (pht1 < 1e-6 && PhaseTag == 0) {
+                pht1 = time;
+            }
+            else {
+                pht2 = time;
+            }
+
+            if ((pht2 - pht1) > dt1) {
+                PhaseTag = 1;
+                pht1 = 0;
+            } 
+
         }
         //dry wood
     }
     else if (temp < T3)
     {
-        if (pht1 < 1e-6 && PhaseTag<2) {
-            pht1 = time;
-        }
-        else {
-            pht2 = time;
-        }
+        //<800oC
+        if (PhaseTag < 2) {
+            if (pht1 < 1e-6 && PhaseTag == 1) {
+                pht1 = time;
+            }
+            else {
+                pht2 = time;
+            }
 
-        if ((pht2 - pht1) > dt2) {
-            PhaseTag = 2;
-            pht1 = 0;
-            if (charTime < 1e-6)
-                charTime = time;
+            if ((pht2 - pht1) > dt2) {
+                PhaseTag = 2;// enter char stage
+                pht1 = 0;
+                if (charTime < 1e-6)
+                    charTime = time;
+            }
         }
+        else if(PhaseTag==2)
 
         //char
     }
     else {
-        if (pht1 < 1e-6 && PhaseTag<3) {
-            pht1 = time;
-        }
-        else {
-            pht2 = time;
-        }
+        if (PhaseTag < 3) {
+            if (pht1 < 1e-6 && PhaseTag == 2) {
+                pht1 = time;
+            }
+            else {
+                pht2 = time;
+            }
 
-        if ((pht2 - pht1) > dt3) {
-            PhaseTag = 3;
-            pht1 = 0;
+            if ((pht2 - pht1) > dt3) {
+                PhaseTag = 3;
+                pht1 = 0;
+            }
         }
         //ash
     }
@@ -359,9 +372,11 @@ double
 TimberHTMaterial::getHeatGen()
 {
     double Qgen = 0;
+    double alpha = 1 / 20.0;
+
     if (PhaseTag == 2)
     {
-        Qgen = HtComb;
+        Qgen = alpha* HtComb;
     }
     return Qgen ;
 }
