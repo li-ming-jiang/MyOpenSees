@@ -295,6 +295,14 @@ NDMaterial::setResponse (const char **argv, int argc,
 		  output.tag("ResponseType", "Temp");
 		  output.tag("ResponseType", "Elong");
 	  }
+      else if (size == 4)
+      {
+          output.tag("ResponseType", "Temp");
+          output.tag("ResponseType", "Elong");
+          output.tag("ResponseType", "dt");
+          output.tag("ResponseType", "dc");
+      }
+
 	  //opserr<<"tempElong "<<this->getTempAndElong()<<endln;
 	  theResponse = new MaterialResponse(this, 3, this->getTempAndElong());
 

@@ -332,7 +332,10 @@ TimberHTMaterial::determinePhase(double temp, double time)
                     charTime = time;
             }
         }
-        else if(PhaseTag==2)
+        else if (PhaseTag == 2)
+        {
+
+        }
 
         //char
     }

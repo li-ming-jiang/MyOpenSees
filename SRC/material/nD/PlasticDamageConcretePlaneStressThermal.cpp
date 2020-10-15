@@ -111,7 +111,7 @@ PlasticDamageConcretePlaneStressThermal::PlasticDamageConcretePlaneStressThermal
 	)
 	:NDMaterial(tag, 100),
 	E(_e), nu(_nu), ft(_ft), At(_At), Ac(_Ac), Dbarc(_Dc), Dbart(_Dt),gt0(Gt),gc0(Gc),
-	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
+	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(4),
 	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3),
 	Ce(3, 3), C(3, 3), Ce0(3, 3), Ccommit(3, 3), ft0(_ft), E0(_e)
 {
@@ -160,6 +160,8 @@ PlasticDamageConcretePlaneStressThermal::PlasticDamageConcretePlaneStressThermal
 
 	TempAndElong(0) = 0;
 	TempAndElong(1) = 0;
+	TempAndElong(2) = 0;
+	TempAndElong(3) = 0;
 
 	Cchange = -1;
 	Tchange = 0;
@@ -172,7 +174,7 @@ PlasticDamageConcretePlaneStressThermal::PlasticDamageConcretePlaneStressThermal
 
 PlasticDamageConcretePlaneStressThermal::PlasticDamageConcretePlaneStressThermal()
 	:NDMaterial(0, 0),
-	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
+	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(4),
 	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3), sigePCommit(3),
 	Ce(3, 3), C(3, 3), Ccommit(3, 3), At(0), Ac(0), Dbarc(0), Dbart(0), epsLitsp(0)
 {
@@ -898,7 +900,8 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
    
    // TempAndElong(0) = this->getTag();
    //TempAndElong(0)= kt;
-   TempAndElong(1) = kt;
+   TempAndElong(2) = dt;
+   TempAndElong(3) = dc;
 
 	if (sig(0) != sig(0))
 		opserr << "invalid sig" << sig(0) << endln;
@@ -1322,7 +1325,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 //TempAndElong(0) = kt;
 //TempAndElong(1) = dt;
 	TempAndElong(0) = Temp;
-	//TempAndElong(1) = ThermalElongation;
+	TempAndElong(1) = ThermalElongation;
 	//TempAndElong(1) = E;
 	ET = E;
 	Tchange = 1;

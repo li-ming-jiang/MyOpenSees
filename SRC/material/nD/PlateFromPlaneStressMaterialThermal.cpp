@@ -347,7 +347,17 @@ PlateFromPlaneStressMaterialThermal::getTempAndElong()
 {
 	//return theMaterial->getTempAndElong( );
    static Vector returnedVec = Vector(2);
-	returnedVec(0)= theMat->getTempAndElong( )(0);
-	returnedVec(1) = theMat->getTempAndElong( )(1);
+	
+    if (theMat->getTempAndElong().Size() == 4) {
+        returnedVec.resize(4);
+        returnedVec(0) = theMat->getTempAndElong()(0);
+        returnedVec(1) = theMat->getTempAndElong()(1);
+        returnedVec(2) = theMat->getTempAndElong()(2);
+        returnedVec(3) = theMat->getTempAndElong()(3);
+    }
+    else {
+        returnedVec(0) = theMat->getTempAndElong()(0);
+        returnedVec(1) = theMat->getTempAndElong()(1);
+    }
 	return returnedVec;
 }
