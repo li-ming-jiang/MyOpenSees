@@ -181,7 +181,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 	double gas_t = 0;
 	double q_dot = 0;
-
+	double Addqs = addq;
 
 
 	// now calculate r	
@@ -265,11 +265,11 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 		gas_t = gas_t + 293.15;
 
 
-		if (addq > q_smoke)
-			addq = q_smoke;
+		if (Addqs > q_smoke)
+			Addqs = q_smoke;
 
 		//if (r < d)
-			q_dot = absorp * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + hc * (gas_t - 293.15) + addq;
+			q_dot = absorp * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + hc * (gas_t - 293.15) + Addqs;
 		//else
 			//q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
 		
@@ -300,9 +300,9 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 			q_dot = 15000 * pow(y, -3.7);
 		}
 
-		if (addq > q_smoke)
-			addq = q_smoke;
-		q_dot = q_dot +addq; //modify the maximum q
+		if (Addqs  > q_smoke)
+			Addqs = q_smoke;
+		q_dot = q_dot + Addqs; //modify the maximum q
 		
 		if (q_dot > 120000)
 			q_dot = 120000;
