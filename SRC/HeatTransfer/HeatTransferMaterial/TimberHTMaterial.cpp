@@ -39,7 +39,7 @@ using std::ifstream;
 double TimberHTMaterial::epsilon = 1e-5;
 
 TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theDomain, Vector matPars)
-:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0),
+:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0), isEC(true),
  ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0),TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if ( k == 0){
@@ -60,7 +60,7 @@ TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theD
 }
 
 TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* theDomain, Matrix thepars, Vector matPars)
-    :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0),
+    :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0), isEC(true),
     ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0), TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if (k == 0) {
@@ -106,27 +106,46 @@ TimberHTMaterial::setTrialTemperature(double temp, int par)
 const Matrix& 
 TimberHTMaterial::getConductivity(void)
 {
-	double materialK = 0;
-	if(PhaseTag ==0){
-      materialK =(*thePars)(0,2);
-      //wet wood
-	}
-  else if(PhaseTag ==1){
-        materialK = (*thePars)(1, 2);
-    //dry wood
-  }
-  else if(PhaseTag ==2){
-        materialK = (*thePars)(2, 2);
-    //char
-  }
-  else if (PhaseTag == 3) {
-        materialK = (*thePars)(3, 2);
-        //ash
-  }
-  else
-    opserr<<"TimberHTMaterial::unrecognised PhaseTag "<<PhaseTag;
+    double materialK = 0;
+    if (isEC) {
+        if (trial_temp <= 20)
+            materialK = 0.12;
+        else if (trial_temp <= 200)
+            materialK = 0.12 + 0.03 * (trial_temp - 20) / 180);
+        else if (trial_temp <= 350)
+            materialK = 0.15 - 0.08 * (trial_temp - 200) / 150);
+        else if (trial_temp <= 500)
+            materialK = 0.07 + 0.02 * (trial_temp - 350) / 150);
+        else if (trial_temp <= 800)
+            materialK = 0.09 + 0.26 * (trial_temp - 500) / 300);
+        else if (trial_temp <= 1200)
+            materialK = 0.35 + 1.15 * (trial_temp - 800) / 400);
+        else
+            opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;
+    }
+    else {
+        
+        if (PhaseTag == 0) {
+            materialK = (*thePars)(0, 2);
+            //wet wood
+        }
+        else if (PhaseTag == 1) {
+            materialK = (*thePars)(1, 2);
+            //dry wood
+        }
+        else if (PhaseTag == 2) {
+            materialK = (*thePars)(2, 2);
+            //char
+        }
+        else if (PhaseTag == 3) {
+            materialK = (*thePars)(3, 2);
+            //ash
+        }
+        else
+            opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
+    }
+	
   
-
 	(*k)(0,0) = materialK;
 	(*k)(1,1) = materialK;
 	(*k)(2,2) = materialK;
@@ -165,37 +184,39 @@ TimberHTMaterial::getRho(void)
 double 
 TimberHTMaterial::getSpecificHeat(void)
 {
-  
-  if(PhaseTag ==0){
-      cp = (*thePars)(0, 3);
-  }
-  else if(PhaseTag ==1){
-      cp = (*thePars)(1, 3);
-  
-      /*  Temperature based definition
-    if (trial_temp < 100.0)
-      cp = 1627+ 22.3*trial_temp;
-    else if(trial_temp < 400.0)
-      cp = 4446 - 5.05*trial_temp;
-    else if(trial_temp < 700.0)
-      cp = -1336 + 9.37*trial_temp;
-    else if(trial_temp < 1200.0)
-      cp = -1336 + 9.37*700;
-	else 
-		opserr<<"SFRM Coating ,invalid temperature"<<trial_temp;
-      */
+    if (isEC) {
+        if (trial_temp <= 20)
+            rho = 0.12;
+        else if (trial_temp <= 200)
+            rho = 0.12 + 0.03 * (trial_temp - 20) / 180);
+        else if (trial_temp <= 350)
+            rho = 0.15 - 0.08 * (trial_temp - 200) / 150);
+        else if (trial_temp <= 500)
+            rho = 0.07 + 0.02 * (trial_temp - 350) / 150);
+        else if (trial_temp <= 800)
+            rho = 0.09 + 0.26 * (trial_temp - 500) / 300);
+        else if (trial_temp <= 1200)
+            rho = 0.35 + 1.15 * (trial_temp - 800) / 400);
+        else
+            opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;
+    }
+    else {
+        if (PhaseTag == 0) {
+            cp = (*thePars)(0, 3);
+        }
+        else if (PhaseTag == 1) {
+            cp = (*thePars)(1, 3);
 
-  }
-  else if (PhaseTag == 2) {
-      cp = (*thePars)(2, 3);
-  }
-  else if (PhaseTag == 3) {
-      cp = (*thePars)(3, 3);
-  }
-  else
-      opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
-
-
+        }
+        else if (PhaseTag == 2) {
+            cp = (*thePars)(2, 3);
+        }
+        else if (PhaseTag == 3) {
+            cp = (*thePars)(3, 3);
+        }
+        else
+            opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
+    }
 
     return cp;
 }

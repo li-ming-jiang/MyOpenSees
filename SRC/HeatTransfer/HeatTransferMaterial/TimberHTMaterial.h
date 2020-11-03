@@ -62,6 +62,7 @@ class TimberHTMaterial: public HeatTransferMaterial
     protected:
 		
     private:
+		bool isEC;
 		int TypeTag;
 		int PhaseTag;
 		double rho, cp, enthalpy;
