@@ -97,7 +97,10 @@ TimberHTMaterial::setTrialTemperature(double temp, int par)
 
     double time = theHTDomain->getCurrentTime();
 
-    this->determinePhase(trial_temp, time);
+    if (!isEC) {
+        this->determinePhase(trial_temp, time);
+    }
+    
 
     return 0;
 }
@@ -186,8 +189,8 @@ TimberHTMaterial::getSpecificHeat(void)
 {
     if (isEC) {
         if (trial_temp <= 20)
-            rho = 0.12;
-        else if (trial_temp <= 200)
+            rho = 1530;
+        else if (trial_temp <= 100)
             rho = 0.12 + 0.03 * (trial_temp - 20) / 180);
         else if (trial_temp <= 350)
             rho = 0.15 - 0.08 * (trial_temp - 200) / 150);
