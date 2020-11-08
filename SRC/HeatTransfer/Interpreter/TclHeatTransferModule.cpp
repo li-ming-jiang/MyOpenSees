@@ -676,71 +676,75 @@ TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, 
                 return TCL_ERROR;
             }
             int count =4;
-            
-            if (strcmp(argv[count], "-file") == 0|| strcmp(argv[count], "-File") == 0 || strcmp(argv[count], "file") == 0) {
-                count++;
-                Parsfilename = argv[count];
+            if (typeTag != 0) {
+                //Non-EC timber material model, reading parameters from external file
+                if (strcmp(argv[count], "-file") == 0 || strcmp(argv[count], "-File") == 0 || strcmp(argv[count], "file") == 0) {
+                    count++;
+                    Parsfilename = argv[count];
 
 
-                //-------------------------------------------------------
-                // determine the number of data points
-                int numDataPoints = 0;
-                int numRows = 0;
-                double dataPoint;
-                ifstream theFile;
+                    //-------------------------------------------------------
+                    // determine the number of data points
+                    int numDataPoints = 0;
+                    int numRows = 0;
+                    double dataPoint;
+                    ifstream theFile;
 
-                // first open and go through file containg path
-                theFile.open(Parsfilename, ios::in);
-                if (theFile.bad() || !theFile.is_open()) {
-                    opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
-                    opserr << " - could not open file " << Parsfilename << endln;
-                }
-                else {
-                    while (theFile >> dataPoint)
-                        numDataPoints++;
-                }
-
-                theFile.close();
-
-                numRows = numDataPoints / 4;
-                // check number of data entries in both are the same
-
-                if (numDataPoints != 0) {
-                    // now create the two vector
-                    thePars.resize(numRows, 4);
-
-                    // ensure did not run out of memory creating copies
-                    if (thePars.noRows() == 0) {
-                        opserr << "WARNING UserDefinedFire::UserDefinedFire() - out of memory\n ";
-                    }
-
-                    // first open the file for temperature/flux and read in the data
-
+                    // first open and go through file containg path
                     theFile.open(Parsfilename, ios::in);
-                    // read in the path data and then do the time
-                    int count = 0;
-                    while (theFile >> dataPoint) {
-                        thePars(count, 0) = dataPoint;
-                        theFile >> dataPoint;
-                        thePars (count, 1) = dataPoint;
-                        theFile >> dataPoint;
-                        thePars(count, 2) = dataPoint;
-                        theFile >> dataPoint;
-                        thePars(count, 3) = dataPoint;
-                        count++;
+                    if (theFile.bad() || !theFile.is_open()) {
+                        opserr << "WARNING - UserDefinedFire::UserDefinedFire()";
+                        opserr << " - could not open file " << Parsfilename << endln;
+                    }
+                    else {
+                        while (theFile >> dataPoint)
+                            numDataPoints++;
                     }
 
-                    // finally close the file
                     theFile.close();
-                }
+
+                    numRows = numDataPoints / 4;
+                    // check number of data entries in both are the same
+
+                    if (numDataPoints != 0) {
+                        // now create the two vector
+                        thePars.resize(numRows, 4);
+
+                        // ensure did not run out of memory creating copies
+                        if (thePars.noRows() == 0) {
+                            opserr << "WARNING UserDefinedFire::UserDefinedFire() - out of memory\n ";
+                        }
+
+                        // first open the file for temperature/flux and read in the data
+
+                        theFile.open(Parsfilename, ios::in);
+                        // read in the path data and then do the time
+                        int count = 0;
+                        while (theFile >> dataPoint) {
+                            thePars(count, 0) = dataPoint;
+                            theFile >> dataPoint;
+                            thePars(count, 1) = dataPoint;
+                            theFile >> dataPoint;
+                            thePars(count, 2) = dataPoint;
+                            theFile >> dataPoint;
+                            thePars(count, 3) = dataPoint;
+                            count++;
+                        }
+
+                        // finally close the file
+                        theFile.close();
+                    }
 #ifdef _DEBUG
-                opserr << "Timber Material properties: " << thePars << endln;
+                    opserr << "Timber Material properties: " << thePars << endln;
 #endif // _DEBUG
 
-                //----End of reading parameters--------------------------------------------------
+                    //----End of reading parameters--------------------------------------------------
 
-                count++;
+                    count++;
+                }
+
             }
+            
             
             
             if ((argc - count) > 0) {
@@ -2529,6 +2533,7 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
             count++;
             D1 = 0.0;
             D2 = 0.0;
+            lineTag = 1;
             count++;
 
         }
