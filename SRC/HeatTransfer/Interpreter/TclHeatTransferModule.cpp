@@ -3170,8 +3170,11 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
 	if (theTest == 0) {
 		opserr << "WARNING analysis Transient - no convergence test yet specified, \n";
 	    opserr << " CTestNormTempIncr default will be used\n";
-	  theTest = new CTestNormTempIncr(1e-4, 1000,0);
-
+#ifdef _DEBUG
+        theTest = new CTestNormTempIncr(1e-3, 500,1);
+#else
+        theTest = new CTestNormTempIncr(1e-3, 2000, 0);
+#endif
 	}
 	
 	if (theAlgorithm == 0) {
