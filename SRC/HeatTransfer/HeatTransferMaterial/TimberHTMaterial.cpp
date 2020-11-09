@@ -140,6 +140,15 @@ TimberHTMaterial::getConductivity(void)
             materialK = (*thePars)(0, 2);
             //wet wood
         }
+        else if (PhaseTag == 10)
+        {
+            if (trial_temp <= 100)
+                materialK = (*thePars)(0, 2);
+            else if(trial_temp<120)
+                materialK = (*thePars)(0, 2) + ((*thePars)(1, 2) - (*thePars)(0, 2)) * (trial_temp - 100) / 20;
+            else
+                materialK = (*thePars)(1, 2);
+        }
         else if (PhaseTag == 1) {
             materialK = (*thePars)(1, 2);
             //dry wood
@@ -156,7 +165,9 @@ TimberHTMaterial::getConductivity(void)
             opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
     }
 	
-  
+    if (materialK < 0)
+        opserr << "incorrect conductivity" << endln;
+
 	(*k)(0,0) = materialK;
 	(*k)(1,1) = materialK;
 	(*k)(2,2) = materialK;
@@ -195,6 +206,14 @@ TimberHTMaterial::getRho(void)
             rho = (*thePars)(0, 1);
             //wet wood
         }
+        else if (PhaseTag == 10) {
+            if (trial_temp <= 100)
+                rho = (*thePars)(0, 1);
+            else if(trial_temp<=120)
+                rho = (*thePars)(0, 1) + ((*thePars)(1, 1) - (*thePars)(0, 1)) * (trial_temp - 100) / 20;
+            else
+                rho = (*thePars)(1, 1);
+        }
         else if (PhaseTag == 1) {
             rho = (*thePars)(1, 1);
             //dry wood
@@ -211,7 +230,8 @@ TimberHTMaterial::getRho(void)
             opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
     }
 
-  
+    if (rho < 0)
+        opserr << "incorrect density" << endln;
 
   return rho;
 }
@@ -255,6 +275,16 @@ TimberHTMaterial::getSpecificHeat(void)
         if (PhaseTag == 0) {
             cp = (*thePars)(0, 3);
         }
+        else if (PhaseTag == 10) {
+            if (trial_temp <= 100)
+                cp = (*thePars)(0, 3);
+            else if (trial_temp <= 110)
+                cp = (*thePars)(0, 3) + (4000.0 - (*thePars)(0, 3)) * (trial_temp - 100) / 10;
+            else if(trial_temp <= 120)
+                cp = 4000.0 - (4000.0 - (*thePars)(1, 3)) * (trial_temp - 110) / 10;
+            else
+                cp = (*thePars)(1, 3);
+        }
         else if (PhaseTag == 1) {
             cp = (*thePars)(1, 3);
 
@@ -268,6 +298,9 @@ TimberHTMaterial::getSpecificHeat(void)
         else
             opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
     }
+
+    if (cp < 0)
+        opserr << "incorrect specific heat" << endln;
 
     return cp;
 }
@@ -359,39 +392,47 @@ TimberHTMaterial::determinePhase(double temp, double time)
 
 
     //determine phase
-    if (temp < T1) {
+    if (temp < 100) {
         //<100oC
         if(PhaseTag<1)
             PhaseTag = 0;
+       // if (PhaseTag ==10)
+         //   PhaseTag = 0;
         pht1 = 0;
         //Wet wood
     }
     else if (temp < T2)
     {
         //<300oC
-        if (PhaseTag < 1) {
+        if (PhaseTag == 0 || PhaseTag == 10) {
 
-            if (pht1 < 1e-6 && PhaseTag == 0) {
-                pht1 = time;
-            }
-            else {
-                pht2 = time;
-            }
+            // if (pht1 < 1e-6 && PhaseTag == 0) {
+             //    pht1 = time;
+            // }
+            // else {
+            //     pht2 = time;
+            // }
 
-            if ((pht2 - pht1) > dt1) {
-                PhaseTag = 1;
-                pht1 = 0;
-            } 
-
+           //  if ((pht2 - pht1) > dt1) {
+           //      PhaseTag = 1;
+             //    pht1 = 0;
+            // } 
+            if (temp < 120)
+                PhaseTag = 10; // evaporation
+            else
+                PhaseTag = 1;  //dry wood
         }
+        else
+            PhaseTag = 1;
         //dry wood
     }
     else if (temp < T3)
     {
         //<800oC
-        if (PhaseTag < 2) {
-            if (pht1 < 1e-6 && PhaseTag == 1) {
-                pht1 = time;
+        if (PhaseTag < 2|| PhaseTag ==10) {
+            if (pht1 < 1e-6 ) {
+                if(PhaseTag==1|| PhaseTag == 10)
+                    pht1 = time;
             }
             else {
                 pht2 = time;
