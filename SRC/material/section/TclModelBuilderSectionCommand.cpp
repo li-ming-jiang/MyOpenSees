@@ -1440,18 +1440,6 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 			return TCL_ERROR;
 		}
 		count++;
-		if (Tcl_GetInt(interp, argv[count], &nLayers) != TCL_OK) {
-			opserr << "WARNING invalid nLayers" << endln;
-			opserr << "LayeredShellThermal section: " << tag << endln;
-			return TCL_ERROR;
-		}
-		count++;
-
-		if (nLayers < 3) {
-			opserr << "ERROR number of layers must be larger than 2" << endln;
-			opserr << "LayeredShellThermal section: " << tag << endln;
-			return TCL_ERROR;
-		}
 
 		if (strcmp(argv[count], "-offset") == 0 || strcmp(argv[count], "offset") == 0 || strcmp(argv[count], "-Offset") == 0)
 		{
@@ -1465,6 +1453,21 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 				count++;
 
 		}
+
+		if (Tcl_GetInt(interp, argv[count], &nLayers) != TCL_OK) {
+			opserr << "WARNING invalid nLayers" << endln;
+			opserr << "LayeredShellThermal section: " << tag << endln;
+			return TCL_ERROR;
+		}
+		count++;
+
+		if (nLayers < 3) {
+			opserr << "ERROR number of layers must be larger than 2" << endln;
+			opserr << "LayeredShellThermal section: " << tag << endln;
+			return TCL_ERROR;
+		}
+
+
 	
 
 		theMats = new NDMaterial*[nLayers];

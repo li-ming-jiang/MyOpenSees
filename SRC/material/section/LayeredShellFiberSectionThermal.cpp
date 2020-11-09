@@ -326,8 +326,9 @@ setTrialSectionDeformation( const Vector &strainResultant_from_element)
       z = ( 0.5*h ) * sg[i]-Offset;
   
       strain(0) =  strainResultant(0)  - z*strainResultant(3)-ThermalElongation[i] ;
+      strain(1) = strainResultant(1) - z * strainResultant(4) - ThermalElongation[i];
 
-      strain(1) =  strainResultant(1)  - z*strainResultant(4)-ThermalElongation[i] ;
+      //strain(1) =  strainResultant(1)  - z*strainResultant(4)-ThermalElongation[i] ;
 
       strain(2) =  strainResultant(2)  - z*strainResultant(5) ;
 
@@ -402,12 +403,12 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
 	ThermalTangent[i]=tangent;
 	ThermalElongation[i]=elongation;
 	averageThermalForce += elongation*thickness*tangent;
-	averageThermalMoment+= (yi+Offset)*thickness*(elongation- AverageThermalElongP )*tangent;
+	averageThermalMoment+= (yi)*thickness*(elongation- AverageThermalElongP )*tangent;
     AverageThermalElongP += elongation * thickness;   //commented now
   }
     //AverageThermalElongP = AverageThermalElongP / h;
   (*sT)(0) = averageThermalForce - AverageThermalForceP;
-
+  (*sT)(0) = 0;  (*sT)(1) = 0;
   //(*sT)(1) = averageThermalMoment - AverageThermalMomentP;
    AverageThermalForceP = averageThermalForce;
    AverageThermalMomentP = averageThermalMoment;
