@@ -408,7 +408,8 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
   }
     //AverageThermalElongP = AverageThermalElongP / h;
   (*sT)(0) = averageThermalForce - AverageThermalForceP;
-  (*sT)(0) = 0;  (*sT)(1) = 0;
+ // (*sT)(0) = 0;  
+  (*sT)(1) = 0;
   //(*sT)(1) = averageThermalMoment - AverageThermalMomentP;
    AverageThermalForceP = averageThermalForce;
    AverageThermalMomentP = averageThermalMoment;
