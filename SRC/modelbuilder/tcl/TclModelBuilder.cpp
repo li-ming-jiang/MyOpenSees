@@ -2357,6 +2357,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 	  //Start to add source file
 	  if (strcmp(argv[count], "-source") == 0) {
 		  if (strcmp(argv[count + 1], "-node") != 0) {
+			  //shell thermal action using external file
 			  count++;
 
 			  const char *pwd = getInterpPWD(interp);

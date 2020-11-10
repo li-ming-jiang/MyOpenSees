@@ -83,6 +83,7 @@ class ShellThermalAction : public ElementalLoad
   int indicator; //indicator if fireloadpattern was called
   Vector Factors;
   TimeSeries* theSeries;
+  //TimeSeries* theSeries1;
   //--Adding a factor vector for FireLoadPattern [-END-]: by L.J&P.K(university of Edinburgh)-07-MAY-2012-///
 };
 
