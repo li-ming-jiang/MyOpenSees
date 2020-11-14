@@ -29,15 +29,112 @@
 // Modified for SIF modelling by Liming Jiang [http://openseesforfire.github.io] 
 
 
+
 #include <LayeredShellFiberSectionThermal.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <MaterialResponse.h>
 #include <Information.h>
+#include <elementAPI.h>
+
+
+void* OPS_LayeredShellFiberSectionThermal()
+{
+    if (OPS_GetNumRemainingInputArgs() < 3) {
+        opserr << "WARNING insufficient arguments" << endln;
+        opserr << "Want: section LayeredShellThermal tag? nLayers? matTag1? h1? ... matTagn? hn? " << endln;
+        return 0;
+    }
+
+    int tag, nLayers, matTag;
+    double h, * thickness;
+    double offset=0;
+    NDMaterial** theMats;
+
+    int numdata = 1;
+    if (OPS_GetIntInput(&numdata, &tag) < 0) {
+        opserr << "WARNING invalid section LayeredShellThermal tag" << endln;
+        return 0;
+    }
+
+    //get offset if identified
+    const char* typechar = OPS_GetString();
+    if ((strcmp(typechar, "-offset") == 0) || (strcmp(typechar, "offset") == 0) || (strcmp(typechar, "-Offset") == 0)) {
+        if (OPS_GetDoubleInput(&numdata, &offset) < 0) {
+            opserr << "WARNING invalid offset value" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+    }
+    else {
+        OPS_ResetCurrentInputArg(-1);
+    }
+
+    if (OPS_GetIntInput(&numdata, &nLayers) < 0) {
+        opserr << "WARNING invalid nLayers" << endln;
+        opserr << "LayeredShellThermal section: " << tag << endln;
+        return 0;
+    }
+
+    if (nLayers < 3) {
+        opserr << "ERROR number of layers must be larger than 2" << endln;
+        opserr << "LayeredShellThermal section: " << tag << endln;
+        return 0;
+    }
+    
+
+
+    theMats = new NDMaterial * [nLayers];
+    thickness = new double[nLayers];
+
+    for (int iLayer = 0; iLayer < nLayers; iLayer++) {
+        if (OPS_GetNumRemainingInputArgs() < 2) {
+            opserr << "WARNING must provide " << 2 * nLayers << "inputs\n";
+            return 0;
+        }
+        if (OPS_GetIntInput(&numdata, &matTag) < 0) {
+            opserr << "WARNING invalid matTag" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+
+        theMats[iLayer] = OPS_getNDMaterial(matTag);
+        if (theMats[iLayer] == 0) {
+            opserr << "WARNING nD material does not exist" << endln;;
+            opserr << "nD material: " << matTag;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+
+        if (OPS_GetDoubleInput(&numdata, &h) < 0) {
+            opserr << "WARNING invalid h" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+
+        if (h < 0) {
+            opserr << "WARNING invalid h" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+
+        thickness[iLayer] = h;
+    }
+
+    SectionForceDeformation* theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness, theMats);
+    if (thickness != 0) delete thickness;
+    if (theMats != 0) delete[] theMats;
+
+    return theSection;
+}
+
+
+
+
 
 //static vector and matrices
 Vector  LayeredShellFiberSectionThermal::stressResultant(8) ;
-Matrix  LayeredShellFiberSectionThermal::tangent(8,8) ;
+Matrix  LayeredShellFiberSectionThermal::tangent(8,8) ; 
 ID      LayeredShellFiberSectionThermal::array(8) ;
 //const double  LayeredShellFiberSectionThermal::root56 = sqrt(5.0/6.0) ; //shear correction
 const double  LayeredShellFiberSectionThermal::root56 = 1 ; //shear correction
@@ -86,6 +183,48 @@ strainResultant(8), countnGauss(0), AverageThermalMomentP(0), AverageThermalForc
 
   sT =new Vector(2);
   sT->Zero();
+
+}
+
+
+
+//full constructor
+LayeredShellFiberSectionThermal::LayeredShellFiberSectionThermal(
+    int tag,
+    int iLayers,
+    double* thickness, double* loc,
+    NDMaterial** fibers, double offset) :
+    SectionForceDeformation(tag, SEC_TAG_LayeredShellFiberSectionThermal),
+    strainResultant(8), countnGauss(0), AverageThermalMomentP(0), AverageThermalForceP(0), sT(0), ThermalElongation(0), Offset(offset), AverageThermalElongP(0)
+{
+    this->nLayers = iLayers;
+    sg = new double[iLayers];
+    wg = new double[iLayers];
+    theFibers = new NDMaterial * [iLayers];
+    ThermalElongation = new double[iLayers];
+
+    h = 0.0;
+    int i;
+    for (i = 0; i < iLayers; i++)
+    {
+        h = h + thickness[i];
+        theFibers[i] = fibers[i]->getCopy("PlateFiberThermal");
+    }
+    for (i = 0; i < iLayers; i++)
+        wg[i] = 2.0 * thickness[i] / h;
+
+    double currLoc = 0.0;
+    double h1 = 1.0 / h;
+    for (i = 0; i < iLayers; i++)
+    {
+        currLoc = currLoc + thickness[i];
+        sg[i] = currLoc * h1 - 1.0;
+        currLoc = currLoc + thickness[i];
+        ThermalElongation[i] = 0.0;  //Added  by LMJ
+    }
+
+    sT = new Vector(2);
+    sT->Zero();
 
 }
 

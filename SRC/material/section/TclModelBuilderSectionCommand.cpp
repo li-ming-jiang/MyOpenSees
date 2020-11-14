@@ -32,6 +32,8 @@
 // What: "@(#) TclModelBuilderMaterialCommands.C, revA"
 
 #include <TclModelBuilder.h>
+#include <tcl.h>
+#include <elementAPI.h>
 
 #include <ElasticMaterial.h>
 
@@ -88,10 +90,14 @@
 
 #include <string.h>
 #include <fstream>
+#include <packages.h>
 using std::ifstream;
 
 #include <iostream>
 using std::ios;
+
+extern void* OPS_LayeredShellFiberSectionThermal(void);
+
 
 int
 TclCommand_addFiberSection (ClientData clientData, Tcl_Interp *interp, int argc,
@@ -109,6 +115,7 @@ TclCommand_addFiberIntSection (ClientData clientData, Tcl_Interp *interp, int ar
 #include <MembranePlateFiberSectionThermal.h> //Added by Liming, [SIF] 2017
 #include <LayeredShellFiberSectionThermal.h> //Added by Liming, [SIF] 2017
 #include <CompositeShellSectionThermal.h> //Added by Liming, [SIF] 2020
+#include <elementAPI_TCL.cpp>
 
 int TclCommand_addFiberSectionThermal (ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv, TclModelBuilder *theBuilder);
 int buildSectionThermal(Tcl_Interp *interp, TclModelBuilder *theTclModelBuilder,int secTag, bool isTorsion, double GJ);
@@ -126,10 +133,20 @@ TclModelBuilderYS_SectionCommand(ClientData clientData, Tcl_Interp *interp, int 
 				 TCL_Char **argv, TclModelBuilder *theTclBuilder);
 
 int
-TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int argc,
-			       TCL_Char **argv, TclModelBuilder *theTclBuilder)
+TclModelBuilderSectionCommand(ClientData clientData, Tcl_Interp* interp, int argc,
+	TCL_Char** argv, Domain* theDomain, TclModelBuilder* theTclBuilder)
 {
-    // Pointer to a section that will be added to the model builder
+	// Make sure there is a minimum number of arguments
+	if (argc < 3) {
+		opserr << "WARNING insufficient number of section arguments\n";
+		opserr << "Want: section type? tag? <specific material args>" << endln;
+		return TCL_ERROR;
+	}
+
+	OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theDomain);
+	
+	
+	// Pointer to a section that will be added to the model builder
     SectionForceDeformation *theSection = 0;
 
     int NDM = theTclBuilder->getNDM();  
@@ -1423,89 +1440,11 @@ TclModelBuilderSectionCommand (ClientData clientData, Tcl_Interp *interp, int ar
 	
 	// LayeredShellFiberSectionThermal based on the LayeredShellFiberSectionThermal Added by Liming Jiang
 	else if (strcmp(argv[1], "LayeredShellThermal") == 0) {
-		if (argc < 6) {
-			opserr << "WARNING insufficient arguments" << endln;
-			opserr << "Want: section LayeredShellThermal tag? nLayers? matTag1? h1? ... matTagn? hn? " << endln;
+		void* theMat = OPS_LayeredShellFiberSectionThermal();
+		if (theMat != 0)
+			theSection = (SectionForceDeformation*)theMat;
+		else
 			return TCL_ERROR;
-		}
-
-		int count = 2;;
-		int tag, nLayers, matTag;
-		double h, *thickness;
-		double offset=0;
-		NDMaterial **theMats;
-
-		if (Tcl_GetInt(interp, argv[count], &tag) != TCL_OK) {
-			opserr << "WARNING invalid section LayeredShellThermal tag" << endln;
-			return TCL_ERROR;
-		}
-		count++;
-
-		if (strcmp(argv[count], "-offset") == 0 || strcmp(argv[count], "offset") == 0 || strcmp(argv[count], "-Offset") == 0)
-		{
-			count++;
-			if (Tcl_GetDouble(interp, argv[count], &offset) != TCL_OK) {
-				opserr << "WARNING invalid offset" << endln;
-				opserr << "LayeredShellThermal section: " << tag << endln;
-				return TCL_ERROR;
-			}
-			else
-				count++;
-
-		}
-
-		if (Tcl_GetInt(interp, argv[count], &nLayers) != TCL_OK) {
-			opserr << "WARNING invalid nLayers" << endln;
-			opserr << "LayeredShellThermal section: " << tag << endln;
-			return TCL_ERROR;
-		}
-		count++;
-
-		if (nLayers < 3) {
-			opserr << "ERROR number of layers must be larger than 2" << endln;
-			opserr << "LayeredShellThermal section: " << tag << endln;
-			return TCL_ERROR;
-		}
-
-
-	
-
-		theMats = new NDMaterial*[nLayers];
-		thickness = new double[nLayers];
-
-		for (int iLayer = 0; iLayer < nLayers; iLayer++) {
-			if (Tcl_GetInt(interp, argv[count + 2 * iLayer], &matTag) != TCL_OK) {
-				opserr << "WARNING invalid matTag" << endln;
-				opserr << "LayeredShellThermal section: " << tag << endln;
-				return TCL_ERROR;
-			}
-
-			theMats[iLayer] = OPS_getNDMaterial(matTag);
-			if (theMats[iLayer] == 0) {
-				opserr << "WARNING nD material does not exist" << endln;;
-				opserr << "nD material: " << matTag;
-				opserr << "LayeredShellThermal section: " << tag << endln;
-				return TCL_ERROR;
-			}
-
-			if (Tcl_GetDouble(interp, argv[count+1 + 2 * iLayer], &h) != TCL_OK) {
-				opserr << "WARNING invalid h" << endln;
-				opserr << "LayeredShellThermal section: " << tag << endln;
-				return TCL_ERROR;
-			}
-
-			if (h < 0) {
-				opserr << "WARNING invalid h" << endln;
-				opserr << "LayeredShellThermal section: " << tag << endln;
-				return TCL_ERROR;
-			}
-
-			thickness[iLayer] = h;
-		}
-
-		theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness, theMats,offset);
-		if (thickness != 0) delete thickness;
-		if (theMats != 0) delete[] theMats;
 	}
 	//end L.Jiang [SIF] added based on LayeredShellFiberSectionThermal section  ----
 

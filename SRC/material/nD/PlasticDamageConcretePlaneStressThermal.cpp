@@ -900,8 +900,8 @@ PlasticDamageConcretePlaneStressThermal::setTrialStrain(const Vector &strain)
    
    // TempAndElong(0) = this->getTag();
    //TempAndElong(0)= kt;
-   TempAndElong(2) = dt;
-   TempAndElong(3) = dc;
+   TempAndElong(2) = kt;
+   TempAndElong(3) = kc;
 
 	if (sig(0) != sig(0))
 		opserr << "invalid sig" << sig(0) << endln;

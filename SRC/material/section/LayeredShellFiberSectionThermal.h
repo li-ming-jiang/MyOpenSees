@@ -59,6 +59,11 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
                                 double *thickness, 
                                 NDMaterial **fibers, double offset=0 );
 
+    LayeredShellFiberSectionThermal(int tag,
+        int iLayers,
+        double* thickness, double *loc,
+        NDMaterial** fibers, double offset = 0);
+
     const char *getClassType(void) const {return "LayeredShellFiberSectionThermal";};
 
     //destructor

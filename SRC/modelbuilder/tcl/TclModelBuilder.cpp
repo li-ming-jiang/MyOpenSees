@@ -897,20 +897,18 @@ TclModelBuilder::getNDMaterial(int tag)
 }
 */
 
-int 
-TclModelBuilder::addSection(SectionForceDeformation &theSection)
+int
+TclModelBuilder::addSection(SectionForceDeformation& theSection)
 {
-  //  bool result = theSections->addComponent(&theSection);
-  bool result = OPS_addSectionForceDeformation(&theSection);
-  if (result == true)
-    return 0;
-  else {
-    opserr << "TclModelBuilder::addSection() - failed to add section: " << theSection;
-    return -1;
-  }
+	//  bool result = theSections->addComponent(&theSection);
+	bool result = OPS_addSectionForceDeformation(&theSection);
+	if (result == true)
+		return 0;
+	else {
+		opserr << "TclModelBuilder::addSection() - failed to add section: " << theSection;
+		return -1;
+	}
 }
-
-
 
 SectionForceDeformation *
 TclModelBuilder::getSection(int tag)
@@ -1593,16 +1591,16 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 }
 
 extern int
-TclModelBuilderSectionCommand (ClientData clienData, Tcl_Interp *interp, int argc,
-				  TCL_Char **argv, TclModelBuilder *theTclBuilder);
+TclModelBuilderSectionCommand(ClientData clienData, Tcl_Interp* interp, int argc,
+	TCL_Char** argv, Domain* theDomain, TclModelBuilder* theTclBuilder);
 
 int
 TclCommand_addSection(ClientData clientData, Tcl_Interp *interp, 
 			    int argc,    TCL_Char **argv)
                           
 {
-  return TclModelBuilderSectionCommand(clientData, interp, 
-				       argc, argv, theTclBuilder);
+	return TclModelBuilderSectionCommand(clientData, interp,
+		argc, argv, theTclDomain, theTclBuilder);
 }
 
 
