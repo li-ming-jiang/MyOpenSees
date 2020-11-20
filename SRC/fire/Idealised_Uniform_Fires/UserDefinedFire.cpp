@@ -79,6 +79,10 @@ UserDefinedFire::UserDefinedFire(int tag,const Vector& theFireData, const Vector
 UserDefinedFire::UserDefinedFire(int tag, const char* theFireData, int typeTag)		       
 :FireModel(tag ,8),theData(0), time(0), currentTimeLoc(0), type_tag(typeTag)
 {
+	//Type1: time-gasT
+	//Type2: time-HT
+	//Type3: time-gasT-convec h
+	//Type: time-ht-covnec h
     // determine the number of data points
     int numDataPoints =0;
 	int numRows = 0;
@@ -143,7 +147,7 @@ UserDefinedFire::UserDefinedFire(int tag, const char* theFireData, int typeTag)
 				else
 					count++;
 			}
-#ifdef _DEBUG
+#ifdef _FDEBUG
 			opserr << (*time)(10) << "," << (*theData)(10) << "," << (*thePar)(10)<<endln;
 			opserr << (*time)(180) << "," << (*theData)(180) << "," << (*thePar)(180)<<endln;
 #endif // DEBUG
