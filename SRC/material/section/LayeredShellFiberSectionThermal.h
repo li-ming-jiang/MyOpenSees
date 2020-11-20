@@ -125,6 +125,8 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
     //quadrature data
     double *sg;
     double *wg;
+    double* ti;
+    double* loci;
 
     double Offset; // offset from the geometric mid-plane to neutral plane;
 
