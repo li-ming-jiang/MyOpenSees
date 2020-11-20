@@ -136,7 +136,7 @@ void* OPS_LayeredShellFiberSectionThermal()
     }
     SectionForceDeformation* theSection = 0;
     if(type==1)
-         theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness, theMats);
+         theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness, theMats,offset);
     else if(type==2)
         theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness,location, theMats);
 
