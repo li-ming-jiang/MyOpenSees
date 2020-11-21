@@ -65,6 +65,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		
 		int TypeTag;
 		int trialphTag, PhaseTag;
+		int TempTag;
 		double rho, cp, enthalpy;
 		double rho0, moist;
 		double trial_temp;
@@ -77,6 +78,8 @@ class TimberHTMaterial: public HeatTransferMaterial
 		HeatTransferDomain* theHTDomain;
 		const char* fileName;
 		Matrix* thePars;
+		double T1, T2, T3;
+		double dt1, dt2, dt3;
 
 		int determinePhase(double temp, double time);
 };

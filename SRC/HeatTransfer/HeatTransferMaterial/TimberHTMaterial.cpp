@@ -39,7 +39,7 @@ using std::ifstream;
 double TimberHTMaterial::epsilon = 1e-5;
 
 TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theDomain, Vector matPars)
-:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0), trialphTag(0),
+:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0), trialphTag(0), TempTag(0),
  ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0),TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if ( k == 0){
@@ -63,10 +63,13 @@ TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theD
         moist = MatPars(1);
     }
 
+    T1 = 0; T2 = 0; T3 = 0;
+    dt1 = 0; dt2 = 0; dt3 = 0;
+
 }
 
 TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* theDomain, Matrix thepars, Vector matPars)
-    :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0), trialphTag(0),
+    :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0), trialphTag(0), TempTag(0),
     ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0), TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if (k == 0) {
@@ -88,6 +91,26 @@ TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* the
     // phaseTag =1: Dry Wood
     // phaseTag =2: Char 
     //PhaseTag =3: Ash
+
+    if (MatPars.Size() == 3) {
+        T1 = (*thePars)(1, 0); dt1 = MatPars(0);
+        T2 = (*thePars)(2, 0); dt2 = MatPars(1);
+        T3 = (*thePars)(3, 0); dt3 = MatPars(2);
+    }
+    else if (MatPars.Size() == 4) {
+        T1 = (*thePars)(1, 0); dt1 = MatPars(0);
+        T2 = (*thePars)(2, 0); dt2 = MatPars(1);
+        T3 = (*thePars)(3, 0); dt3 = MatPars(2);
+        HtComb = MatPars(3);
+
+    }
+    else if (MatPars.Size() == 6) {
+        T1 = MatPars(0); dt1 = MatPars(1);
+        T2 = MatPars(2); dt2 = MatPars(3);
+        T3 = MatPars(4); dt3 = MatPars(5);
+    }
+    else
+        opserr << "Timber Material recieves incorrect material properties" << endln;
     
 }
 
@@ -150,11 +173,12 @@ TimberHTMaterial::getConductivity(void)
                 materialK = (*thePars)(1, 2);
         }
         else if (trialphTag == 1) {
-            materialK = (*thePars)(1, 2);
+            materialK = (*thePars)(1, 2) + ((*thePars)(2, 2) - (*thePars)(1, 2)) * (trial_temp - 125) / 175;
+      
             //dry wood
         }
         else if (trialphTag == 2) {
-            materialK = (*thePars)(2, 2);
+            materialK = (*thePars)(2, 2) + ((*thePars)(3, 2) - (*thePars)(2, 2)) * (trial_temp - 300) /500;
             //char
         }
         else if (trialphTag == 3) {
@@ -398,31 +422,9 @@ TimberHTMaterial::revertToStart(void)
 int
 TimberHTMaterial::determinePhase(double temp, double time)
 {
-    double T1, T2, T3;
-    double dt1, dt2, dt3;
+    
     trialphTag = PhaseTag;
-
-    if (MatPars.Size() == 3) {
-        T1 = (*thePars)(1, 0); dt1 = MatPars(0);
-        T2 = (*thePars)(2, 0); dt2 = MatPars(1);
-        T3 = (*thePars)(3, 0); dt3 = MatPars(2);
-    }
-    else if (MatPars.Size() == 4) {
-        T1 = (*thePars)(1, 0); dt1 = MatPars(0);
-        T2 = (*thePars)(2, 0); dt2 = MatPars(1);
-        T3 = (*thePars)(3, 0); dt3 = MatPars(2);
-        HtComb = MatPars(3);
-
-    }
-    else if (MatPars.Size() == 6) {
-        T1 = MatPars(0); dt1 = MatPars(1);
-        T2 = MatPars(2); dt2 = MatPars(3);
-        T3 = MatPars(4); dt3 = MatPars(5);
-    }
-    else
-        opserr << "Timber Material recieves incorrect material properties" << endln;
-
-
+    
     //determine phase
     if (temp <95) {
         //<100oC
@@ -487,16 +489,19 @@ TimberHTMaterial::determinePhase(double temp, double time)
     }
     else {
         if (trialphTag < 3) {
-            if (pht1 < 1e-6 && trialphTag == 2) {
+            if ((pht2-pht1>1e-6)&&TempTag==0) {
                 pht1 = time;
-            }
-            else {
                 pht2 = time;
+                TempTag = 1;
             }
 
-            if ((pht2 - pht1) > dt3) {
+            if (TempTag == 1)
+                pht2 = time;
+            
+
+            if ((pht2 - pht1 > dt3) && TempTag==1) {
                 trialphTag = 3;
-                pht1 = 0;
+                //pht1 = 0;
             }
         }
         //ash
@@ -525,10 +530,16 @@ TimberHTMaterial::getHeatGen()
 
     if (trialphTag == 2)
     {
-        if (pht2 - pht1 < 30)
-            alpha = (pht2 - pht1) / 30;
-        else
-            alpha = 1;
+        if (TempTag == 0) {
+            if (pht2 - pht1 < dt2)
+                alpha = (pht2 - pht1) / dt2;
+            else
+                alpha = 1;
+        }
+        else if (TempTag == 1) {
+            alpha = 1- (pht2 - pht1) / dt3;
+        }
+        
         Qgen = alpha* HtComb;
     }
     return Qgen ;
