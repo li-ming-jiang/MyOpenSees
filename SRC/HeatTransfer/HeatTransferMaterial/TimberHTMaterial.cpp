@@ -39,7 +39,7 @@ using std::ifstream;
 double TimberHTMaterial::epsilon = 1e-5;
 
 TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theDomain, Vector matPars)
-:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0),
+:HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0), trialphTag(0),
  ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0),TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if ( k == 0){
@@ -66,7 +66,7 @@ TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theD
 }
 
 TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* theDomain, Matrix thepars, Vector matPars)
-    :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0), 
+    :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0), trialphTag(0),
     ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0), TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain)
 {
     if (k == 0) {
@@ -136,11 +136,11 @@ TimberHTMaterial::getConductivity(void)
     }
     else {
         
-        if (PhaseTag == 0) {
+        if (trialphTag == 0) {
             materialK = (*thePars)(0, 2);
             //wet wood
         }
-        else if (PhaseTag == 10)
+        else if (trialphTag == 10)
         {
             if (trial_temp <= 95)
                 materialK = (*thePars)(0, 2);
@@ -149,20 +149,20 @@ TimberHTMaterial::getConductivity(void)
             else
                 materialK = (*thePars)(1, 2);
         }
-        else if (PhaseTag == 1) {
+        else if (trialphTag == 1) {
             materialK = (*thePars)(1, 2);
             //dry wood
         }
-        else if (PhaseTag == 2) {
+        else if (trialphTag == 2) {
             materialK = (*thePars)(2, 2);
             //char
         }
-        else if (PhaseTag == 3) {
+        else if (trialphTag == 3) {
             materialK = (*thePars)(3, 2);
             //ash
         }
         else
-            opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
+            opserr << "TimberHTMaterial::unrecognised trialphTag " << trialphTag;
     }
 	
     if (materialK < 0)
@@ -202,11 +202,11 @@ TimberHTMaterial::getRho(void)
             opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;
     }
     else {
-        if (PhaseTag == 0) {
+        if (trialphTag == 0) {
             rho = (*thePars)(0, 1);
             //wet wood
         }
-        else if (PhaseTag == 10) {
+        else if (trialphTag == 10) {
             if (trial_temp <= 95)
                 rho = (*thePars)(0, 1);
             else if(trial_temp<=125)
@@ -214,20 +214,20 @@ TimberHTMaterial::getRho(void)
             else
                 rho = (*thePars)(1, 1);
         }
-        else if (PhaseTag == 1) {
+        else if (trialphTag == 1) {
             rho = (*thePars)(1, 1);
             //dry wood
         }
-        else if (PhaseTag == 2) {
+        else if (trialphTag == 2) {
             rho = (*thePars)(2, 1);
             //char
         }
-        else if (PhaseTag == 3) {
+        else if (trialphTag == 3) {
             rho = (*thePars)(3, 1);
             //ash
         }
         else
-            opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
+            opserr << "TimberHTMaterial::unrecognised trialphTag " << trialphTag;
     }
 
     if (rho < 0)
@@ -272,10 +272,10 @@ TimberHTMaterial::getSpecificHeat(void)
             opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;
     }
     else {
-        if (PhaseTag == 0) {
+        if (trialphTag == 0) {
             cp = (*thePars)(0, 3);
         }
-        else if (PhaseTag == 10) {
+        else if (trialphTag == 10) {
             double maxcp = 13600;
             if (trial_temp <= 95)
                 cp = (*thePars)(0, 3);
@@ -288,18 +288,18 @@ TimberHTMaterial::getSpecificHeat(void)
             else
                 cp = (*thePars)(1, 3);
         }
-        else if (PhaseTag == 1) {
+        else if (trialphTag == 1) {
             cp = (*thePars)(1, 3);
 
         }
-        else if (PhaseTag == 2) {
+        else if (trialphTag == 2) {
             cp = (*thePars)(2, 3);
         }
-        else if (PhaseTag == 3) {
+        else if (trialphTag == 3) {
             cp = (*thePars)(3, 3);
         }
         else
-            opserr << "TimberHTMaterial::unrecognised PhaseTag " << PhaseTag;
+            opserr << "TimberHTMaterial::unrecognised trialphTag " << trialphTag;
     }
 
     if (cp < 0)
@@ -372,6 +372,8 @@ TimberHTMaterial::update()
 int 
 TimberHTMaterial::commitState(void)
 {
+
+    PhaseTag = trialphTag;
     return 0;
 }
 
@@ -380,12 +382,15 @@ int
 TimberHTMaterial::revertToLastCommit(void)
 {
     return 0;
+    
 }
 
 
 int 
 TimberHTMaterial::revertToStart(void)
 {
+    
+    PhaseTag = 0;
     return 0;
 }
 
@@ -395,6 +400,7 @@ TimberHTMaterial::determinePhase(double temp, double time)
 {
     double T1, T2, T3;
     double dt1, dt2, dt3;
+    trialphTag = PhaseTag;
 
     if (MatPars.Size() == 3) {
         T1 = (*thePars)(1, 0); dt1 = MatPars(0);
@@ -420,19 +426,19 @@ TimberHTMaterial::determinePhase(double temp, double time)
     //determine phase
     if (temp <95) {
         //<100oC
-        if(PhaseTag<1)
-            PhaseTag = 0;
-       // if (PhaseTag ==10)
-         //   PhaseTag = 0;
+        if(trialphTag<1)
+            trialphTag = 0;
+       // if (trialphTag ==10)
+         //   trialphTag = 0;
         pht1 = 0;
         //Wet wood
     }
     else if (temp < T2)
     {
         //<300oC
-        if (PhaseTag == 0 || PhaseTag == 10) {
+        if (trialphTag == 0 || trialphTag == 10) {
 
-            // if (pht1 < 1e-6 && PhaseTag == 0) {
+            // if (pht1 < 1e-6 && trialphTag == 0) {
              //    pht1 = time;
             // }
             // else {
@@ -440,47 +446,48 @@ TimberHTMaterial::determinePhase(double temp, double time)
             // }
 
            //  if ((pht2 - pht1) > dt1) {
-           //      PhaseTag = 1;
+           //      trialphTag = 1;
              //    pht1 = 0;
             // } 
             if (temp < 125)
-                PhaseTag = 10; // evaporation
+                trialphTag = 10; // evaporation
             else
-                PhaseTag = 1;  //dry wood
+                trialphTag = 1;  //dry wood
         }
-        else if(PhaseTag == 1)
-            PhaseTag = 1;
+        else if(trialphTag == 1)
+            trialphTag = 1;
+        pht1 = 0;
         //dry wood
     }
     else if (temp < T3)
     {
         //<800oC
-        if (PhaseTag < 2|| PhaseTag ==10) {
+        if (trialphTag < 2|| trialphTag ==10) {
             if (pht1 < 1e-6 ) {
-                if(PhaseTag==1|| PhaseTag == 10)
+                if (trialphTag == 1 || trialphTag == 10) {
                     pht1 = time;
-            }
-            else {
-                pht2 = time;
+                    pht2 = time;
+                }
+                    
             }
 
-            if ((pht2 - pht1) > dt2) {
-                PhaseTag = 2;// enter char stage
-                pht1 = 0;
-                if (charTime < 1e-6)
-                    charTime = time;
-            }
+           
+            trialphTag = 2;// enter char stage
+           
+           if (charTime < 1e-6)
+                charTime = time;
+           
         }
-        else if (PhaseTag == 2)
+        else if (trialphTag == 2)
         {
-            PhaseTag = 2;
+            pht2 = time;
         }
 
         //char
     }
     else {
-        if (PhaseTag < 3) {
-            if (pht1 < 1e-6 && PhaseTag == 2) {
+        if (trialphTag < 3) {
+            if (pht1 < 1e-6 && trialphTag == 2) {
                 pht1 = time;
             }
             else {
@@ -488,7 +495,7 @@ TimberHTMaterial::determinePhase(double temp, double time)
             }
 
             if ((pht2 - pht1) > dt3) {
-                PhaseTag = 3;
+                trialphTag = 3;
                 pht1 = 0;
             }
         }
@@ -503,7 +510,7 @@ TimberHTMaterial::determinePhase(double temp, double time)
 bool
 TimberHTMaterial::getIfHeatGen()
 {
-    if (PhaseTag == 2 || PhaseTag == 3)
+    if (trialphTag == 2 )
         return true;
     else
         return false;
@@ -514,10 +521,14 @@ double
 TimberHTMaterial::getHeatGen()
 {
     double Qgen = 0;
-    double alpha = 1;
+    double alpha = 0;
 
-    if (PhaseTag == 2)
+    if (trialphTag == 2)
     {
+        if (pht2 - pht1 < 30)
+            alpha = (pht2 - pht1) / 30;
+        else
+            alpha = 1;
         Qgen = alpha* HtComb;
     }
     return Qgen ;

@@ -64,7 +64,7 @@ class TimberHTMaterial: public HeatTransferMaterial
     private:
 		
 		int TypeTag;
-		int PhaseTag;
+		int trialphTag, PhaseTag;
 		double rho, cp, enthalpy;
 		double rho0, moist;
 		double trial_temp;
