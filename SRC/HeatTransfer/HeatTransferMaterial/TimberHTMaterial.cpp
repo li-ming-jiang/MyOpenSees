@@ -178,7 +178,15 @@ TimberHTMaterial::getConductivity(void)
             //dry wood
         }
         else if (trialphTag == 2) {
-            materialK = (*thePars)(2, 2) + ((*thePars)(3, 2) - (*thePars)(2, 2)) * (trial_temp - 300) /500;
+
+            if (trial_temp <= 700)
+                materialK = (*thePars)(2, 2);
+            else if (trial_temp <= 800)
+                materialK = (*thePars)(2, 2) + ((*thePars)(3, 2) - (*thePars)(2, 2)) * (trial_temp - 700) / 100;
+            else if (TempTag == 1) {
+                materialK = (*thePars)(3, 2);
+            }
+          
             //char
         }
         else if (trialphTag == 3) {
