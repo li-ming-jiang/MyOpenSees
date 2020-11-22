@@ -247,11 +247,11 @@ TimberHTMaterial::getRho(void)
                 rho = (*thePars)(1, 1);
         }
         else if (trialphTag == 1) {
-            if (trial_temp <= 200)
-                rho = (*thePars)(1, 1);
-            else
-                rho = (*thePars)(1, 1);
-               // rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 125) / 175;
+           // if (trial_temp <= 200)
+             //   rho = (*thePars)(1, 1);
+           // else
+              //  rho = (*thePars)(1, 1);
+            rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 125) / 175;
 
             //dry wood
         }
@@ -334,11 +334,11 @@ TimberHTMaterial::getSpecificHeat(void)
                 cp = (*thePars)(1, 3);
         }
         else if (trialphTag == 1) {
-            if (trial_temp <= 200)
-                cp = (*thePars)(1, 3);
-            else
-                cp = (*thePars)(1, 3);
-                //cp = (*thePars)(1, 3) + ((*thePars)(2, 3) - (*thePars)(1, 3)) * (trial_temp - 125) / 175;
+            //if (trial_temp <= 200)
+               // cp = (*thePars)(1, 3);
+           // else
+                //cp = (*thePars)(1, 3);
+            cp = (*thePars)(1, 3) + ((*thePars)(2, 3) - (*thePars)(1, 3)) * (trial_temp - 125) / 175;
 
             //dry wood
         }
@@ -378,7 +378,8 @@ TimberHTMaterial::getEnthalpy()
     // 20 after initial iterations. Eventhough, the slope of H-T within the expanded temperature range is 
     // kept constant, the same as the heat capacity at T = 20;
     //if ((0.0 <= nod_temp) && (nod_temp <= 100.0)) {
-    double maxcp = 13600;
+    /*
+      double maxcp = 13600;
     if (trial_temp <= 100.0) {
         double c1 = (*thePars)(0, 3)* (*thePars)(0, 1);
         double c2 = (*thePars)(0, 3) * (*thePars)(0, 1)*25;
@@ -398,7 +399,7 @@ TimberHTMaterial::getEnthalpy()
         double c13 = c11 * 115.0 * 115.0 + c12 * 115.0;
         enthalpy = c11 * trial_temp * trial_temp + c12 * trial_temp-c13+c;
     }
-    else if (trial_temp <= 200.0) {
+    else if (trial_temp <= 1200.0) {
         double c = maxcp * (*thePars)(0, 1) * 115.0 + (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0) - maxcp * (*thePars)(0, 1) * 100.0;
 
         double c11 = (*thePars)(1, 1) * ((*thePars)(1, 3) - maxcp) / 20.0;
@@ -413,6 +414,8 @@ TimberHTMaterial::getEnthalpy()
 
 
     else
+    */
+  
         enthalpy = 0;
     
 
@@ -426,6 +429,8 @@ double
 TimberHTMaterial::getEnthalpy(double temp)
 {
     double enthp;
+
+    /*
     double nod_temp = temp - 273.15;
 
     // The temperature range is expanded other than the original one [20,1200] in Eurocode.
@@ -469,6 +474,9 @@ TimberHTMaterial::getEnthalpy(double temp)
   
     
     else
+    
+    */
+    
         enthp = 0;
 
     return enthp;
