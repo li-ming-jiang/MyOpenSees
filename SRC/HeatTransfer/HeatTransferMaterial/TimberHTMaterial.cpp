@@ -165,10 +165,10 @@ TimberHTMaterial::getConductivity(void)
         }
         else if (trialphTag == 10)
         {
-            if (trial_temp <= 95)
+            if (trial_temp <= 100)
                 materialK = (*thePars)(0, 2);
             else if(trial_temp<=125)
-                materialK = (*thePars)(0, 2) + ((*thePars)(1, 2) - (*thePars)(0, 2)) * (trial_temp - 95) / 30;
+                materialK = (*thePars)(0, 2) + ((*thePars)(1, 2) - (*thePars)(0, 2)) * (trial_temp - 100) / 25;
             else
                 materialK = (*thePars)(1, 2);
         }
@@ -247,11 +247,24 @@ TimberHTMaterial::getRho(void)
                 rho = (*thePars)(1, 1);
         }
         else if (trialphTag == 1) {
-            rho = (*thePars)(1, 1);
+            if (trial_temp <= 200)
+                rho = (*thePars)(1, 1);
+            else
+                rho = (*thePars)(1, 1);
+               // rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 125) / 175;
+
             //dry wood
         }
         else if (trialphTag == 2) {
-            rho = (*thePars)(2, 1);
+
+            if (trial_temp <= 700)
+                rho = (*thePars)(2, 1);
+            else if (trial_temp <= 800)
+                rho = (*thePars)(2, 1) + ((*thePars)(3, 1) - (*thePars)(2, 1)) * (trial_temp - 700) / 100;
+            else if (TempTag == 1) {
+                rho = (*thePars)(3, 2);
+            }
+
             //char
         }
         else if (trialphTag == 3) {
@@ -321,14 +334,29 @@ TimberHTMaterial::getSpecificHeat(void)
                 cp = (*thePars)(1, 3);
         }
         else if (trialphTag == 1) {
-            cp = (*thePars)(1, 3);
+            if (trial_temp <= 200)
+                cp = (*thePars)(1, 3);
+            else
+                cp = (*thePars)(1, 3);
+                //cp = (*thePars)(1, 3) + ((*thePars)(2, 3) - (*thePars)(1, 3)) * (trial_temp - 125) / 175;
 
+            //dry wood
         }
         else if (trialphTag == 2) {
-            cp = (*thePars)(2, 3);
+
+            if (trial_temp <= 700)
+                cp = (*thePars)(2, 3);
+            else if (trial_temp <= 800)
+                cp = (*thePars)(2, 3) + ((*thePars)(3, 3) - (*thePars)(2, 3)) * (trial_temp - 700) / 100;
+            else if (TempTag == 1) {
+                cp = (*thePars)(3, 3);
+            }
+
+            //char
         }
         else if (trialphTag == 3) {
             cp = (*thePars)(3, 3);
+            //ash
         }
         else
             opserr << "TimberHTMaterial::unrecognised trialphTag " << trialphTag;
@@ -345,17 +373,52 @@ double
 TimberHTMaterial::getEnthalpy()
 {
     
-        // The temperature range is expanded other than the original one [20,1200] in Eurocode.
+    // The temperature range is expanded other than the original one [20,1200] in Eurocode.
     // The reason is, for an analysis with initial temperature at 20, the solution could be lower than
     // 20 after initial iterations. Eventhough, the slope of H-T within the expanded temperature range is 
     // kept constant, the same as the heat capacity at T = 20;
     //if ((0.0 <= nod_temp) && (nod_temp <= 100.0)) {
+    double maxcp = 13600;
+    if (trial_temp <= 100.0) {
+        double c1 = (*thePars)(0, 3)* (*thePars)(0, 1);
+        double c2 = (*thePars)(0, 3) * (*thePars)(0, 1)*25;
+        enthalpy = c1 * trial_temp - c2;
+    }
+    else if ((100.0 < trial_temp) && (trial_temp <= 115.0)) {
+        double c = (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0);
+        double c11 = maxcp* (*thePars)(0, 1);
+        double c12 = c- maxcp * (*thePars)(0, 1)*100;
+        enthalpy = c11 * trial_temp + c12 ;
+    }
+    else if ((115.0 < trial_temp) && (trial_temp <= 125.0)) {
+        double c = maxcp * (*thePars)(0, 1)*115.0+ (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0) - maxcp * (*thePars)(0, 1) * 100.0;
+        
+        double c11 = (*thePars)(1, 1)*((*thePars)(1, 3)-maxcp)/20.0;
+        double c12 = (*thePars)(1, 1)* maxcp-115.0*((*thePars)(1, 3)-maxcp)/10.0;
+        double c13 = c11 * 115.0 * 115.0 + c12 * 115.0;
+        enthalpy = c11 * trial_temp * trial_temp + c12 * trial_temp-c13+c;
+    }
+    else if (trial_temp <= 200.0) {
+        double c = maxcp * (*thePars)(0, 1) * 115.0 + (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0) - maxcp * (*thePars)(0, 1) * 100.0;
 
+        double c11 = (*thePars)(1, 1) * ((*thePars)(1, 3) - maxcp) / 20.0;
+        double c12 = (*thePars)(1, 1) * maxcp - 115.0 * ((*thePars)(1, 3) - maxcp) / 10.0;
+        double c13 = c11 * 115.0 * 115.0 + c12 * 115.0;
+        double c20 = c11 * 125.0 * 125.0 + c12 * 125.0 - c13 + c;
+
+        double c21 = (*thePars)(1, 3) * (*thePars)(1, 1);
+        double c22 = c20 - (*thePars)(1, 3) * (*thePars)(1, 1) * 125.0;
+        enthalpy = c21 * trial_temp + c22;
+    }
+
+
+    else
+        enthalpy = 0;
     
 
 
     
-    return 0;	
+    return enthalpy;	
 }
 
 
@@ -370,12 +433,45 @@ TimberHTMaterial::getEnthalpy(double temp)
     // 20 after initial iterations. Eventhough, the slope of H-T within the expanded temperature range is 
     // kept constant, the same as the heat capacity at T = 20;
     //if ((0.0 <= nod_temp) && (nod_temp <= 100.0)) {
-    if (PhaseTag == 10) {
-       // double maxcp = 4000;
+    double maxcp = 13600;
+    if (nod_temp <= 100.0) {
+        double c1 = (*thePars)(0, 3) * (*thePars)(0, 1);
+        double c2 = (*thePars)(0, 3) * (*thePars)(0, 1) * 25;
+        enthp = c1 * nod_temp - c2;
     }
-    
+    else if (nod_temp <= 115.0) {
+        double c = (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0);
+        double c11 = maxcp * (*thePars)(0, 1);
+        double c12 = c - maxcp * (*thePars)(0, 1) * 100;
+        enthp = c11 * nod_temp + c12;
+    }
+    else if (nod_temp <= 125.0) {
+        double c = maxcp * (*thePars)(0, 1) * 115.0 + (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0) - maxcp * (*thePars)(0, 1) * 100.0;
 
-    return 0;	
+        double c11 = (*thePars)(1, 1) * ((*thePars)(1, 3) - maxcp) / 20.0;
+        double c12 = (*thePars)(1, 1) * maxcp - 115.0 * ((*thePars)(1, 3) - maxcp)* (*thePars)(1, 1) / 10.0;
+        double c13 = c11 * 115.0 * 115.0 + c12 * 115.0;
+        enthp = c11 * nod_temp * nod_temp + c12 * nod_temp - c13 + c;
+    }
+   
+    else if (nod_temp <= 200.0) {
+        double c = maxcp * (*thePars)(0, 1) * 115.0 + (*thePars)(0, 3) * (*thePars)(0, 1) * (100.0 - 25.0) - maxcp * (*thePars)(0, 1) * 100.0;
+
+        double c11 = (*thePars)(1, 1) * ((*thePars)(1, 3) - maxcp) / 20.0;
+        double c12 = (*thePars)(1, 1) * maxcp - 115.0 * ((*thePars)(1, 3) - maxcp) * (*thePars)(1, 1) / 10.0;
+        double c13 = c11 * 115.0 * 115.0 + c12 * 115.0;
+        double c20 = c11 * 125.0 * 125.0 + c12 * 125.0 - c13 + c;
+
+        double c21 = (*thePars)(1, 3) * (*thePars)(1, 1);
+        double c22 = c20 - (*thePars)(1, 3) * (*thePars)(1, 1) * 125.0;
+        enthp = c21 * nod_temp + c22;
+    }
+  
+    
+    else
+        enthp = 0;
+
+    return enthp;
 }
 
 

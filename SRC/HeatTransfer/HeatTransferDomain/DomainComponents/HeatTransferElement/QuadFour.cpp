@@ -388,7 +388,7 @@ QuadFour::getCapacityTangent()
 				dTdy += shp[1][beta] * T[beta];
 				}
 
-			if (((dTdx != 0) || (dTdy !=0)) && ((dHdx != 0) || (dHdy !=0))) {
+			if (((dTdx != 0) || (dTdy !=0)) && ((abs(dHdx)> 1e-5) || (abs(dHdy)>1e-5))) {
 				double dT = dTdx * dTdx + dTdy * dTdy;
 
 				// using Lemmon's approximation
