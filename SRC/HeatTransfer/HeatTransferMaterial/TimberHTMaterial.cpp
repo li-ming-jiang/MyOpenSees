@@ -168,7 +168,7 @@ TimberHTMaterial::getConductivity(void)
             if (trial_temp <= 95)
                 materialK = (*thePars)(0, 2);
             else if(trial_temp<=125)
-                materialK = (*thePars)(0, 2) + ((*thePars)(1, 2) - (*thePars)(0, 2)) * (trial_temp - 100) / 25;
+                materialK = (*thePars)(0, 2) + ((*thePars)(1, 2) - (*thePars)(0, 2)) * (trial_temp - 95) / 25;
             else
                 materialK = (*thePars)(1, 2);
         }
