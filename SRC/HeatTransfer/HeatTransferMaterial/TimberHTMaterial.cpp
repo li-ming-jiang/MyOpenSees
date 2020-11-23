@@ -173,13 +173,15 @@ TimberHTMaterial::getConductivity(void)
                 materialK = (*thePars)(1, 2);
         }
         else if (trialphTag == 1) {
-            materialK = (*thePars)(1, 2) + ((*thePars)(2, 2) - (*thePars)(1, 2)) * (trial_temp - 125) / 175;
+            materialK = (*thePars)(1, 2);
+                //+ ((*thePars)(2, 2) - (*thePars)(1, 2)) * (trial_temp - 125) / 175;
       
             //dry wood
         }
         else if (trialphTag == 2) {
-
-            if (trial_temp <= 700)
+            if (trial_temp <= 400)
+                cp = (*thePars)(1, 2) + ((*thePars)(2, 2) - (*thePars)(1, 2)) * (trial_temp - 300) / 100;
+            else if (trial_temp <= 700)
                 materialK = (*thePars)(2, 2);
             else if (trial_temp <= 800)
                 materialK = (*thePars)(2, 2) + ((*thePars)(3, 2) - (*thePars)(2, 2)) * (trial_temp - 700) / 100;
@@ -250,19 +252,20 @@ TimberHTMaterial::getRho(void)
            // if (trial_temp <= 200)
              //   rho = (*thePars)(1, 1);
            // else
-              //  rho = (*thePars)(1, 1);
-            rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 125) / 175;
+            rho = (*thePars)(1, 1);
+           // rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 125) / 175;
 
             //dry wood
         }
         else if (trialphTag == 2) {
-
-            if (trial_temp <= 700)
+            if (trial_temp <= 400)
+                cp = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 300) / 100;
+            else if (trial_temp <= 700)
                 rho = (*thePars)(2, 1);
             else if (trial_temp <= 800)
                 rho = (*thePars)(2, 1) + ((*thePars)(3, 1) - (*thePars)(2, 1)) * (trial_temp - 700) / 100;
             else if (TempTag == 1) {
-                rho = (*thePars)(3, 2);
+                rho = (*thePars)(3, 1);
             }
 
             //char
@@ -337,14 +340,15 @@ TimberHTMaterial::getSpecificHeat(void)
             //if (trial_temp <= 200)
                // cp = (*thePars)(1, 3);
            // else
-                //cp = (*thePars)(1, 3);
-            cp = (*thePars)(1, 3) + ((*thePars)(2, 3) - (*thePars)(1, 3)) * (trial_temp - 125) / 175;
+            cp = (*thePars)(1, 3);
+            //cp = (*thePars)(1, 3) + ((*thePars)(2, 3) - (*thePars)(1, 3)) * (trial_temp - 125) / 175;
 
             //dry wood
         }
         else if (trialphTag == 2) {
-
-            if (trial_temp <= 700)
+            if (trial_temp <= 400)
+                cp = (*thePars)(1, 3) + ((*thePars)(2, 3) - (*thePars)(1, 3)) * (trial_temp - 300) / 100;
+            else if (trial_temp <= 700)
                 cp = (*thePars)(2, 3);
             else if (trial_temp <= 800)
                 cp = (*thePars)(2, 3) + ((*thePars)(3, 3) - (*thePars)(2, 3)) * (trial_temp - 700) / 100;
