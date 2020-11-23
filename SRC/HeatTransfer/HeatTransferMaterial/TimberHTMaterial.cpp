@@ -165,7 +165,7 @@ TimberHTMaterial::getConductivity(void)
         }
         else if (trialphTag == 10)
         {
-            if (trial_temp <= 100)
+            if (trial_temp <= 95)
                 materialK = (*thePars)(0, 2);
             else if(trial_temp<=125)
                 materialK = (*thePars)(0, 2) + ((*thePars)(1, 2) - (*thePars)(0, 2)) * (trial_temp - 100) / 25;
@@ -180,7 +180,7 @@ TimberHTMaterial::getConductivity(void)
         }
         else if (trialphTag == 2) {
             if (trial_temp <= 400)
-                cp = (*thePars)(1, 2) + ((*thePars)(2, 2) - (*thePars)(1, 2)) * (trial_temp - 300) / 100;
+                materialK = (*thePars)(1, 2) + ((*thePars)(2, 2) - (*thePars)(1, 2)) * (trial_temp - 300) / 100;
             else if (trial_temp <= 700)
                 materialK = (*thePars)(2, 2);
             else if (trial_temp <= 800)
@@ -259,7 +259,7 @@ TimberHTMaterial::getRho(void)
         }
         else if (trialphTag == 2) {
             if (trial_temp <= 400)
-                cp = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 300) / 100;
+                rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 300) / 100;
             else if (trial_temp <= 700)
                 rho = (*thePars)(2, 1);
             else if (trial_temp <= 800)
