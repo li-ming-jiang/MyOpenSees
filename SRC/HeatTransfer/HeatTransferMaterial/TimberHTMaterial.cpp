@@ -603,7 +603,8 @@ TimberHTMaterial::determinePhase(double temp, double time)
             pht2 = time;
             TempTag == 0;
         }
-        
+        if(pht2-pht1>2000)
+            trialphTag = 3;
         //char
     }
     else {
