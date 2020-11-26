@@ -576,6 +576,8 @@ TimberHTMaterial::determinePhase(double temp, double time)
             trialphTag = 1;
         pht1 = 0;
         //dry wood
+        if(trialphTag < 2)
+             TempTag == 0;
     }
     else if (temp < T3)
     {
@@ -591,7 +593,7 @@ TimberHTMaterial::determinePhase(double temp, double time)
 
            
             trialphTag = 2;// enter char stage
-           
+            TempTag == 0;
            if (charTime < 1e-6)
                 charTime = time;
            
@@ -599,8 +601,9 @@ TimberHTMaterial::determinePhase(double temp, double time)
         else if (trialphTag == 2)
         {
             pht2 = time;
+            TempTag == 0;
         }
-
+        
         //char
     }
     else {
@@ -653,11 +656,21 @@ TimberHTMaterial::getHeatGen()
                 alpha = 1;
         }
         else if (TempTag == 1) {
-            alpha = 1- (pht2 - pht1) / dt3;
+            if (pht2 - pht1 < dt3)
+                alpha = 1-(pht2 - pht1) / dt3;
+            else
+                alpha = 0;
+
+            //alpha = 1- (pht2 - pht1) / dt3;
         }
         
         Qgen = alpha* HtComb;
     }
+
+
+    if (Qgen < 0)
+        opserr << "incorrect Heat of generation" << endln;
+
     return Qgen ;
 }
 
