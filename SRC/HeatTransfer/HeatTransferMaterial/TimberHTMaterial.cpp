@@ -665,13 +665,13 @@ TimberHTMaterial::getHeatGen(double locy)
             //alpha = 1- (pht2 - pht1) / dt3;
         }
         //Considering locy indicating depth effect
-        double locRatio = 1-locy / 100; //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
+        double locRatio = 1-locy / 0.1; //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
         if (locRatio < 0)
             locRatio = 0;
         else if (locRatio>1)
             locRatio = 1;
 
-        alpha = locRatio * alpha * locy / 100;
+        alpha = locRatio * alpha;
         
         Qgen = alpha* HtComb;
     }
