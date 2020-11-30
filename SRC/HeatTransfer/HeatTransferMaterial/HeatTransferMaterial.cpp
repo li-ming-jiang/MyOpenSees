@@ -100,7 +100,7 @@ HeatTransferMaterial::getIfHeatGen()
 
 
 double 
-HeatTransferMaterial::getHeatGen()
+HeatTransferMaterial::getHeatGen(double par)
 {
     return 0;
 }

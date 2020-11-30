@@ -56,7 +56,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		void update();
 		void  Print(OPS_Stream&, int = 0) {return;};
 		bool getIfHeatGen();
-		double getHeatGen();
+		double getHeatGen(double locy);
 
 		const Vector& getPars();
     protected:

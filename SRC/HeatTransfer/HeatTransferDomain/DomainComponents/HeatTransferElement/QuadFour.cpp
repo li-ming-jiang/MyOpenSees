@@ -590,12 +590,17 @@ QuadFour::get_Q_Transient()
 	
 	//For materials generating heat
 	if (theMaterial[0]->getIfHeatGen() == true) {
+		double locx, locy;
+		HeatTransferNode* node1 = this->getNodePtrs()[0];
+		HeatTransferNode* node3 = this->getNodePtrs()[2];
+		locx = (node1->getCrds()(0) + node3->getCrds()(0)) / 2;
+		locy = (node1->getCrds()(1) + node3->getCrds()(1)) / 2;
 		double HeatQ[4];
 		//opserr << this->getTag() << " capacity tangent\n";
 
 		for (int i = 0; i < 4; i++) {
 			// enable to account for temperature dependent density
-			HeatQ[i] = theMaterial[i]->getHeatGen(); // get specific heat
+			HeatQ[i] = theMaterial[i]->getHeatGen(locy); // get specific heat
 		}
 		double rcdvol;
 
