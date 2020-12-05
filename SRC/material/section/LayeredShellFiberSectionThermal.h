@@ -62,7 +62,7 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
     LayeredShellFiberSectionThermal(int tag,
         int iLayers,
         double* thickness, double *loc,
-        NDMaterial** fibers, double offset = 0);
+        NDMaterial** fibers, int comTypeTag=0);
 
     const char *getClassType(void) const {return "LayeredShellFiberSectionThermal";};
 
@@ -120,7 +120,7 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
 
 
   private :
-
+    int ComTypeTag;
     int nLayers;
     //quadrature data
     double *sg;
