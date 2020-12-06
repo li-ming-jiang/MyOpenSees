@@ -102,7 +102,11 @@ PlateFromPlaneStressMaterialThermal::getOrder( ) const
 const char*
 PlateFromPlaneStressMaterialThermal::getType( ) const 
 {
-  return "PlateFiberThermal" ; 
+  if(this->getClassTag()== ND_TAG_J2PlaneStressThermal)
+      return "PlateFiberThermalSteel" ; 
+  else
+      return "PlateFiberThermal";
+
 }
 
 

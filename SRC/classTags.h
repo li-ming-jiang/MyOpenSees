@@ -452,6 +452,7 @@
 #define ND_TAG_PlateFiberMaterialThermal      7006   //L.Jiang[SIF]
 #define ND_TAG_PlateRebarMaterialThermal      7007   //L.Jiang[SIF]
 #define ND_TAG_PlateFromPlaneStressMaterialThermal 7008   //L.Jiang[SIF]
+#define ND_TAG_J2PlaneStressThermal 7010   //L.Jiang[SIF]
 
 #define ND_TAG_InitStressNDMaterial 7009
 

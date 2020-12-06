@@ -62,7 +62,7 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
     LayeredShellFiberSectionThermal(int tag,
         int iLayers,
         double* thickness, double *loc,
-        NDMaterial** fibers, int comTypeTag=0);
+        NDMaterial** fibers, double offset = 0, int comTypeTag=0);
 
     const char *getClassType(void) const {return "LayeredShellFiberSectionThermal";};
 
@@ -115,7 +115,7 @@ class LayeredShellFiberSectionThermal : public SectionForceDeformation{
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
 	const Vector &getTemperatureStress(const Vector&); //Added by LMJ
-	double determineFiberTemperature(const Vector& DataMixed, double fiberLoc) ; //Added by LMJ
+	double determineFiberTemperature(const Vector& DataMixed, double fiberLoc, int matType) ; //Added by LMJ
 
 
 

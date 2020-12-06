@@ -220,10 +220,10 @@ LayeredShellFiberSectionThermal::LayeredShellFiberSectionThermal(
     int tag,
     int iLayers,
     double* thickness, double* loc,
-    NDMaterial** fibers, int comTypeTag) :
+    NDMaterial** fibers, double offset, int comTypeTag) :
     SectionForceDeformation(tag, SEC_TAG_LayeredShellFiberSectionThermal),
     strainResultant(8), countnGauss(0), AverageThermalMomentP(0), AverageThermalForceP(0), 
-    sT(0), ThermalElongation(0), Offset(0.0), AverageThermalElongP(0),ComTypeTag(comTypeTag)
+    sT(0), ThermalElongation(0), Offset(offset), AverageThermalElongP(0),ComTypeTag(comTypeTag)
 {
     this->nLayers = iLayers;
     ti = new double[iLayers];
@@ -563,7 +563,15 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
 
 	double tangent, elongation;
 
-	FiberTemperature = this->determineFiberTemperature( dataMixed, yi);
+    int matType =0;
+    if (theFibers[i]->getType() == "PlateFiberThermalSteel")
+        matType = 1;
+    else if (theFibers[i]->getType() == "PlateFiberThermalSteel")
+        matType = 2;
+    else 
+        opserr<<"LayeredShellThermal can not identify matType"<<endln;
+
+	FiberTemperature = this->determineFiberTemperature( dataMixed, yi, matType);
 
 	theFibers[i]->getThermalTangentAndElongation(FiberTemperature, tangent, elongation);
 
@@ -969,71 +977,10 @@ LayeredShellFiberSectionThermal::recvSelf(int commitTag, Channel &theChannel, FE
 
 
 
-double
-LayeredShellFiberSectionThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLoc) 
-{
-		double FiberTemperature = 0;
-
-		double dataTempe[18]; 
-		for (int i = 0; i < 18; i++) { 
-			dataTempe[i] = DataMixed(i);
-		}
-
-		if (  fiberLoc <= dataTempe[1])
-		{
-			opserr <<"FiberSection2dThermal::setTrialSectionDeformationTemperature -- fiber loc is out of the section";
-		}
-		else if (fiberLoc <= dataTempe[3])
-		{
-			FiberTemperature = dataTempe[0] - (dataTempe[1] - fiberLoc) * (dataTempe[0] - dataTempe[2])/(dataTempe[1] - dataTempe[3]);
-		}
-		else if (   fiberLoc <= dataTempe[5] )
-		{
-			FiberTemperature = dataTempe[2] - (dataTempe[3] - fiberLoc) * (dataTempe[2] - dataTempe[4])/(dataTempe[3] - dataTempe[5]);
-			
-		}
-		else if ( fiberLoc <= dataTempe[7] )
-		{
-			FiberTemperature = dataTempe[4] - (dataTempe[5] - fiberLoc) * (dataTempe[4] - dataTempe[6])/(dataTempe[5] - dataTempe[7]);
-		}
-		else if ( fiberLoc <= dataTempe[9] )
-		{
-			FiberTemperature = dataTempe[6] - (dataTempe[7] - fiberLoc) * (dataTempe[6] - dataTempe[8])/(dataTempe[7] - dataTempe[9]);
-		
-		}
-		else if (fiberLoc <= dataTempe[11] )
-		{
-			FiberTemperature = dataTempe[8] - (dataTempe[9] - fiberLoc) * (dataTempe[8] - dataTempe[10])/(dataTempe[9] - dataTempe[11]);
-
-		}
-		else if (fiberLoc <= dataTempe[13] )
-		{
-			FiberTemperature = dataTempe[10] - (dataTempe[11] - fiberLoc) * (dataTempe[10] - dataTempe[12])/(dataTempe[11] - dataTempe[13]);
-
-		}
-		else if (fiberLoc <= dataTempe[15] )
-		{
-			FiberTemperature = dataTempe[12] - (dataTempe[13] - fiberLoc) * (dataTempe[12] - dataTempe[14])/(dataTempe[13] - dataTempe[15]);
-
-		}
-		else if ( fiberLoc <= dataTempe[17] )
-		{
-			FiberTemperature = dataTempe[14] - (dataTempe[15] - fiberLoc) * (dataTempe[14] - dataTempe[16])/(dataTempe[15] - dataTempe[17]);
-
-		}
-		else 
-		{
-			opserr <<"FiberSection2dThermal::setTrialSectionDeformation -- fiber loc is out of the section";
-		}
-
-		return FiberTemperature;
-}
-
-
 
 
 double
-LayeredShellFiberSectionThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLoc)
+LayeredShellFiberSectionThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLoc, int matType)
 {
     double FiberTemperature = 0;
 
@@ -1042,19 +989,40 @@ LayeredShellFiberSectionThermal::determineFiberTemperature(const Vector& DataMix
         dataTempe[i] = DataMixed(i);
     }
 
-    if (fiberLoc < dataTempe[1]|| fiberLoc || fiberLoc > dataTempe[17])
+    if (fiberLoc < dataTempe[1] || fiberLoc > dataTempe[17])
     {
-        opserr << "LayeredShellFiberSectionThermal::determineFiberTemperature -- fiber loc: "<<fiberLoc<<" is out of the section";
+        opserr << "LayeredShellFiberSectionThermal::determineFiberTemperature -- fiber loc: "<<fiberLoc<<" is out of the section range "<< dataTempe[1] <<", "<< dataTempe[17] <<endln;
     }
     else {
-        for (int i = 0; i < 9; i++) {
-            if (fiberLoc <= dataTempe[i * 2 + 1]) {
-                FiberTemperature = dataTempe[i] - (dataTempe[i + 1] - fiberLoc) * (dataTempe[i] - dataTempe[i + 2]) / (dataTempe[i + 1] - dataTempe[i + 3]);
-                break;
+        if (matType == 0) {
+            for (int i = 1; i < 9; i++) {
+                if (fiberLoc <= dataTempe[i * 2 + 1]) {
+                    FiberTemperature = dataTempe[2 * i - 2] - (dataTempe[2 * i - 1] - fiberLoc) * (dataTempe[2 * i - 2] - dataTempe[2 * i]) / (dataTempe[2 * i - 1] - dataTempe[2 * i + 1]);
+                    break;
+                }
             }
         }
+        else if (matType == 1)
+        {
+            //for steel profile 
+            FiberTemperature = dataTempe[0];
+        }
+        else if (matType == 2)
+        {
+            //for steel layer in flat section
+            fiberLoc = fiberLoc+dataTempe[17];
+            for (int i = 1; i < 9; i++) {
+                if (fiberLoc <= dataTempe[i * 2 + 1]) {
+                    FiberTemperature = dataTempe[2 * i - 2] - (dataTempe[2 * i - 1] - fiberLoc) * (dataTempe[2 * i - 2] - dataTempe[2 * i]) / (dataTempe[2 * i - 1] - dataTempe[2 * i + 1]);
+                    break;
+                }
+            }
+        }
+
+
     }
 
+ 
 
     return FiberTemperature;
 }

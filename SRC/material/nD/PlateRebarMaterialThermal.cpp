@@ -105,7 +105,7 @@ PlateRebarMaterialThermal::getOrder( ) const
 const char*
 PlateRebarMaterialThermal::getType( ) const 
 {
-  return "PlateFiberThermal" ; 
+  return "PlateRebarThermal" ; 
 }
 
 
