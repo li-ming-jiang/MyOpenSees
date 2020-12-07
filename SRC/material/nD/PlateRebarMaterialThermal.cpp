@@ -105,7 +105,14 @@ PlateRebarMaterialThermal::getOrder( ) const
 const char*
 PlateRebarMaterialThermal::getType( ) const 
 {
-  return "PlateRebarThermal" ; 
+    if (angle == 0) {
+        return "PlateRebarThermalPar";
+    }
+    else if (angle == 90) {
+        return "PlateRebarThermalPer";
+    }
+    else
+
 }
 
 

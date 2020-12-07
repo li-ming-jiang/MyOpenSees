@@ -566,8 +566,10 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
     int matType =0;
     if (theFibers[i]->getType() == "PlateFiberThermalSteel")
         matType = 1;
-    else if (theFibers[i]->getType() == "PlateFiberThermalSteel")
+    else if (theFibers[i]->getType() == "PlateRebarThermalPar")
         matType = 2;
+    else if (theFibers[i]->getType() == "PlateRebarThermalPer")
+        matType = 3;
     else 
         opserr<<"LayeredShellThermal can not identify matType"<<endln;
 
