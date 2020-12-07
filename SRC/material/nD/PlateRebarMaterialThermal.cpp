@@ -111,7 +111,7 @@ PlateRebarMaterialThermal::getType( ) const
     else if (angle == 90) {
         return "PlateRebarThermalPer";
     }
-    else
+
 
 }
 
