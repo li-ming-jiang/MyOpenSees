@@ -49,6 +49,9 @@ void* OPS_LayeredShellFiberSectionThermal()
     int tag, nLayers, matTag;
     double h,loc, * thickness, *location;
     double offset=0;
+    double flath = 0;
+    double ribh = 0;
+    double ribangle = 0;
     NDMaterial** theMats;
 
     int numdata = 1;
@@ -62,6 +65,23 @@ void* OPS_LayeredShellFiberSectionThermal()
     if ((strcmp(typechar, "-offset") == 0) || (strcmp(typechar, "offset") == 0) || (strcmp(typechar, "-Offset") == 0)) {
         if (OPS_GetDoubleInput(&numdata, &offset) < 0) {
             opserr << "WARNING invalid offset value" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+    }
+    else if ((strcmp(typechar, "-ribSection") == 0) || (strcmp(typechar, "-rib") == 0) || (strcmp(typechar, "-Rib") == 0)) {
+        if (OPS_GetDoubleInput(&numdata, &flath) < 0) {
+            opserr << "WARNING invalid flat slab thickness" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+        if (OPS_GetDoubleInput(&numdata, &ribh) < 0) {
+            opserr << "WARNING invalid rib height(excluding flat part)" << endln;
+            opserr << "LayeredShellThermal section: " << tag << endln;
+            return 0;
+        }
+        if (OPS_GetDoubleInput(&numdata, &ribangle) < 0) {
+            opserr << "WARNING invalid rib angle" << endln;
             opserr << "LayeredShellThermal section: " << tag << endln;
             return 0;
         }
@@ -138,7 +158,7 @@ void* OPS_LayeredShellFiberSectionThermal()
     if(type==1)
          theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness, theMats,offset);
     else if(type==2)
-        theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness,location, theMats);
+        theSection = new LayeredShellFiberSectionThermal(tag, nLayers, thickness,location, theMats, flath, ribh, ribangle);
 
     if (location != 0) delete location;
     if (thickness != 0) delete thickness;
@@ -220,10 +240,10 @@ LayeredShellFiberSectionThermal::LayeredShellFiberSectionThermal(
     int tag,
     int iLayers,
     double* thickness, double* loc,
-    NDMaterial** fibers, double offset, int comTypeTag) :
+    NDMaterial** fibers, double flath, double ribh, double ribangle):
     SectionForceDeformation(tag, SEC_TAG_LayeredShellFiberSectionThermal),
     strainResultant(8), countnGauss(0), AverageThermalMomentP(0), AverageThermalForceP(0), 
-    sT(0), ThermalElongation(0), Offset(offset), AverageThermalElongP(0),ComTypeTag(comTypeTag)
+    sT(0), ThermalElongation(0), Offset(0), AverageThermalElongP(0),flatH (flath), ribH(ribh),ribAng(ribangle)
 {
     this->nLayers = iLayers;
     ti = new double[iLayers];
@@ -286,8 +306,14 @@ SectionForceDeformation  *LayeredShellFiberSectionThermal::getCopy( )
     clone = new LayeredShellFiberSectionThermal( this->getTag(),
 					  nLayers,
 					  ti, loci,
-					  theFibers,Offset ) ; //make the copy
+					  theFibers,flatH, ribH, ribAng) ; //make the copy
     //delete thickness;
+  }
+  else {
+      clone = new LayeredShellFiberSectionThermal(this->getTag(),
+          nLayers,
+          ti,
+          theFibers, Offset); //make the copy
   }
   return clone ;
 }
@@ -564,14 +590,35 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
 	double tangent, elongation;
 
     int matType =0;
-    if (theFibers[i]->getType() == "PlateFiberThermalSteel")
-        matType = 1;
-    else if (theFibers[i]->getType() == "PlateRebarThermalPar")
-        matType = 2;
-    else if (theFibers[i]->getType() == "PlateRebarThermalPer")
-        matType = 3;
-    else 
-        opserr<<"LayeredShellThermal can not identify matType"<<endln;
+    if (ribH > 1e-6 && flatH > 1e-6) {
+        //composite section with rib
+        const char* layerType = theFibers[i]->getType();
+        if (layerType != "PlateFiberThermal") {
+            if (yi > -flatH / 2.0) {
+                //steel rebars in the flat part
+                if (layerType == "PlateFiberThermalSteel")
+                    matType = 1;
+                else if (layerType == "PlateRebarThermalPar") {
+                    if (ribAng < 1e-4)
+                        matType = 20; //steel rebar is parallel to the ribs;
+                    else if (ribAng - 90 < 1e-4 && ribAng - 90 > -1e-4)
+                        matType = 21; //steel rebar is perpendicular to the ribs;
+                }
+                else if (layerType == "PlateRebarThermalPer") {
+                    if (ribAng < 1e-4)
+                        matType = 21; //steel rebar is perpendicular to the ribs;
+                    else if (ribAng - 90 < 1e-4 && ribAng - 90 > -1e-4)
+                        matType = 20; //steel rebar is parallel to the ribs;
+                }
+                else
+                    opserr << "LayeredShellThermal can not identify matType" << endln;
+            }
+            else {
+                    matType = 3; // profile steel
+            }
+        }
+    }
+    
 
 	FiberTemperature = this->determineFiberTemperature( dataMixed, yi, matType);
 
@@ -1004,15 +1051,15 @@ LayeredShellFiberSectionThermal::determineFiberTemperature(const Vector& DataMix
                 }
             }
         }
-        else if (matType == 1)
+        else if (matType == 3)
         {
             //for steel profile 
             FiberTemperature = dataTempe[0];
         }
-        else if (matType == 2)
+        else if (matType == 20)
         {
             //for steel layer in flat section
-            fiberLoc = fiberLoc+dataTempe[17];
+            fiberLoc = fiberLoc-ribH;
             for (int i = 1; i < 9; i++) {
                 if (fiberLoc <= dataTempe[i * 2 + 1]) {
                     FiberTemperature = dataTempe[2 * i - 2] - (dataTempe[2 * i - 1] - fiberLoc) * (dataTempe[2 * i - 2] - dataTempe[2 * i]) / (dataTempe[2 * i - 1] - dataTempe[2 * i + 1]);
