@@ -288,7 +288,7 @@ NDMaterial::setResponse (const char **argv, int argc,
     theResponse =  new MaterialResponse(this, 2, this->getStress());
   }
   //Adding temperature and thermal expansion output,L.Jiang [SIF]
-  else if (strcmp(argv[0], "TempAndElong") == 0 || strcmp(argv[0], "TempAndElong") == 0) {
+  else if (strcmp(argv[0], "TempAndElong") == 0 || strcmp(argv[0], "TempElong") == 0) {
 	  const Vector &res = this->getTempAndElong();
 	  int size = res.Size();
 	  if (size == 2) {

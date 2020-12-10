@@ -84,7 +84,7 @@ PlateFromPlaneStressMaterialThermal::getCopy( )
 NDMaterial* 
 PlateFromPlaneStressMaterialThermal::getCopy( const char *type ) 
 {
-  if (strcmp(type, this->getType()) == 0)
+  if (strcmp(type, "PlateFiberThermal") == 0)
     return this->getCopy( ) ;
   else
     return 0;
@@ -102,7 +102,7 @@ PlateFromPlaneStressMaterialThermal::getOrder( ) const
 const char*
 PlateFromPlaneStressMaterialThermal::getType( ) const 
 {
-  if(this->getClassTag()== ND_TAG_J2PlaneStressThermal)
+  if(theMat->getClassTag()== ND_TAG_J2PlaneStressThermal)
       return "PlateFiberThermalSteel" ; 
   else
       return "PlateFiberThermal";
@@ -360,6 +360,7 @@ PlateFromPlaneStressMaterialThermal::getTempAndElong()
         returnedVec(3) = theMat->getTempAndElong()(3);
     }
     else {
+        returnedVec.resize(2);
         returnedVec(0) = theMat->getTempAndElong()(0);
         returnedVec(1) = theMat->getTempAndElong()(1);
     }

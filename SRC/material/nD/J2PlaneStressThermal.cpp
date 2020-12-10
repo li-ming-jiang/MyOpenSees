@@ -646,8 +646,8 @@ J2PlaneStressThermal::Print(OPS_Stream &s, int flag) {
 const Vector&
 J2PlaneStressThermal::getTempAndElong(void)
 {
-	TempAndElong(0) = kxi;
-	TempAndElong(1) = fyt;
+	//TempAndElong(0) = kxi;
+	//TempAndElong(1) = fyt;
 	return TempAndElong;
 }
 
@@ -715,7 +715,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 		}
 	}
 	else
-		opserr << "WARNING SteelECThermal received an invalid typeTag: " << TypeTag << endln;
+		opserr << "WARNING J2PlaneStressThermal received an invalid typeTag: " << TypeTag << endln;
 
 	//Now Updating modulus, strengths
 	for (int i = 0; i<13; i++) {
@@ -726,7 +726,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 				E = E0*(1.0 - TempT*(1.0 - E0Rfactors[0]) / 80);
 			}
 			else if (i == 12) {
-				opserr << "Warning:The temperature " << TempT << " for SteelECthermal is out of range\n";
+				opserr << "Warning:The temperature " << TempT << " for J2PlaneStressThermal is out of range\n";
 				return -1;
 			}
 			else {
@@ -755,7 +755,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 		ThermalElongation = -6.2e-3 + 2e-5*(TempT + 20);
 	}
 	else {
-		opserr << " SteelEC Temperature " << TempT << " is invalid\n";
+		opserr << " J2PlaneStressThermal Temperature " << TempT << " is invalid\n";
 		return -1;
 	}
 
@@ -781,8 +781,8 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	//ThermalElongation = 0;
 	Elong = ThermalElongation;
 	//this->plastic_integrator();
-   // TempAndElong(0) = Temp;
-	//TempAndElong(1) = kxi;
+    TempAndElong(0) = TempT;
+	TempAndElong(1) = ThermalElongation;
 	Tchange++;
 	return 0;
 }

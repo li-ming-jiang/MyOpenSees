@@ -87,7 +87,7 @@ PlateRebarMaterialThermal::getCopy( )
 NDMaterial* 
 PlateRebarMaterialThermal::getCopy( const char *type ) 
 {
-  if (strcmp(type,this->getType()) == 0)
+  if (strcmp(type, "PlateFiberThermal")==0)
     return this->getCopy( ) ;
   else
     return 0;

@@ -112,7 +112,7 @@ PlateFiberMaterialThermal::getOrder() const
 const char*
 PlateFiberMaterialThermal::getType() const 
 {
-  return "PlateFiber"; 
+  return "PlateFiberThermal"; 
 }
 
 
