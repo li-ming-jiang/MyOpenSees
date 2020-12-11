@@ -67,6 +67,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		int trialphTag, PhaseTag;
 		int TempTag;
 		double rho, cp, enthalpy;
+		double commit_rho, commit_cp, commit_k;
 		double rho0, moist;
 		double trial_temp;
 		double ini_temp;  // keep a copy of initial temperature
