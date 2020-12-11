@@ -298,7 +298,7 @@ SectionForceDeformation  *LayeredShellFiberSectionThermal::getCopy( )
   LayeredShellFiberSectionThermal *clone = 0;   //new instance of this class
   
   //double *thickness = new double[nLayers];
-  if (ti != 0)
+  if (flatH>1e-6&&ribH>1e-6)
   {
     //for (int i = 0; i < nLayers; i++ ) 
      // thickness[i] = 0.5 * wg[i] * h;
@@ -593,18 +593,21 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
     if (ribH > 1e-6 && flatH > 1e-6) {
         //composite section with rib
         const char* layerType = theFibers[i]->getType();
-        if (layerType != "PlateFiberThermal") {
+        if (strcmp(layerType,"PlateFiberThermal")==0) {
+            matType = 0;
+        }
+        else{
             if (yi > -flatH / 2.0) {
                 //steel rebars in the flat part
-                if (layerType == "PlateFiberThermalSteel")
+                if (strcmp(layerType,"PlateFiberThermalSteel")==0)
                     matType = 1;
-                else if (layerType == "PlateRebarThermalPar") {
+                else if (strcmp(layerType, "PlateRebarThermalPar")==0) {
                     if (ribAng < 1e-4)
                         matType = 20; //steel rebar is parallel to the ribs;
                     else if (ribAng - 90 < 1e-4 && ribAng - 90 > -1e-4)
                         matType = 21; //steel rebar is perpendicular to the ribs;
                 }
-                else if (layerType == "PlateRebarThermalPer") {
+                else if (strcmp(layerType, "PlateRebarThermalPer")==0) {
                     if (ribAng < 1e-4)
                         matType = 21; //steel rebar is perpendicular to the ribs;
                     else if (ribAng - 90 < 1e-4 && ribAng - 90 > -1e-4)
@@ -1043,7 +1046,7 @@ LayeredShellFiberSectionThermal::determineFiberTemperature(const Vector& DataMix
         opserr << "LayeredShellFiberSectionThermal::determineFiberTemperature -- fiber loc: "<<fiberLoc<<" is out of the section range "<< dataTempe[1] <<", "<< dataTempe[17] <<endln;
     }
     else {
-        if (matType == 0) {
+        if (matType == 0|| matType == 1 || matType == 21) {
             for (int i = 1; i < 9; i++) {
                 if (fiberLoc <= dataTempe[i * 2 + 1]) {
                     FiberTemperature = dataTempe[2 * i - 2] - (dataTempe[2 * i - 1] - fiberLoc) * (dataTempe[2 * i - 2] - dataTempe[2 * i]) / (dataTempe[2 * i - 1] - dataTempe[2 * i + 1]);
