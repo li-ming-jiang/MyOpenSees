@@ -120,6 +120,8 @@ TimberHTMaterial::~TimberHTMaterial()
 {
     if (k != 0)
 		delete k;
+    if (thePars != 0)
+        delete thePars;
 }
 
 int 
@@ -243,7 +245,7 @@ TimberHTMaterial::getRho(void)
         else if (trial_temp <= 1200)
             rho = rho0 * (0.26 - 0.26 * (trial_temp - 800) / 400);
         else
-            opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;
+            opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;s
     }
     else {
         if (trialphTag == 0) {
@@ -336,7 +338,7 @@ TimberHTMaterial::getSpecificHeat(void)
             cp = (*thePars)(0, 3);
         }
         else if (trialphTag == 10) {
-            double maxcp = 13600;
+            double maxcp = 9000;
             if (trial_temp <= 95)
                 cp = (*thePars)(0, 3);
              else if (trial_temp <= 105)
@@ -632,8 +634,8 @@ TimberHTMaterial::determinePhase(double temp, double time)
         }
 
         charTime = pht2 - pht1;
-        if(charTime>4500)
-            trialphTag = 3;
+        //if(charTime>3000)
+            //trialphTag = 3;
         //char
     }
     else {
@@ -696,7 +698,7 @@ TimberHTMaterial::getHeatGen(double locy)
             //alpha = 1- (pht2 - pht1) / dt3;
         }
         //Considering locy indicating depth effect
-        double locRatio = 1-locy / 0.1; //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
+        double locRatio = 1-locy / 0.06; //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
         if (locRatio < 0)
             locRatio = 0;
         else if (locRatio>1)

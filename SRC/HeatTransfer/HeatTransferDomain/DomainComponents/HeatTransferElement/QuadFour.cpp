@@ -121,14 +121,18 @@ QuadFour::QuadFour(int tag, int nd1, int nd2, int nd3, int nd4,
 
 QuadFour::~QuadFour()
 {    
-    for (int i = 0; i < 4; i++) {
-		if (theMaterial[i])
-			delete theMaterial[i];
+	if (theMaterial != 0) {
+		for (int i = 0; i < 4; i++) {
+			if (theMaterial[i])
+				delete theMaterial[i];
 		}
+		// Delete the array of pointers to NDMaterial pointer arrays
 
-  // Delete the array of pointers to NDMaterial pointer arrays
-	if (theMaterial)
 		delete[] theMaterial;
+	}
+
+
+
 }
 
 
