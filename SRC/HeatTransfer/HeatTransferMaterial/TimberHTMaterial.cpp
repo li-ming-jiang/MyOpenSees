@@ -245,7 +245,7 @@ TimberHTMaterial::getRho(void)
         else if (trial_temp <= 1200)
             rho = rho0 * (0.26 - 0.26 * (trial_temp - 800) / 400);
         else
-            opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;s
+            opserr << "TimberHTMaterial::getSpecificHeat recieves incorrect temperature: " << trial_temp << endln;
     }
     else {
         if (trialphTag == 0) {
