@@ -310,9 +310,9 @@ SectionForceDeformation  *LayeredShellFiberSectionThermal::getCopy( )
     //delete thickness;
   }
   else {
-      flatH = 0; ribH = 0.0;  ribAng = 0.0;
-      clone = new LayeredShellFiberSectionThermal(this->getTag(),nLayers, ti, loci,theFibers, flatH, ribH, ribAng); //make the copy
-      //clone = new LayeredShellFiberSectionThermal(this->getTag(),nLayers,ti,theFibers, Offset); //make the copy
+     // flatH = 0; ribH = 0.0;  ribAng = 0.0;
+      //clone = new LayeredShellFiberSectionThermal(this->getTag(),nLayers, ti, loci,theFibers, flatH, ribH, ribAng); //make the copy
+      clone = new LayeredShellFiberSectionThermal(this->getTag(),nLayers,ti,theFibers, Offset); //make the copy
   }
   return clone ;
 }
