@@ -1058,8 +1058,8 @@ OPS_addHTMesh()
 			//if second material is defined
 			
 			if (OPS_GetDoubleInput(&numdata, &Loc2) < 0) {
-				opserr << "WARNING:: invalid section location for defining simple mesh: " << HTMeshTag << "\n";
-				return -1;
+				//opserr << "WARNING:: invalid section location for defining simple mesh: " << HTMeshTag << "\n";
+				//return -1;
 				OPS_ResetCurrentInputArg(-1);
 			}
 			else {
