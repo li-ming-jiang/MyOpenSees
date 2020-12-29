@@ -140,7 +140,7 @@ NaturalFire::setFirePars(double time, const Vector& firePars) {
 			return -1;
 		}
 #ifdef _DEBUG
-	opserr << FirePars << endln;
+	//opserr << FirePars << endln;
 #endif // DEBUG
 
 	

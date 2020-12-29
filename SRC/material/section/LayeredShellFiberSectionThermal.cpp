@@ -602,7 +602,7 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
                     matType = 1;
                 else if (strcmp(layerType, "PlateRebarThermalPar")==0) {
                     if (ribAng < 1e-4)
-                        matType = 20; //steel rebar is parallel to the ribs;
+                        matType = 20; //steel rebar is parallel to the ribs;   matType = 20;
                     else if (ribAng - 90 < 1e-4 && ribAng - 90 > -1e-4)
                         matType = 21; //steel rebar is perpendicular to the ribs;
                 }

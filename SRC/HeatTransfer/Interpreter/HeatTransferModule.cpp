@@ -3280,6 +3280,7 @@ int OPS_GetFireOut() {
 		double q = 0;
 		double d = 0;
 		double Ts = 0;
+		double ptime = 0.0;
 		if (OPS_GetIntInput(&dataNum, &FireModelTag) < 0) {
 			opserr << "WARNING:: invalid FireModel tag for HTOutput: " << "\n";
 			return -1;
@@ -3314,7 +3315,11 @@ int OPS_GetFireOut() {
 			locs(0) = xloc; locs(1) = yloc; locs(2) = zloc;
 			FireModel* thefire = theHTModule->getFireModel(FireModelTag);
 			double thecurrentTime = theHTDomain->getCurrentTime();
-			double incq = thefire->getFireOut(thecurrentTime, locs);
+#ifdef _DEBUG
+			opserr << "HTModule Checking the fire model " << FireModelTag << "location:" << locs << endln;
+#endif
+
+			double incq = thefire->getFireOut(60.0, locs);
 
 			if (OPS_SetDoubleOutput(&dataNum, &incq) < 0) {
 				opserr << "WARNING failed to return fire pars for fire model " << FireModelTag << "\n";
