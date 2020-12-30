@@ -1068,10 +1068,9 @@ int
 TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc, 
                         TCL_Char **argv)
 {
-
   // ensure the destructor has not been called - 
   if (theTclBuilder == 0) {
-    opserr << "WARNING builder has been destroyed" << endln;
+    opserr << "WARNING builder has been destroyed." << endln;
     return TCL_ERROR;
   }
 
