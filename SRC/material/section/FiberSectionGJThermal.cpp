@@ -1084,78 +1084,145 @@ FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double
 			opserr <<"FiberSectionGJThermal " << this->getTag() << " :: fiber loc " <<fiberLocy<<" is out of the section over" << dataTempe[17] << endln;
 		}
 	}
-	else if(DataMixed.Size()==25){
-	//---------------if temperature Data has 25 elements--------------------
-	
-		double dataTempe[25]; //
-		for (int i = 0; i < 25; i++) { //
-			dataTempe[i] = DataMixed(i);
-		}
+    else if (DataMixed.Size() == 25) {
+        //---------------if temperature Data has 25 elements--------------------
 
-		if ( fabs(dataTempe[0]) <= 1e-10 && fabs(dataTempe[10]) <= 1e-10 &&fabs(dataTempe[11]) <= 1e-10) //no tempe load
-		{
-			return 0;
-		}
-	
-	//caculate the fiber tempe, T=T1-(Y-Y1)*(T1-T2)/(Y1-Y2)
-	//first for bottom flange if existing
-		if (  fiberLocy <= dataTempe[1]) 
-		{
-			if (fiberLocz <= dataTempe[12]){
-			opserr<<"WARNING: FiberSectionGJThermal failed to find the fiber with locy: "<<fiberLocy <<" , locZ: "<<fiberLocz <<endln;
-			}
-			else if (fiberLocz<= dataTempe[15]){
-			FiberTemperature = dataTempe[10] - (dataTempe[10] - dataTempe[13])*(dataTempe[12] - fiberLocz) /(dataTempe[12] - dataTempe[15]);
-			}
-			else if (fiberLocz<= dataTempe[18]){
-			FiberTemperature = dataTempe[13] - (dataTempe[13] - dataTempe[16])*(dataTempe[15] - fiberLocz) /(dataTempe[15] - dataTempe[18]);
-			}
-			else if (fiberLocz<= dataTempe[21]){
-			FiberTemperature = dataTempe[16] - (dataTempe[16] - dataTempe[19])*(dataTempe[18] - fiberLocz) /(dataTempe[18] - dataTempe[21]);
-			}
-			else if (fiberLocz<= dataTempe[24]){
-			FiberTemperature = dataTempe[19] - (dataTempe[19] - dataTempe[22])*(dataTempe[21] - fiberLocz) /(dataTempe[21] - dataTempe[24]);
-			}
-			else {
-			opserr<<"WARNING: FiberSectionGJThermal failed to find the fiber with locy: "<<fiberLocy <<" , locZ: "<<fiberLocz <<endln;
-			}
-		}
-		else if (fiberLocy <= dataTempe[3])
-		{
-			FiberTemperature = dataTempe[0] - (dataTempe[1] - fiberLocy) * (dataTempe[0] - dataTempe[2])/(dataTempe[1] - dataTempe[3]);
-		}
-		else if (   fiberLocy <= dataTempe[5] )
-		{
-			FiberTemperature = dataTempe[2] - (dataTempe[3] - fiberLocy) * (dataTempe[2] - dataTempe[4])/(dataTempe[3] - dataTempe[5]);
-		}
-		else if ( fiberLocy <= dataTempe[7] )
-		{
-			FiberTemperature = dataTempe[4] - (dataTempe[5] - fiberLocy) * (dataTempe[4] - dataTempe[6])/(dataTempe[5] - dataTempe[7]);
-		}
-		else if ( fiberLocy <= dataTempe[9] )
-		{
-			FiberTemperature = dataTempe[6] - (dataTempe[7] - fiberLocy) * (dataTempe[6] - dataTempe[8])/(dataTempe[7] - dataTempe[9]);
-		}
-		else {
-			if (fiberLocz <= dataTempe[12]){
-			opserr<<"WARNING: FiberSectionGJThermal failed to find the fiber with locy: "<<fiberLocy <<" , locZ: "<<fiberLocz <<endln;
-			}
-			else if (fiberLocz<= dataTempe[15]){
-			FiberTemperature = dataTempe[11] - (dataTempe[11] - dataTempe[14])*(dataTempe[12] - fiberLocz) /(dataTempe[12] - dataTempe[15]);
-			}
-			else if (fiberLocz<= dataTempe[18]){
-			FiberTemperature = dataTempe[14] - (dataTempe[14] - dataTempe[17])*(dataTempe[15] - fiberLocz) /(dataTempe[15] - dataTempe[18]);
-			}
-			else if (fiberLocz<= dataTempe[21]){
-			FiberTemperature = dataTempe[17] - (dataTempe[17] - dataTempe[20])*(dataTempe[18] - fiberLocz) /(dataTempe[18] - dataTempe[21]);
-			}
-			else if (fiberLocz<= dataTempe[24]){
-			FiberTemperature = dataTempe[20] - (dataTempe[20] - dataTempe[23])*(dataTempe[21] - fiberLocz) /(dataTempe[21] - dataTempe[24]);
-			}
-			else {
-			opserr<<"WARNING: FiberSectionGJThermal failed to find the fiber with locy: "<<fiberLocy <<" , locZ: "<<fiberLocz <<endln;
-			}
-		}
-	}
-	return FiberTemperature;
+        double dataTempe[25]; //
+        for (int i = 0; i < 25; i++) { //
+            dataTempe[i] = DataMixed(i);
+        }
+
+        if (fabs(dataTempe[0]) <= 1e-10 && fabs(dataTempe[10]) <= 1e-10 && fabs(dataTempe[11]) <= 1e-10) //no tempe load
+        {
+            return 0;
+        }
+        bool zAxis = 1;
+        for (int i = 1; i < 10 && zAxis; i += 2) {
+            zAxis = (fabs(dataTempe[i]) <= 1e-10);
+        }
+        if (!zAxis) {
+            //caculate the fiber tempe, T=T1-(Y-Y1)*(T1-T2)/(Y1-Y2)
+            //first for bottom flange if existing
+            if (fiberLocy <= dataTempe[1])
+            {
+                if (fiberLocz <= dataTempe[12]) {
+                    opserr << "WARNING: Bottom flange fiber locy: " << fiberLocy << " < y1 and locZ: " << fiberLocz << " < z1 " << endln;
+                }
+                else if (fiberLocz <= dataTempe[15]) {
+                    FiberTemperature = dataTempe[10] - (dataTempe[10] - dataTempe[13]) * (dataTempe[12] - fiberLocz) / (dataTempe[12] - dataTempe[15]);
+                }
+                else if (fiberLocz <= dataTempe[18]) {
+                    FiberTemperature = dataTempe[13] - (dataTempe[13] - dataTempe[16]) * (dataTempe[15] - fiberLocz) / (dataTempe[15] - dataTempe[18]);
+                }
+                else if (fiberLocz <= dataTempe[21]) {
+                    FiberTemperature = dataTempe[16] - (dataTempe[16] - dataTempe[19]) * (dataTempe[18] - fiberLocz) / (dataTempe[18] - dataTempe[21]);
+                }
+                else if (fiberLocz <= dataTempe[24]) {
+                    FiberTemperature = dataTempe[19] - (dataTempe[19] - dataTempe[22]) * (dataTempe[21] - fiberLocz) / (dataTempe[21] - dataTempe[24]);
+                }
+                else {
+                    opserr << "WARNING: Bottom flange fiber locy: " << fiberLocy << " < y1 and locZ: " << fiberLocz << " > z5 " << endln;
+                }
+            }
+            else if (fiberLocy <= dataTempe[3])
+            {
+                FiberTemperature = dataTempe[0] - (dataTempe[1] - fiberLocy) * (dataTempe[0] - dataTempe[2]) / (dataTempe[1] - dataTempe[3]);
+            }
+            else if (fiberLocy <= dataTempe[5])
+            {
+                FiberTemperature = dataTempe[2] - (dataTempe[3] - fiberLocy) * (dataTempe[2] - dataTempe[4]) / (dataTempe[3] - dataTempe[5]);
+            }
+            else if (fiberLocy <= dataTempe[7])
+            {
+                FiberTemperature = dataTempe[4] - (dataTempe[5] - fiberLocy) * (dataTempe[4] - dataTempe[6]) / (dataTempe[5] - dataTempe[7]);
+            }
+            else if (fiberLocy <= dataTempe[9])
+            {
+                FiberTemperature = dataTempe[6] - (dataTempe[7] - fiberLocy) * (dataTempe[6] - dataTempe[8]) / (dataTempe[7] - dataTempe[9]);
+            }
+            else {
+                if (fiberLocz <= dataTempe[12]) {
+                    opserr << "WARNING: Top flange fiber locy: " << fiberLocy << " > y5 and locZ: " << fiberLocz << " < z1 " << endln;
+                }
+                else if (fiberLocz <= dataTempe[15]) {
+                    FiberTemperature = dataTempe[11] - (dataTempe[11] - dataTempe[14]) * (dataTempe[12] - fiberLocz) / (dataTempe[12] - dataTempe[15]);
+                }
+                else if (fiberLocz <= dataTempe[18]) {
+                    FiberTemperature = dataTempe[14] - (dataTempe[14] - dataTempe[17]) * (dataTempe[15] - fiberLocz) / (dataTempe[15] - dataTempe[18]);
+                }
+                else if (fiberLocz <= dataTempe[21]) {
+                    FiberTemperature = dataTempe[17] - (dataTempe[17] - dataTempe[20]) * (dataTempe[18] - fiberLocz) / (dataTempe[18] - dataTempe[21]);
+                }
+                else if (fiberLocz <= dataTempe[24]) {
+                    FiberTemperature = dataTempe[20] - (dataTempe[20] - dataTempe[23]) * (dataTempe[21] - fiberLocz) / (dataTempe[21] - dataTempe[24]);
+                }
+                else {
+                    opserr << "WARNING: Top flange fiber locy: " << fiberLocy << " > y5 and locZ: " << fiberLocz << " > z5 " << endln;
+                }
+            }
+            return FiberTemperature;
+        }
+        else {
+            //caculate the fiber tempe, T=T1-(Z-Z1)*(T1-T2)/(Z1-Z2)
+            //first for bottom flange if existing
+            if (fiberLocy <= dataTempe[12])
+            {
+                if (fiberLocz <= dataTempe[1]) {
+                    opserr << "WARNING: Bottom flange fiber locZ: " << fiberLocy << " < z1 and locY: " << fiberLocz << " < y1 " << endln;
+                }
+                else if (fiberLocz <= dataTempe[3]) {
+                    FiberTemperature = dataTempe[10] - (dataTempe[10] - dataTempe[13]) * (dataTempe[1] - fiberLocz) / (dataTempe[1] - dataTempe[3]);
+                }
+                else if (fiberLocz <= dataTempe[5]) {
+                    FiberTemperature = dataTempe[13] - (dataTempe[13] - dataTempe[16]) * (dataTempe[3] - fiberLocz) / (dataTempe[3] - dataTempe[5]);
+                }
+                else if (fiberLocz <= dataTempe[7]) {
+                    FiberTemperature = dataTempe[16] - (dataTempe[16] - dataTempe[19]) * (dataTempe[5] - fiberLocz) / (dataTempe[5] - dataTempe[7]);
+                }
+                else if (fiberLocz <= dataTempe[9]) {
+                    FiberTemperature = dataTempe[19] - (dataTempe[19] - dataTempe[22]) * (dataTempe[7] - fiberLocz) / (dataTempe[7] - dataTempe[9]);
+                }
+                else {
+                    opserr << "WARNING: Bottom flange fiber locZ: " << fiberLocy << " < z1 and locY: " << fiberLocz << " > y5 " << endln;
+                }
+            }
+            else if (fiberLocy <= dataTempe[15])
+            {
+                FiberTemperature = dataTempe[0] - (dataTempe[12] - fiberLocy) * (dataTempe[0] - dataTempe[2]) / (dataTempe[12] - dataTempe[15]);
+            }
+            else if (fiberLocy <= dataTempe[18])
+            {
+                FiberTemperature = dataTempe[2] - (dataTempe[15] - fiberLocy) * (dataTempe[2] - dataTempe[4]) / (dataTempe[15] - dataTempe[18]);
+            }
+            else if (fiberLocy <= dataTempe[21])
+            {
+                FiberTemperature = dataTempe[4] - (dataTempe[18] - fiberLocy) * (dataTempe[4] - dataTempe[6]) / (dataTempe[18] - dataTempe[21]);
+            }
+            else if (fiberLocy <= dataTempe[24])
+            {
+                FiberTemperature = dataTempe[6] - (dataTempe[21] - fiberLocy) * (dataTempe[6] - dataTempe[8]) / (dataTempe[21] - dataTempe[24]);
+            }
+            else {
+                if (fiberLocz <= dataTempe[1]) {
+                    opserr << "WARNING: Top flange fiber locZ: " << fiberLocy << " > z5 and locY: " << fiberLocz << " < y1 " << endln;
+                }
+                else if (fiberLocz <= dataTempe[3]) {
+                    FiberTemperature = dataTempe[11] - (dataTempe[11] - dataTempe[14]) * (dataTempe[1] - fiberLocz) / (dataTempe[1] - dataTempe[3]);
+                }
+                else if (fiberLocz <= dataTempe[5]) {
+                    FiberTemperature = dataTempe[14] - (dataTempe[14] - dataTempe[17]) * (dataTempe[3] - fiberLocz) / (dataTempe[3] - dataTempe[5]);
+                }
+                else if (fiberLocz <= dataTempe[7]) {
+                    FiberTemperature = dataTempe[17] - (dataTempe[17] - dataTempe[20]) * (dataTempe[5] - fiberLocz) / (dataTempe[5] - dataTempe[7]);
+                }
+                else if (fiberLocz <= dataTempe[9]) {
+                    FiberTemperature = dataTempe[20] - (dataTempe[20] - dataTempe[23]) * (dataTempe[7] - fiberLocz) / (dataTempe[7] - dataTempe[9]);
+                }
+                else {
+                    opserr << "WARNING: Top flange fiber locZ: " << fiberLocy << " > Z5 and locY: " << fiberLocz << " > Y5 " << endln;
+                }
+            }
+            return FiberTemperature;
+        }
+    }
 }
