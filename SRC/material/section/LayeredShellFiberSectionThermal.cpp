@@ -629,20 +629,20 @@ LayeredShellFiberSectionThermal::getTemperatureStress(const Vector& dataMixed)
 	ThermalTangent[i]=tangent;
 	ThermalElongation[i]=elongation;
     averageThermalForce += elongation * thickness * tangent;
-    averageThermalMoment += yi * thickness * elongation * tangent;
+   // averageThermalMoment += yi * thickness * elongation * tangent;
 	//averageThermalForce += elongation*thickness*tangent;
 	//averageThermalMoment+= (yi)*thickness*(elongation- AverageThermalElongP )*tangent;
     //AverageThermalElongP += elongation * thickness;   //commented now
   }
     //AverageThermalElongP = AverageThermalElongP / h;
-  //(*sT)(0) = averageThermalForce - AverageThermalForceP;
-  (*sT)(0) = 0;  
+  (*sT)(0) = averageThermalForce - AverageThermalForceP;
+  //(*sT)(0) = 0;  
   (*sT)(1) = 0;
   //(*sT)(1) = averageThermalMoment - AverageThermalMomentP;
   //(*sT)(0) = averageThermalForce - AverageThermalForceP;
  // (*sT)(1) = averageThermalMoment - AverageThermalMomentP;
   AverageThermalForceP = averageThermalForce;
-  AverageThermalMomentP = averageThermalMoment;
+  //AverageThermalMomentP = averageThermalMoment;
 
 
       return *sT;
