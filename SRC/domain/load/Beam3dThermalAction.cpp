@@ -63,6 +63,29 @@ Beam3dThermalAction::Beam3dThermalAction(int tag,
   indicator=1; //without path timeseries defined;
 }
 
+//Added by M. Anwar Orabi 2021
+Beam3dThermalAction::Beam3dThermalAction(bool z_Axis, int tag,
+	double t1, double locY1, double t2, double locY2,
+	double t3, double locY3, double t4, double locY4,
+	double t5, double locY5, double t6, double t7, double locZ1,
+	double t8, double t9, double locZ2, double t10, double t11, double locZ3,
+	double t12, double t13, double locZ4, double t14, double t15, double locZ5,
+	int theElementTag)
+	:ElementalLoad(tag, LOAD_TAG_Beam3dThermalAction, theElementTag),
+	ThermalActionType(LOAD_TAG_Beam3dThermalAction)
+{
+	Temp[0] = t1; Temp[1] = t2; Temp[2] = t3; Temp[3] = t4; Temp[4] = t5;
+	Temp[5] = t6; Temp[6] = t8; Temp[7] = t10; Temp[8] = t12; Temp[9] = t14;
+	Temp[10] = t7; Temp[11] = t9; Temp[12] = t11; Temp[13] = t13; Temp[14] = t15;
+
+	Loc[0] = locY1; Loc[1] = locY2; Loc[2] = locY3; Loc[3] = locY4; Loc[4] = locY5;
+	Loc[5] = locZ1; Loc[6] = locZ2; Loc[7] = locZ3; Loc[8] = locZ4; Loc[9] = locZ5;
+
+	Factors.Zero();
+	indicator = 1; //without path timeseries defined;
+	zAxis = z_Axis;
+}
+
 Beam3dThermalAction::Beam3dThermalAction(int tag, 
 					 double t1, double locY1, double t2, double locY2,
 					 double t3, double locY3, double t4, double locY4,
@@ -197,6 +220,11 @@ Beam3dThermalAction::getData(int &type, double loadFactor)
   return data;
 }
 
+bool
+Beam3dThermalAction::getZaxis()
+{
+	return zAxis;
+}
 
 void 
 Beam3dThermalAction::applyLoad(const Vector &factors)

@@ -301,7 +301,7 @@ FiberSectionGJThermal::setTrialSectionDeformation (const Vector &deforms)
 	double FiberTemperature = 0 ; 
 	double FiberTempMax = 0;
 
-	FiberTemperature = this->determineFiberTemperature( dataMixed, -yi-yBar,zi+zBar);
+	FiberTemperature = this->determineFiberTemperature( dataMixed, -yi-yBar,zi+zBar, true);
 
 	//---Calculating the Fiber Temperature---end
 
@@ -429,7 +429,7 @@ rot= e(3);
 //JJadd--12.2010---to get section force due to thermal load----start-----
 //---Liming modified the following block---
 const Vector&
-FiberSectionGJThermal::getTemperatureStress(const Vector& DataMixed)
+FiberSectionGJThermal::getTemperatureStress(const Vector& DataMixed, bool zAxis)
 {
    AverageThermalElong.Zero();
   dataMixed = DataMixed;
@@ -457,7 +457,7 @@ FiberSectionGJThermal::getTemperatureStress(const Vector& DataMixed)
 	double FiberTemperature = 0 ; 
 	double FiberTempMax = 0;
 
-	FiberTemperature= this->determineFiberTemperature( dataMixed, -yi, zi);
+	FiberTemperature= this->determineFiberTemperature( dataMixed, -yi, zi, zAxis);
     // determine material strain and set it
 	double tangent =0.0;
 	double ThermalElongation =0.0;
@@ -1028,7 +1028,7 @@ FiberSectionGJThermal::setParameter (const char **argv, int argc, Parameter &par
 }
 
 double  
-FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLocy, double fiberLocz) 
+FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLocy, double fiberLocz, bool zAxis) 
 {
 	double FiberTemperature = 0;
 	if(DataMixed.Size()==18){
@@ -1095,10 +1095,6 @@ FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double
         if (fabs(dataTempe[0]) <= 1e-10 && fabs(dataTempe[10]) <= 1e-10 && fabs(dataTempe[11]) <= 1e-10) //no tempe load
         {
             return 0;
-        }
-        bool zAxis = 1;
-        for (int i = 1; i < 10 && zAxis; i += 2) {
-            zAxis = (fabs(dataTempe[i]) <= 1e-10);
         }
         if (!zAxis) {
             //caculate the fiber tempe, T=T1-(Y-Y1)*(T1-T2)/(Y1-Y2)

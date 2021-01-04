@@ -54,6 +54,14 @@ class Beam3dThermalAction : public ElementalLoad
                 double t12, double t13, double locZ4, double t14,double t15, double locZ5,
 		        int theElementTag);
 
+  Beam3dThermalAction(bool zAxis, int tag,
+      double t1, double locY1, double t2, double locY2,
+      double t3, double locY3, double t4, double locY4,
+      double t5, double locY5, double t6, double t7, double locZ1,
+      double t8, double t9, double locZ2, double t10, double t11, double locZ3,
+      double t12, double t13, double locZ4, double t14, double t15, double locZ5,
+      int theElementTag);
+
  Beam3dThermalAction(int tag, 
 					 double t1, double locY1, double t2, double locY2,
 					 double t3, double locY3, double t4, double locY4,
@@ -79,6 +87,7 @@ class Beam3dThermalAction : public ElementalLoad
 
 
   const Vector &getData(int &type, double loadFactor);
+  bool getZaxis();
   virtual void applyLoad(const Vector &loadFactors);
   virtual void applyLoad(double loadFactor);
   
@@ -94,6 +103,10 @@ class Beam3dThermalAction : public ElementalLoad
   double TempApp[15]; // Temperature applied
   double Loc[10]; // 5 Locsthrough the depth of section+ 5 locs through the width
   static Vector data; // data for temperature and locations
+
+  // added by Mhd Anwar Orabi 2021
+  bool zAxis = 0;
+
   int ThermalActionType;
 
   //--The BeamThermalAction are modified by Liming and having a new strucuture for applying the fire action

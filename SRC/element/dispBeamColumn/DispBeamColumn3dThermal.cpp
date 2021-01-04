@@ -51,6 +51,7 @@
 #include <FiberSectionGJThermal.h>
 #include <FiberSection3dThermal.h>
 #include <elementAPI.h>
+#include <Beam3dThermalAction.h>
 
 Matrix DispBeamColumn3dThermal::K(12,12);
 Vector DispBeamColumn3dThermal::P(12);
@@ -828,7 +829,7 @@ DispBeamColumn3dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 
 //J.Jiang add to consider thermal load
 else if (type == LOAD_TAG_Beam3dThermalAction) {
-
+      bool zAxis = theLoad->getZaxis();
 	// load not inside fire load pattern
 	 //static Vector factors(9);
 	 //factors.Zero();
@@ -867,7 +868,8 @@ else if (type == LOAD_TAG_Beam3dThermalAction) {
 	// Loop over the integration points
 	for (int i = 0; i < numSections; i++) {
 		// Get section stress resultant
-		const Vector &s = theSections[i]->getTemperatureStress(*dataMixV);
+        const Vector& s = theSections[i]->getTemperatureStress(*dataMixV, zAxis);
+        
 		//opserr<< "Temperature  Stress "<<s<<endln;
 
 		//apply temp along y
@@ -1087,7 +1089,6 @@ else if (type == LOAD_TAG_NodalThermalAction) {
 
   return 0;
 }
-
 
 
 int

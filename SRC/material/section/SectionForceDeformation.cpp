@@ -514,6 +514,14 @@ SectionForceDeformation::getTemperatureStress(const Vector &tData) //PK
 }
 //--- Adding Thermal Functions:[END]   by UoE OpenSees Group ----//
 
+const Vector&
+SectionForceDeformation::getTemperatureStress(const Vector& tData, bool zAxis) //PK
+{
+    opserr << "SectionForceDeformation::getTemperatureStress(double *dataMixed) - should not be called\n";
+    errRes.resize(this->getStressResultant().Size());
+    return errRes;
+}
+
 const Vector& SectionForceDeformation::getThermalElong(void)
 {
   errRes.resize(this->getStressResultant().Size());

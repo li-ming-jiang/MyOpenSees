@@ -55,9 +55,9 @@ class FiberSectionGJThermal : public SectionForceDeformation
 
   const Vector &getSectionDeformation(void);
 
-  const Vector &getTemperatureStress(const Vector& dataMixed); //UoE for obtaining thermal stress
+  const Vector &getTemperatureStress(const Vector& dataMixed, bool zAxis); //UoE for obtaining thermal stress
   const Vector& getThermalElong(void);                       //Added by Liming (UoE)
-  double determineFiberTemperature(const Vector& , double , double);   //Added by Liming (UoE)
+  double determineFiberTemperature(const Vector& , double , double, bool);   //Added by Liming (UoE)
 
 
   const Vector &getStressResultant(void);
@@ -109,6 +109,7 @@ class FiberSectionGJThermal : public SectionForceDeformation
   double   sTData[3];               //JZ data for s vector 
 	Vector *sT;  // JZ  section resisting forces, caused by the temperature
 	Vector dataMixed;
+	bool zAxis;
 	double *Fiber_ElongP;
 	Vector AverageThermalElong;
 };
