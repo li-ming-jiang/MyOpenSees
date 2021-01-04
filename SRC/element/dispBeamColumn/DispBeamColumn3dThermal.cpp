@@ -829,7 +829,7 @@ DispBeamColumn3dThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 
 //J.Jiang add to consider thermal load
 else if (type == LOAD_TAG_Beam3dThermalAction) {
-      bool zAxis = theLoad->getZaxis();
+      bool zAxis = ((Beam3dThermalAction*) theLoad)->getZaxis();
 	// load not inside fire load pattern
 	 //static Vector factors(9);
 	 //factors.Zero();
