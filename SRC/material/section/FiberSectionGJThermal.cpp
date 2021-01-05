@@ -301,7 +301,7 @@ FiberSectionGJThermal::setTrialSectionDeformation (const Vector &deforms)
 	double FiberTemperature = 0 ; 
 	double FiberTempMax = 0;
 
-	FiberTemperature = this->determineFiberTemperature( dataMixed, -yi-yBar,zi+zBar, true);
+	FiberTemperature = this->determineFiberTemperature( dataMixed, -yi-yBar,zi+zBar);
 
 	//---Calculating the Fiber Temperature---end
 
@@ -429,7 +429,7 @@ rot= e(3);
 //JJadd--12.2010---to get section force due to thermal load----start-----
 //---Liming modified the following block---
 const Vector&
-FiberSectionGJThermal::getTemperatureStress(const Vector& DataMixed, bool zAxis)
+FiberSectionGJThermal::getTemperatureStress(const Vector& DataMixed)
 {
    AverageThermalElong.Zero();
   dataMixed = DataMixed;
@@ -457,7 +457,7 @@ FiberSectionGJThermal::getTemperatureStress(const Vector& DataMixed, bool zAxis)
 	double FiberTemperature = 0 ; 
 	double FiberTempMax = 0;
 
-	FiberTemperature= this->determineFiberTemperature( dataMixed, -yi, zi, zAxis);
+	FiberTemperature= this->determineFiberTemperature( dataMixed, -yi, zi);
     // determine material strain and set it
 	double tangent =0.0;
 	double ThermalElongation =0.0;
@@ -1027,8 +1027,14 @@ FiberSectionGJThermal::setParameter (const char **argv, int argc, Parameter &par
   return result;
 }
 
+void 
+FiberSectionGJThermal::setZaxis(bool z_Axis)
+{
+    zAxis = z_Axis;
+}
+
 double  
-FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLocy, double fiberLocz, bool zAxis) 
+FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double fiberLocy, double fiberLocz) 
 {
 	double FiberTemperature = 0;
 	if(DataMixed.Size()==18){
