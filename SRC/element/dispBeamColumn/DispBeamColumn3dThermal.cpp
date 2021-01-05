@@ -856,8 +856,10 @@ else if (type == LOAD_TAG_Beam3dThermalAction) {
 	  Vector* dataMixV;
 	  if(data.Size()==18)
 		  dataMixV = new Vector(18);
-	  else
+	  else if (data.Size() == 25)
 		  dataMixV = new Vector(25);
+      else if (data.Size() == 35)
+          dataMixV = new Vector(35);
 
       *dataMixV=data;
 

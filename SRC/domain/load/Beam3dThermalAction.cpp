@@ -127,6 +127,27 @@ Beam3dThermalAction::Beam3dThermalAction(int tag,
 	indicator=2 ;// Using PathTimeSeriesThermal for elemental thermal action
 	
 }
+// Added by Mhd Anwar Orabi 2021
+Beam3dThermalAction::Beam3dThermalAction(int tag, TimeSeries* theSeries,
+	double locY1, double locY2, double locZ1, double locZ2,
+	int theElementTag)
+	:ElementalLoad(tag, LOAD_TAG_Beam3dThermalAction, theElementTag), theSeries(theSeries),
+	ThermalActionType(LOAD_TAG_Beam3dThermalAction)
+{
+	Loc[0] = locY1; Loc[4] = locY2; Loc[5] = locZ1; Loc[9] = locZ2;
+
+	for (int i = 1; i < 4; i++) {
+		Loc[i] = Loc[0] + i * (Loc[4] - Loc[0]) / 4;    //locs through Y
+		Loc[5 + i] = Loc[5] + i * (Loc[9] - Loc[5]) / 4;  //locs through Z
+	}
+	Factors.Zero();
+	for (int i = 0; i < 25; i++) {
+		Temp[i] = 0;   //Here the original temp is set as 1, which will be factorized by the value obtained from 
+		TempApp[i] = 0;
+	}
+
+	indicator = 6;// Using PathTimeSeriesThermal for elemental thermal action with generalised interpolation
+}
 
 // Added by Mhd Anwar Orabi 2021
 Beam3dThermalAction::Beam3dThermalAction(bool z_Axis, int tag,
@@ -139,8 +160,8 @@ Beam3dThermalAction::Beam3dThermalAction(bool z_Axis, int tag,
 	Loc[0] = locY1; Loc[4] = locY2; Loc[5] = locZ1; Loc[9] = locZ2;
 
 	for (int i = 1; i < 4; i++) {
-		Loc[i] = Loc[0] + i * (Loc[4] - Loc[0]) / 4;    //locs through the depth
-		Loc[5 + i] = Loc[5] + i * (Loc[9] - Loc[5]) / 4;  //locs through the width
+		Loc[i] = Loc[0] + i * (Loc[4] - Loc[0]) / 4;    //locs through the width
+		Loc[5 + i] = Loc[5] + i * (Loc[9] - Loc[5]) / 4;  //locs through the depth
 	}
 	Factors.Zero();
 	for (int i = 0; i < 15; i++) {
@@ -230,13 +251,23 @@ Beam3dThermalAction::getData(int &type, double loadFactor)
 	}
 	  
  } 
+ else if (indicator == 6) {
+	 data.resize(35);
+	 for (int i = 0; i < 25; i++) {
+		 data(i) = TempApp[i];            //25 temps across the y-z cross section
+	 }
+	 for (int i = 0; i < 10; i++)
+	 {
+		 data(i) = Loc[i]; //5 locs through Y and then 5 through Z
+	 }
+ }
  else{
 	 data.resize(25);
   for(int i=0; i<5;i++) {
           data(2*i) = TempApp[i];            //5 temps through y
           data(2*i+1)= Loc[i];               //5 locs through y
-          data(3*i+10) = TempApp[i+5];       //5 temps through Z in bottom flange
-          data(3*i+11)= TempApp[i+10];       //5 temps through Z in top flange
+          data(3*i+10) = TempApp[i+5];       //5 temps through Z
+          data(3*i+11)= TempApp[i+10];       //5 temps through Z
           data(3*i+12)= Loc[i+5];            //5 locs through Z
 	}
  
@@ -260,6 +291,11 @@ Beam3dThermalAction::applyLoad(const Vector &factors)
 	   for(int i=0; i<9 ;i++) {
 		 TempApp[i]= Temp[i]*factors(i);
 	   }
+	}
+	else if (indicator == 6) {
+		for (int i = 0; i < 25; i++) {
+			TempApp[i] = Temp[i] * factors(i);
+		}
 	}
 	else{
 	   for(int i=0; i<15 ;i++) {
@@ -299,6 +335,14 @@ Beam3dThermalAction::applyLoad(double loadfactor)
 	else if(indicator ==5) {
 		for(int i=0;i<9;i++) {
 		  TempApp[i]=Temp[i]*loadfactor;
+		}
+	}
+	else if (indicator == 6) {
+		//Looking for loadfactors from timeseries;
+		Factors = ((PathTimeSeriesThermal*)theSeries)->getFactors(loadfactor);
+		for (int i = 0; i < 25; i++) {
+			//PathTimeSeriesThermal returns absolute temperature;
+			TempApp[i] = Factors(i);
 		}
 	}
 

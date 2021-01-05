@@ -74,6 +74,12 @@ class Beam3dThermalAction : public ElementalLoad
                 double locY1, double locY2, double locZ1, double Z2,
                 TimeSeries* theSeries,
 		        int theElementTag);
+
+  // Added by Mhd Anwar Orabi 2021
+  Beam3dThermalAction(int tag, TimeSeries* theSeries,
+      double locY1, double locY2, double locZ1, double Z2,
+      int theElementTag);
+
   // Added by Mhd Anwar Orabi 2021
   Beam3dThermalAction(bool z_Axis, int tag,
       double locY1, double locY2, double locZ1, double Z2,
@@ -104,8 +110,8 @@ class Beam3dThermalAction : public ElementalLoad
  protected:
   
  private:
-  double Temp[15]; //Initial Temperature for using plain patterns
-  double TempApp[15]; // Temperature applied
+  double Temp[25]; //Initial Temperature for using plain patterns
+  double TempApp[25]; // Temperature applied
   double Loc[10]; // 5 Locsthrough the depth of section+ 5 locs through the width
   static Vector data; // data for temperature and locations
 

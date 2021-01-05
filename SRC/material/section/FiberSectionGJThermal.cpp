@@ -1229,4 +1229,26 @@ FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double
             return FiberTemperature;
         }
     }
+    else if (DataMixed.Size() == 35) {
+        //---------------if temperature Data has 35 elements--------------------
+
+        double dataTempe[35]; //
+        for (int i = 0; i < 35; i++) { //
+            dataTempe[i] = DataMixed(i);
+        }
+
+        if (fabs(dataTempe[0]) <= 1e-10 && fabs(dataTempe[4]) <= 1e-10 && fabs(dataTempe[24]) <= 1e-10 && fabs(dataTempe[20]) <= 1e-10 && fabs(dataTempe[12]) <= 1e-10) //no tempe load
+        {
+            return 0;
+        }
+        // Added by Mhd Anwar Orabi 2021
+        if (fiberLocy < dataTempe[25] || fiberLocy > dataTempe[29] || fiberLocz < dataTempe[30] || fiberLocz > dataTempe[34])
+        {
+            opserr << "WARNING: Fiber location locy: " << fiberLocy << " and locZ: " << fiberLocz << " outside defined thermal load area." << endln;
+        }
+
+        return FiberTemperature;
+    }
+   
 }
+    
