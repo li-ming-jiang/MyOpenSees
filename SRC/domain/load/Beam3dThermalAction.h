@@ -53,7 +53,7 @@ class Beam3dThermalAction : public ElementalLoad
                 double t8, double t9, double locZ2, double t10, double t11, double locZ3,
                 double t12, double t13, double locZ4, double t14,double t15, double locZ5,
 		        int theElementTag);
-
+  // Overloading constructor declaration to include zAxis boolean Mhd Anwar Orabi 2021
   Beam3dThermalAction(bool zAxis, int tag,
       double t1, double locY1, double t2, double locY2,
       double t3, double locY3, double t4, double locY4,
@@ -87,7 +87,7 @@ class Beam3dThermalAction : public ElementalLoad
 
 
   const Vector &getData(int &type, double loadFactor);
-  bool getZaxis();
+  bool getZaxis(); // Added by Mhd Anwar Orabi 2021
   virtual void applyLoad(const Vector &loadFactors);
   virtual void applyLoad(double loadFactor);
   
@@ -104,8 +104,8 @@ class Beam3dThermalAction : public ElementalLoad
   double Loc[10]; // 5 Locsthrough the depth of section+ 5 locs through the width
   static Vector data; // data for temperature and locations
 
-  // added by Mhd Anwar Orabi 2021
-  bool zAxis = 0;
+  
+  bool zAxis = false; // added by Mhd Anwar Orabi 2021
 
   int ThermalActionType;
 

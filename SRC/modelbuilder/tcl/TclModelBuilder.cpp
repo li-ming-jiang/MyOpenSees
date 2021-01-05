@@ -2899,6 +2899,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 	  // End of for the if (ndm==2)
 	  else if (ndm == 3)
 	  {
+	  // Added by Mhd Anwar Orabi 2021
 	  bool zAxis;
 		  if (strcmp(argv[count], "-z") == 0) {
 			  zAxis = 1;
@@ -3109,7 +3110,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 			  //end of  if (argc-count == 25){
 			  else if (argc - count == 4) {
 
-
+				  // Modified by Mhd Anwar Orabi 2021
 				  if (!zAxis) {
 					  if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
 						  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
@@ -3164,8 +3165,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 					  t6 = t7 = t8 = t9 = t10 = 0;
 					  t11 = t12 = t13 = t14 = t15 = 0;
 				  }
-
+				  
 				  for (int i = 0; i<theEleTags.Size(); i++) {
+					  // Modified by Mhd Anwar Orabi 2021
 					  if (!zAxis) {
 						  theLoad = new Beam3dThermalAction(eleLoadTag,
 							  t1, locY1, t2, locY2, t3, locY3, t4, locY4,

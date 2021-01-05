@@ -870,7 +870,11 @@ else if (type == LOAD_TAG_Beam3dThermalAction) {
       bool zAxis = ((Beam3dThermalAction*)theLoad)->getZaxis(); //Mhd Anwar Orabi 2021
 	for (int i = 0; i < numSections; i++) {
 		// Get section stress resultant
-        ((FiberSectionGJThermal*)theSections[i])-> setZaxis(zAxis); //Mhd Anwar Orabi 2021 - Forces the section to be a GJ thermal section but this is bad! Need to check section type and assign based on that.
+        if (zAxis)
+        {
+            ((FiberSectionGJThermal*)theSections[i])->setZaxis(zAxis); //Mhd Anwar Orabi 2021 - Forces the section to be a GJ thermal section but this is bad! Need to check section type and assign based on that.
+        }
+        
         const Vector& s = theSections[i]->getTemperatureStress(*dataMixV);
         
 		//opserr<< "Temperature  Stress "<<s<<endln;

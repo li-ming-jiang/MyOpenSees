@@ -220,6 +220,7 @@ Beam3dThermalAction::getData(int &type, double loadFactor)
   return data;
 }
 
+// Added by Mhd Anwar Orabi 2021
 bool
 Beam3dThermalAction::getZaxis()
 {

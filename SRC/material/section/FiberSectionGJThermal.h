@@ -83,7 +83,7 @@ class FiberSectionGJThermal : public SectionForceDeformation
   int addFiber(Fiber &theFiber);
 
   int setParameter(const char **argv, int argc, Parameter &param);
-  void setZaxis(bool z_Axis);
+  void setZaxis(bool z_Axis); // Added by Mhd Anwar Orabi 2021
 
  protected:
 
@@ -112,7 +112,7 @@ class FiberSectionGJThermal : public SectionForceDeformation
 	Vector dataMixed;
 	double *Fiber_ElongP;
 	Vector AverageThermalElong;
-	bool zAxis = 0; // Added by Mhd Anwar Orabi 2021 for zAxis flag
+	bool zAxis = false; // Added by Mhd Anwar Orabi 2021 for zAxis flag
 
 };
 

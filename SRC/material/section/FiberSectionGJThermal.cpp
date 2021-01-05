@@ -1027,6 +1027,7 @@ FiberSectionGJThermal::setParameter (const char **argv, int argc, Parameter &par
   return result;
 }
 
+// Added by Mhd Anwar Orabi 2021
 void 
 FiberSectionGJThermal::setZaxis(bool z_Axis)
 {
@@ -1102,6 +1103,7 @@ FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double
         {
             return 0;
         }
+        // Modified by Mhd Anwar Orabi so that the zAxis boolean decides to perform the interpolation along which axis: 
         if (!zAxis) {
             //caculate the fiber tempe, T=T1-(Y-Y1)*(T1-T2)/(Y1-Y2)
             //first for bottom flange if existing
