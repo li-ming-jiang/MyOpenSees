@@ -128,6 +128,32 @@ Beam3dThermalAction::Beam3dThermalAction(int tag,
 	
 }
 
+// Added by Mhd Anwar Orabi 2021
+Beam3dThermalAction::Beam3dThermalAction(bool z_Axis, int tag,
+	double locY1, double locY2, double locZ1, double locZ2,
+	TimeSeries* theSeries,
+	int theElementTag)
+	:ElementalLoad(tag, LOAD_TAG_Beam3dThermalAction, theElementTag), theSeries(theSeries),
+	ThermalActionType(LOAD_TAG_Beam3dThermalAction)
+{
+	Loc[0] = locY1; Loc[4] = locY2; Loc[5] = locZ1; Loc[9] = locZ2;
+
+	for (int i = 1; i < 4; i++) {
+		Loc[i] = Loc[0] + i * (Loc[4] - Loc[0]) / 4;    //locs through the depth
+		Loc[5 + i] = Loc[5] + i * (Loc[9] - Loc[5]) / 4;  //locs through the width
+	}
+	Factors.Zero();
+	for (int i = 0; i < 15; i++) {
+		Temp[i] = 0;   //Here the original temp is set as 1, which will be factorized by the value obtained from 
+		TempApp[i] = 0;
+	}
+
+	zAxis = z_Axis;
+	indicator = 2;// Using PathTimeSeriesThermal for elemental thermal action
+
+}
+
+
 
 //Using 9 data points for defining temperature distribution
 Beam3dThermalAction::Beam3dThermalAction(int tag,

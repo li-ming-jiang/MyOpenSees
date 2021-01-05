@@ -2967,10 +2967,15 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
 					  //end for recieving input
 					  for (int i = 0; i<theEleTags.Size(); i++) {
-
-						  theLoad = new Beam3dThermalAction(eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
-							  theSeries, theEleTags(i));
-
+						  // Modified by Mhd Anwar Orabi 2021
+						  if (!zAxis) {
+							  theLoad = new Beam3dThermalAction(eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
+								  theSeries, theEleTags(i));
+						  }
+						  else {
+							  theLoad = new Beam3dThermalAction(zAxis, eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
+								  theSeries, theEleTags(i));
+						  }
 						  if (theLoad == 0) {
 							  opserr << "WARNING eleLoad - out of memory creating load of type " << argv[count];
 							  return TCL_ERROR;
