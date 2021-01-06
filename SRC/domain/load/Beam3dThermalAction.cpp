@@ -258,7 +258,7 @@ Beam3dThermalAction::getData(int &type, double loadFactor)
 	 }
 	 for (int i = 0; i < 10; i++)
 	 {
-		 data(i) = Loc[i]; //5 locs through Y and then 5 through Z
+		 data(i+25) = Loc[i]; //5 locs through Y and then 5 through Z
 	 }
  }
  else{

@@ -2902,11 +2902,11 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 	  // Added by Mhd Anwar Orabi 2021
 	  bool zAxis;
 		  if (strcmp(argv[count], "-z") == 0) {
-			  zAxis = 1;
+			  zAxis = true;
 			  count++;
 		  } 
 		  else {
-			  zAxis = 0;
+			  zAxis = false;
 		  }
 		  //so far three kinds of temperature distribution
 		  double t1, locY1, t2, locY2, t3, locY3, t4, locY4, t5, locY5,
@@ -2943,9 +2943,21 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
 				  double RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4;
 				  TimeSeries* theSeries;
-
+				  bool genInterpolation;
+				  if (strcmp(argv[count], "-genInterpolation") == 0) {
+					  genInterpolation = true;
+					  count++;
+				  }
+				  else {
+					  genInterpolation = false;
+				  }
 				  if (argc - count == 4) {
-					  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 1], 15);
+					  if (genInterpolation) {
+						  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 2], 25);
+					  }
+					  else {
+						  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 1], 15);
+					  }
 					  using2Ddata = false;
 
 					  if (Tcl_GetDouble(interp, argv[count], &RcvLoc1) != TCL_OK) {
@@ -2968,7 +2980,10 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 					  //end for recieving input
 					  for (int i = 0; i<theEleTags.Size(); i++) {
 						  // Modified by Mhd Anwar Orabi 2021
-						  if (!zAxis) {
+						  if (genInterpolation) {
+							  theLoad = new Beam3dThermalAction(eleLoadTag, theSeries, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
+								  theEleTags(i));
+						  } else if (!zAxis) {
 							  theLoad = new Beam3dThermalAction(eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
 								  theSeries, theEleTags(i));
 						  }

@@ -1242,12 +1242,36 @@ FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double
             return 0;
         }
         // Added by Mhd Anwar Orabi 2021
-        if (fiberLocy < dataTempe[25] || fiberLocy > dataTempe[29] || fiberLocz < dataTempe[30] || fiberLocz > dataTempe[34])
+        //Check if we are out of bounds anywhere
+        if (fiberLocy < dataTempe[25])
         {
-            opserr << "WARNING: Fiber location locy: " << fiberLocy << " and locZ: " << fiberLocz << " outside defined thermal load area." << endln;
+            opserr << "WARNING: Fiber location locy: " << fiberLocy << " below minimum Y " << dataTempe[25] << " of the defined thermal load area." << endln;
         }
+        else if (fiberLocy > dataTempe[29]) {
+            opserr << "WARNING: Fiber location locy: " << fiberLocy << " above maximum Y " << dataTempe[29] << " of the defined thermal load area." << endln;
 
-        return FiberTemperature;
+        }
+        else if (fiberLocz < dataTempe[30]) {
+            opserr << "WARNING: Fiber location locz: " << fiberLocz << " below minimum Z " << dataTempe[30] << " of the defined thermal load area." << endln;
+        }
+        else if (fiberLocz > dataTempe[34]) {
+            opserr << "WARNING: Fiber location locz: " << fiberLocz << " above maximum Z " << dataTempe[34] << " of the defined thermal load area." << endln;
+        }
+        // perform the bi-linear interpolation
+        for (int i = 1; i < 5; i++) {
+            if (fiberLocz <= dataTempe[i + 30]) {
+                for (int j = 1; j < 5; j++) {
+                    if (fiberLocy <= dataTempe[j + 25]) {
+                        // interpolate across Z = Zi-1:
+                        double Tzi_1 = dataTempe[i + 5 * j - 6] + (fiberLocy - dataTempe[j + 25 - 1]) * (dataTempe[i + 5 * j - 1] - dataTempe[i + 5 * j - 6]) / (dataTempe[j + 25] - dataTempe[j + 25 - 1]);
+                        // interpolate across Z = Zi:
+                        double Tzi = dataTempe[i + 5 * j - 5] + (fiberLocy - dataTempe[j + 25 - 1]) * (dataTempe[i + 5 * j] - dataTempe[i + 5 * j - 5]) / (dataTempe[j + 25] - dataTempe[j + 25 - 1]);
+                        // interpolate across Y = fiberLocy:
+                        return FiberTemperature = *&Tzi_1 + (fiberLocz - dataTempe[i + 30 - 1]) * (*&Tzi - *&Tzi_1) / (dataTempe[i + 30] - dataTempe[i + 30 - 1]);
+                    }
+                }
+            }
+        }
     }
    
 }
