@@ -1867,6 +1867,8 @@ ShellNLDKGQThermal::formResidAndTangent( int tang_flag )
 				//stiffGeo = BGJtran * membraneForce *BGK
 				stiffJKgeo.addMatrixProduct(0.0,stiffBGM,BGK,1.0);
 
+				//stiffJKgeo.Zero();//-----------LMJ
+
 				//stiffJKlocal = stiffJKlinear + stiffJKgeo
 				stiffJKlocal = stiffJKlinear;
 				for(pp=3;pp<6;pp++){
