@@ -890,6 +890,9 @@
     <ClCompile Include="..\..\..\SRC\element\joint\BeamColumnJoint3dThermal.cpp">
       <Filter>joint</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\element\brick\BrickThermal.cpp">
+      <Filter>brick</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\element\Element.h">
@@ -1554,6 +1557,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\element\joint\BeamColumnJoint3dThermal.h">
       <Filter>joint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\element\brick\BrickThermal.h">
+      <Filter>brick</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

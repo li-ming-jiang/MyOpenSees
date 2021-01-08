@@ -111,6 +111,7 @@
     <ClCompile Include="..\..\..\OTHER\Triangle\triangle.c" />
     <ClCompile Include="..\..\..\SRC\coordTransformation\CorotCrdTransfWarping2d.cpp" />
     <ClCompile Include="..\..\..\SRC\element\absorbentBoundaries\LysmerTriangle.cpp" />
+    <ClCompile Include="..\..\..\SRC\element\brick\BrickThermal.cpp" />
     <ClCompile Include="..\..\..\SRC\element\catenaryCable\CatenaryCable.cpp" />
     <ClCompile Include="..\..\..\SRC\element\componentElement\ComponentElement2d.cpp" />
     <ClCompile Include="..\..\..\SRC\element\dispBeamColumn\AxEqDispBeamColumn2d.cpp" />
@@ -371,6 +372,7 @@
     <ClInclude Include="..\..\..\OTHER\Triangle\triangle.h" />
     <ClInclude Include="..\..\..\SRC\coordTransformation\CorotCrdTransfWarping2d.h" />
     <ClInclude Include="..\..\..\SRC\element\absorbentBoundaries\LysmerTriangle.h" />
+    <ClInclude Include="..\..\..\SRC\element\brick\BrickThermal.h" />
     <ClInclude Include="..\..\..\SRC\element\catenaryCable\CatenaryCable.h" />
     <ClInclude Include="..\..\..\SRC\element\componentElement\ComponentElement2d.h" />
     <ClInclude Include="..\..\..\SRC\element\dispBeamColumn\AxEqDispBeamColumn2d.h" />
