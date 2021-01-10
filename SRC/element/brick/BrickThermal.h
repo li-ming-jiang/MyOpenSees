@@ -143,7 +143,8 @@ class BrickThermal : public Element {
 
     Vector *load;
     Matrix *Ki;
-
+    double ThermalElongation[8]; // thermal elongation
+    double Seclocs[8]; //Gauss point location
     //
     // static attributes
     //

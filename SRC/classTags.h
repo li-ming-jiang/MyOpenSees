@@ -517,6 +517,7 @@
 #define LOAD_TAG_NodalThermalAction       15 //L.Jiang [ SIF ]
 #define LOAD_TAG_ThermalActionWrapper     16 //L.Jiang [ SIF ]
 #define LOAD_TAG_LysmerVelocityLoader      17  //Jose Abell (UANDES)
+#define LOAD_TAG_BrickThermalAction     18 //L.Jiang [ SIF ]
 
 
 #define MAT_TAG_IsotropicLinElastic         1001

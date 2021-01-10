@@ -118,6 +118,8 @@ BrickThermal::BrickThermal( )
   for (int i=0; i<8; i++ ) {
     materialPointers[i] = 0;
     nodePointers[i] = 0;
+    ThermalElongation[i] = 0;
+    Seclocs[i] = 0;
   }
 
   b[0] = 0.0;
@@ -161,7 +163,11 @@ BrickThermal::BrickThermal(int tag,
 	exit(-1);
       } //end if
       nodePointers[i] = 0;
+      ThermalElongation[i] = 0;
   } //end for i 
+
+ // Vector NodalCords(8);
+
 
   // Body forces
   b[0] = b1;
@@ -197,6 +203,19 @@ void  BrickThermal::setDomain( Domain *theDomain )
   //node pointers
   for ( i=0; i<8; i++ ) 
      nodePointers[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
+
+  double secLoc = 0;
+  int DepthCord = 2; //Zloc
+  for (int j = 0; j < 8; j++) {
+
+      secLoc = secLoc + (nodePointers[j]->getCrds()(DepthCord)) / 8;
+  }  //end for j
+  //gauss loop 
+  for (int i = 0; i < 8; i++) {
+      //extract shape functions from saved array
+      Seclocs[i] = secLoc;
+
+  }
 
   this->DomainComponent::setDomain(theDomain);
 
@@ -564,7 +583,41 @@ BrickThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
       appliedB[1] += loadFactor*data(1)*b[1];
       appliedB[2] += loadFactor*data(2)*b[2];
       return 0;
-  } else {
+  }
+  else if (type== LOAD_TAG_BrickThermalAction) {
+      // ----- Real time Temperature is obtained from BrickThermalAction 
+      //-----Currently using similar defintion as shellThermalAction
+      // data;
+      //counterTemperature = 1;
+      for (int i = 0; i < 8; i++) {
+          double FiberTemperature = 0;
+          double fiberLoc = Seclocs[i];
+          double dataTempe[18];
+          double tangent = 0;
+          double elongation = 0;
+          for (int i = 0; i < 18; i++) {
+              dataTempe[i] = data(i);
+          }
+
+          if (fiberLoc < dataTempe[1] || fiberLoc > dataTempe[17])
+          {
+              opserr << "BrickThermal::determineFiberTemperature -- fiber loc: " << fiberLoc << " is out of the section range " << dataTempe[1] << ", " << dataTempe[17] << endln;
+          }
+          else {
+               for (int i = 1; i < 9; i++) {
+                      if (fiberLoc <= dataTempe[i * 2 + 1]) {
+                          FiberTemperature = dataTempe[2 * i - 2] - (dataTempe[2 * i - 1] - fiberLoc) * (dataTempe[2 * i - 2] - dataTempe[2 * i]) / (dataTempe[2 * i - 1] - dataTempe[2 * i + 1]);
+                          break;
+                      }
+               }
+          }
+          materialPointers[i]->getThermalTangentAndElongation(FiberTemperature, tangent, elongation);
+          ThermalElongation[i] = elongation;
+          
+      }//end for i
+
+  }
+  else {
     opserr << "BrickThermal::addLoad() - ele with tag: " << this->getTag() << " does not deal with load type: " << type << "\n";
     return -1;
   }
@@ -951,6 +1004,13 @@ BrickThermal::update(void)
 
     } // end for j
     
+    //Add ThermalElongation
+    if (ThermalElongation[i] > 0) {
+        strain(0) = strain(0) - ThermalElongation[i];
+        strain(1) = strain(1) - ThermalElongation[i];
+        strain(2) = strain(2) - ThermalElongation[i];
+    }
+
     //send the strain to the material 
     success = materialPointers[i]->setTrialStrain( strain ) ;
 

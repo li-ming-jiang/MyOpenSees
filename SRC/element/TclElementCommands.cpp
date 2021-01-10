@@ -1265,7 +1265,13 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
     int result = TclModelBuilder_addBrick(clientData, interp, argc, argv,
 					  theTclDomain, theTclBuilder, eleArgStart);
     return result;
-  } else if (strcmp(argv[1],"bbarBrick") == 0) {
+  }else if (strcmp(argv[1], "BrickThermal") == 0) {
+  int eleArgStart = 1;
+  int result = TclModelBuilder_addBrick(clientData, interp, argc, argv,
+      theTclDomain, theTclBuilder, eleArgStart);
+  return result;
+  }
+  else if (strcmp(argv[1],"bbarBrick") == 0) {
     int eleArgStart = 1;
     int result = TclModelBuilder_addBrick(clientData, interp, argc, argv,
 					  theTclDomain, theTclBuilder, eleArgStart);
