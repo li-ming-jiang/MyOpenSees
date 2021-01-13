@@ -138,7 +138,7 @@ ShellThermalAction::~ShellThermalAction()
 {
     // if(theSeries!=0)
 	 // delete theSeries;
-  
+	Factors.Zero();
 	 theSeries=0;
 }
 

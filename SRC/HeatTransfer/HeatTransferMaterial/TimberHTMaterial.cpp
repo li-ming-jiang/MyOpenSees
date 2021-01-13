@@ -682,10 +682,16 @@ TimberHTMaterial::getHeatGen(double locy)
     if (trialphTag == 2)
     {
         if (TempTag == 0) {
-            if (pht2 - pht1 < 0)
-                alpha = 0;
-            else if (pht2 - pht1 < dt2)
-                alpha = (pht2 - pht1) / dt2;
+            if (trial_temp < 400)
+                return 0;
+            else if (trial_temp < 500)
+                alpha = (trial_temp - 400) / 100*0.5;   //combustion area at 500-800 range
+            else if (trial_temp < 600)
+                alpha = 0.5;   //combustion area at 500-800 range
+            else if (trial_temp < 700)
+                alpha = (trial_temp - 600) / 100*0.5+0.5;   //combustion area at 500-800 range
+            else if (trial_temp < 800)
+                alpha = 1;   //combustion area at 500-800 range
             else
                 alpha = 1;
         }

@@ -231,8 +231,10 @@ VariableTimeStepStaticAnalysis::determineDt(double dT,
   else {
       if (numLastIter < 10)
           factor = 2.0;
-      else if (numLastIter < 100)
+      else if (numLastIter < 200)
           factor = 1.0;
+      else if (numLastIter < 500)
+          factor = 0.5;
   }
   
 

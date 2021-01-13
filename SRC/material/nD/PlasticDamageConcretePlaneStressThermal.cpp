@@ -1183,7 +1183,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 			epscu = -(0.045 + (0.0475 - 0.045)*(Temp - 980) / 100);
 		}
 		else {
-			opserr << "Material temperature " << Temp << " is invalid\n";
+			opserr << "CDPThermal Material temperature " << Temp << " is invalid\n";
 		}
 	}
 	else if (matType == 2) {
@@ -1250,7 +1250,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 			epscu = -(0.045 + (0.0475 - 0.045)*(Temp - 980) / 100);
 		}
 		else {
-			opserr << "Material temperature " << Temp << " is invalid\n";
+			opserr << "CDPThermal Material temperature " << Temp << " is invalid\n";
 		}
 	}
 	
@@ -1266,7 +1266,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 			ThermalElongation = 14e-3;
 		}
 		else {
-			opserr << "Material temperature " << Temp << " is invalid\n";
+			opserr << "CDPThermal Material temperature " << Temp << " is invalid\n";
 		}
 	}
 	else if(matType ==2){
@@ -1280,7 +1280,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 			ThermalElongation = 12e-3;
 		}
 		else {
-			opserr << "Material temperature "<<Temp<<" is invalid\n";
+			opserr << "CDPThermal Material temperature "<<Temp<<" is invalid\n";
 		}
 	
 	}
@@ -1296,7 +1296,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 	//Elong = (1 - dt)* ThermalElongation;
 	//Es = -fc*0.0025/epsc0/fc0*Es0;
 //Turn off LITS
-/*
+
 	if (Lits) {
 		if (sigCommit(0) < 0 && sigCommit(1) < 0) {
 			double Sig_factor = -(sigCommit(0) + sigCommit(1)) / 2 / fc0 / 1.562491022;
@@ -1308,7 +1308,7 @@ PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &
 		if (epsLitsp > 0)
 			ThermalElongation = ThermalElongation - epsLitsp;
 	}
-*/
+
 
    //else
 	//	ThermalElongation = 0;
