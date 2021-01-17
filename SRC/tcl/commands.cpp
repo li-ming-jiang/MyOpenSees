@@ -2415,9 +2415,29 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, int argc,
 {
     // make sure at least one other argument to contain type of system
     if (argc < 2) {
-	opserr << "WARNING need to specify an analysis type (Static, Transient)\n";
-	return TCL_ERROR;
-    }    
+        opserr << "WARNING need to specify an analysis type (Static, Transient)\n";
+        return TCL_ERROR;
+    }
+
+    //
+    // do nothing if request is for the same analysis type!
+    //
+
+    if ((strcmp(argv[1], "Static") == 0) && (theStaticAnalysis != 0))
+        return TCL_OK;
+
+    if (((strcmp(argv[1], "VariableTimeStepTransient") == 0) ||
+        (strcmp(argv[1], "TransientWithVariableTimeStep") == 0) ||
+        (strcmp(argv[1], "VariableTransient") == 0)) &&
+        (theVariableTimeStepTransientAnalysis != 0))
+        return TCL_OK;
+
+    if ((strcmp(argv[1], "Transient") == 0) && (theTransientAnalysis != 0))
+        return TCL_OK;
+
+    //
+    // analysis changing .. delete the old analysis
+    //
 
     // delete the old analysis
     if (theStaticAnalysis != 0) {

@@ -1091,6 +1091,9 @@ PlasticDamageConcretePlaneStressThermal::getTempAndElong(void)
 double
 PlasticDamageConcretePlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, double&Elong)
 {
+	if (tempT < -100 || tempT>1200)
+		opserr << "WARNING ConcreteDamageThermal received an invalid temperature: " << tempT << endln;
+
 	bool Lits = true;
 	double Eps_lits = 0;
 	Temp = tempT;

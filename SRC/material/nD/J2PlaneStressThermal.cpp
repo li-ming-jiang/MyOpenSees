@@ -661,7 +661,8 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	double E00; //Initial tangent 
 	ET = E0;
 	
-	
+	if (TempT < -100 || TempT>1200)
+		opserr << "WARNING J2PlaneStressThermal received an invalid Temperature: " << TempT << endln;
 	// EN 1992&1993
 	//typeTag:3   EC3 Structural Steel
 	//typeTag:21  EC2 Reinforcing Steel EC2 NHotRolled
