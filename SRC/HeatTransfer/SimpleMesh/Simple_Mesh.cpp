@@ -128,7 +128,7 @@ int Simple_Mesh::GeneratingEles(const ID& eleParameters)
   }
   else
   {
-    opserr<<"SimpleMesh::GeneratingEles encounters redefined EleParameteres"<<endln;
+    opserr<< "SimpleMesh " << this->getTag()<< "encounters redefined EleParameteres"<<endln;
   }
   
 
@@ -259,7 +259,7 @@ int Simple_Mesh::SelectingNodesbyFace(ID& NodesRange, int FaceTag) {
 			}
 		}else if (FaceTag==3) {
 			NodesRange.resize(NumCtrY+1);
-			for(int i =0;i<NumCtrX+1;i++) {
+			for(int i =0;i<NumCtrY+1;i++) {
 			 NodesRange(i) = OriginNodeTag+(NumCtrX+1)*i+NumCtrX;
 			}
 		}else if (FaceTag==2) {
