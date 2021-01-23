@@ -62,7 +62,7 @@ VariableTimeStepStaticAnalysis::VariableTimeStepStaticAnalysis(
 
 VariableTimeStepStaticAnalysis::~VariableTimeStepStaticAnalysis()
 {
-    opserr << "the variable static analysis has been removed";
+   // opserr << "the variable static analysis has been removed";
 }    
 
 
@@ -238,12 +238,12 @@ VariableTimeStepStaticAnalysis::determineDt(double dT,
   if(failure)
       factor = 0.5;
   else {
-      if (numLastIter < 10)
+      if (numLastIter < 100)
           factor = 2.0;
-      else if (numLastIter < 200)
+      else if (numLastIter < 400)
           factor = 0.5;
-      else if (numLastIter < 500)
-          factor = 0.125;
+      else if (numLastIter < 800)
+          factor = 0.25;
   }
   
 
