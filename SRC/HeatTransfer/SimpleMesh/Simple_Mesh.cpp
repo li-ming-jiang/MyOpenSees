@@ -20,13 +20,13 @@
 
 
 Simple_Mesh::Simple_Mesh(int tag, Simple_Entity* Entity,HeatTransferDomain* theDomain,HeatTransferMaterial* theHTMaterial, Vector& MeshCtrls,
-						 HeatTransferMaterial* theHTMaterial1 )
+						 HeatTransferMaterial* theHTMaterial1, bool numCtrl)
 :TaggedObject(tag),theHTDomain(theDomain),isHTDomain(true), theHTMaterial(theHTMaterial),OriginLocs(0),EleParameters(0),
  theHTMaterial1(theHTMaterial1)
 {
-	 theEntity = Entity;
-   theEntity->setMeshTag(this->getTag());
-	 theEntity->InitialMeshCtrl(MeshCtrls);
+	theEntity = Entity;
+	theEntity->setMeshTag(this->getTag());
+	 theEntity->InitialMeshCtrl(MeshCtrls,numCtrl);
 
 	 if (theEntity->InitialSeeds()==false)
 		 opserr<<"Mesh "<<this->getTag()<< "failed to Intial the mesh Seeds"<<endln;
