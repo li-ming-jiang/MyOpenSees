@@ -848,6 +848,7 @@
 #define LINESEARCH_TAGS_SecantLineSearch              4
 
 
+
 #define INTEGRATOR_TAGS_Newmark                          1
 #define INTEGRATOR_TAGS_HHT                              2
 #define INTEGRATOR_TAGS_HHT_TP                           3
@@ -903,6 +904,7 @@
 #define INTEGRATOR_TAGS_KRAlphaExplicit                 53
 #define INTEGRATOR_TAGS_KRAlphaExplicit_TP              54
 #define INTEGRATOR_TAGS_ExplicitDifference              55
+#define INTEGRATOR_TAGS_EQPath        					56
 
 #define LinSOE_TAGS_FullGenLinSOE		1
 #define LinSOE_TAGS_BandGenLinSOE		2
