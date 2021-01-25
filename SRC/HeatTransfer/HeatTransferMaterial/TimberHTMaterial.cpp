@@ -666,7 +666,7 @@ TimberHTMaterial::determinePhase(double temp, double time)
 bool
 TimberHTMaterial::getIfHeatGen()
 {
-    if (trialphTag == 2 )
+    if (trialphTag == 2 || trialphTag == 3)
         return true;
     else
         return false;
@@ -679,9 +679,9 @@ TimberHTMaterial::getHeatGen(double locy)
     double Qgen = 0;
     double alpha = 0;
 
-    if (trialphTag == 2)
+    if (trialphTag == 2|| trialphTag == 3)
     {
-        if (TempTag == 0) {
+        //if (TempTag == 0) {
             if (trial_temp < 400)
                 return 0;
             else if (trial_temp < 500)
@@ -694,21 +694,21 @@ TimberHTMaterial::getHeatGen(double locy)
                 alpha = 1;   //combustion area at 500-800 range
             else
                 alpha = 1;
-        }
-        else if (TempTag == 1) {
-            if (pht2 - pht1 < dt3)
-                alpha = 1-(pht2 - pht1) / dt3;
-            else
-                alpha = 0;
+        //}
+       // else if (TempTag == 1) {
+//if (pht2 - pht1 < dt3)
+            //    alpha = 1-(pht2 - pht1) / dt3;
+//else
+          //      alpha = 0;
 
             //alpha = 1- (pht2 - pht1) / dt3;
-        }
+       // }
         //Considering locy indicating depth effect
-        double locRatio = 1-locy / 0.06; //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
-        if (locRatio < 0)
-            locRatio = 0;
-        else if (locRatio>1)
-            locRatio = 1;
+       // double locRatio = 1-locy / 0.06; //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
+       // if (locRatio < 0)
+        //    locRatio = 0;
+        //else if (locRatio>1)
+          double locRatio = 1;
 
         alpha = locRatio * alpha;
         
