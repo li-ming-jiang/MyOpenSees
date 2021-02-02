@@ -136,10 +136,10 @@ ShellThermalAction::ShellThermalAction(int tag,
 
 ShellThermalAction::~ShellThermalAction()
 {
-    // if(theSeries!=0)
-	 // delete theSeries;
-  
-	 theSeries=0;
+     if(theSeries!=0)
+	  delete theSeries;
+	Factors.Zero();
+	// theSeries=0;
 }
 
 const Vector &

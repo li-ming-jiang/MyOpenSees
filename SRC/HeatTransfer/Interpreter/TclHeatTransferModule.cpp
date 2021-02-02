@@ -873,35 +873,53 @@ TclHeatTransferCommand_addHTEntity(ClientData clientData, Tcl_Interp *interp, in
   }
 	else if (strcmp(argv[1],"Block") == 0||strcmp(argv[1],"Block2D") == 0||strcmp(argv[1],"Block2d") == 0)
   {
-		double centerX=0.0; double centerY=0.0; double BreadthX=0.0; double HeightY=0.0;
+      int ArgStart = 3;
+      int ArgEnd = argc;
+      if (argc - 3 == 4) {
+          double centerX = 0.0; double centerY = 0.0; double BreadthX = 0.0; double HeightY = 0.0;
 
-		if (Tcl_GetDouble (interp, argv[3], &centerX) != TCL_OK) {
-			opserr << "WARNING invalid centerX" << endln;
-			opserr << " for HeatTransfer entity: " << argv[1] << endln;	    
-			return TCL_ERROR;
-			}
-		if (Tcl_GetDouble (interp, argv[4], &centerY) != TCL_OK) {
-			opserr << "WARNING invalid centerY" << endln;
-			opserr << " for HeatTransfer entity: " << argv[1] << endln;	    
-			return TCL_ERROR;
-			}
-		if (Tcl_GetDouble (interp, argv[5], &BreadthX) != TCL_OK) {
-			opserr << "WARNING invalid centerY" << endln;
-			opserr << " for HeatTransfer entity: " << argv[1] << endln;	    
-			return TCL_ERROR;
-			}
-		if (Tcl_GetDouble (interp, argv[6], &HeightY) != TCL_OK) {
-			opserr << "WARNING invalid centerY" << endln;
-			opserr << " for HeatTransfer entity: " << argv[1] << endln;	    
-			return TCL_ERROR;
-			}
+          if (Tcl_GetDouble(interp, argv[3], &centerX) != TCL_OK) {
+              opserr << "WARNING invalid centerX" << endln;
+              opserr << " for HeatTransfer entity: " << argv[1] << endln;
+              return TCL_ERROR;
+          }
+          if (Tcl_GetDouble(interp, argv[4], &centerY) != TCL_OK) {
+              opserr << "WARNING invalid centerY" << endln;
+              opserr << " for HeatTransfer entity: " << argv[1] << endln;
+              return TCL_ERROR;
+          }
+          if (Tcl_GetDouble(interp, argv[5], &BreadthX) != TCL_OK) {
+              opserr << "WARNING invalid centerY" << endln;
+              opserr << " for HeatTransfer entity: " << argv[1] << endln;
+              return TCL_ERROR;
+          }
+          if (Tcl_GetDouble(interp, argv[6], &HeightY) != TCL_OK) {
+              opserr << "WARNING invalid centerY" << endln;
+              opserr << " for HeatTransfer entity: " << argv[1] << endln;
+              return TCL_ERROR;
+          }
 
-		//Simple_Block(int tag, double centerX, double centerY, double breadthX, double heightY)
-		theHTEntity = new Simple_Block(HTEntityTag, centerX,centerY,BreadthX, HeightY);
+          //Simple_Block(int tag, double centerX, double centerY, double breadthX, double heightY)
+          theHTEntity = new Simple_Block(HTEntityTag, centerX, centerY, BreadthX, HeightY);
+      }
+      else if (argc - 3 == 8) {
+          Vector data(8);
+          int ArgStart = 3;
+          int ArgEnd = argc;
+          double inputdata;
 
-	}
+          if (ArgStart != ArgEnd) {
+              for (int i = ArgStart; i < ArgEnd; i++) {
+                  Tcl_GetDouble(interp, argv[i], &inputdata);
+                  data(i - ArgStart) = inputdata;
+              }
+          }
+          theHTEntity = new Simple_Block(HTEntityTag, data(0), data(1), data(2), data(3), data(4), data(5), data(6), data(7));
+      }
+      
+ }
 	//Adding 2D entity:Isection
-	else if(strcmp(argv[1],"Isection") == 0||strcmp(argv[1],"Isection2D") == 0||strcmp(argv[1],"Isection2d") == 0)
+else if(strcmp(argv[1],"Isection") == 0||strcmp(argv[1],"Isection2D") == 0||strcmp(argv[1],"Isection2d") == 0)
   {
 	  
 		double HTI_centerX, HTI_centerY, HTI_BF, HTI_Tf, HTI_Tw, HTI_HB;
@@ -1176,6 +1194,7 @@ TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int 
 	int HTMaterialTag1 =0;
 	int PhaseChangeTag= 0;
 	int PhaseChangeTag1= 0;
+    bool numCtrl = false;
   Vector* SectionLocs = new Vector(0);
   
 	Simple_Entity* theHTEntity=0;
@@ -1273,12 +1292,12 @@ TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int 
     }
     
     
-    
   }
   
   //if meshctrls tag is detected
-  if(strcmp(argv[count],"-MeshCtrls") == 0||strcmp(argv[count],"-meshctrls") == 0){
+  if(strcmp(argv[count],"-MeshCtrls") == 0||strcmp(argv[count],"-MeshCtrl") == 0 || strcmp(argv[count], "-NumCtrl") == 0 || strcmp(argv[count], "-numctrl") == 0){
     count++;
+
     if ((argc - count)>0) {
       MeshCtrls.resize(argc-count);
     } else {
@@ -1286,16 +1305,36 @@ TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int 
       return TCL_ERROR;
     }
 //-----for geting uncertain number of double data.
-    int ArgStart = count;
-      int ArgEnd = argc;
-      double data;
-   
-      if (ArgStart != ArgEnd) {
-		for (int i=ArgStart; i<ArgEnd; i++) {
-		Tcl_GetDouble(interp, argv[i], &data);
-		MeshCtrls(i-ArgStart) = data;
-		}
-      }
+    if (strcmp(argv[count-1], "-MeshCtrls") == 0 || strcmp(argv[count-1], "-MeshCtrl") == 0) {
+        int ArgStart = count;
+        int ArgEnd = argc;
+        double data;
+
+        if (ArgStart != ArgEnd) {
+            for (int i = ArgStart; i < ArgEnd; i++) {
+                Tcl_GetDouble(interp, argv[i], &data);
+                MeshCtrls(i - ArgStart) = data;
+            }
+        }
+    } 
+    else if (strcmp(argv[count-1], "-NumCtrl") == 0 || strcmp(argv[count-1], "-numctrl") == 0) {
+        numCtrl = true;
+        int ArgStart = count;
+        int ArgEnd = argc;
+        int data;
+
+        if (ArgStart != ArgEnd) {
+            for (int i = ArgStart; i < ArgEnd; i++) {
+                Tcl_GetInt(interp, argv[i], &data);
+                MeshCtrls(i - ArgStart) = data;
+            }
+        }
+    }
+    else {
+        opserr << "WARNING:TclHTModule- MeshCtrls not found for Mesh " << argv[1] << endln;
+        return TCL_ERROR;
+    }
+    
 #ifdef _DEBUG
 	  opserr<<"OriginLocs "<< *SectionLocs<<" MeshCtrls "<< MeshCtrls<<endln;
 #endif
@@ -1341,11 +1380,8 @@ TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int 
     
   }
 
-  if (HTMaterialTag1!=0) {
-    theHTMesh = new Simple_Mesh(HTMeshTag,theHTEntity,theHTDomain,theHTMaterial,MeshCtrls,theHTMaterial1);
-  } else{
-    theHTMesh = new Simple_Mesh(HTMeshTag,theHTEntity,theHTDomain,theHTMaterial,MeshCtrls);
-	}
+    theHTMesh = new Simple_Mesh(HTMeshTag,theHTEntity,theHTDomain,theHTMaterial,MeshCtrls,theHTMaterial1,numCtrl);
+
 
 	if(theHTMesh!=0){
     if (PHaseIDs!=0) {

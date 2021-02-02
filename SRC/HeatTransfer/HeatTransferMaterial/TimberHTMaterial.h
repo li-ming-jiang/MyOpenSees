@@ -56,7 +56,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		void update();
 		void  Print(OPS_Stream&, int = 0) {return;};
 		bool getIfHeatGen();
-		double getHeatGen(double locy);
+		double getHeatGen(double locy=0);
 
 		const Vector& getPars();
     protected:
@@ -71,17 +71,16 @@ class TimberHTMaterial: public HeatTransferMaterial
 		double rho0, moist;
 		double trial_temp;
 		double ini_temp;  // keep a copy of initial temperature
-		static double epsilon;
+		//static double charEndt;
 		Vector MatPars;
 		double pht1, pht2;
-		double HtComb;
+		double HtComb, Qgen;
 		double charTime;
 		HeatTransferDomain* theHTDomain;
 		const char* fileName;
 		Matrix* thePars;
 		double T1, T2, T3;
-		double dt1, dt2, dt3;
-
+		double transt23;
 		int determinePhase(double temp, double time);
 };
 
