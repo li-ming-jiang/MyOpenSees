@@ -81,7 +81,7 @@ HTRecorder -file BotFlange.dat -NodeSet 1;
 HTRecorder -file theWeb.dat -NodeSet 2;
 HTRecorder -file TopFlange.dat -NodeSet 3;
 
-HTAnalysis HeatTransfer Residual 0.1 1000 1 Newton
+HTAnalysis HeatTransfer tempIncr 0.1 1000 1 Newton
 HTAnalyze 1800 10
 
 wipeHT;
