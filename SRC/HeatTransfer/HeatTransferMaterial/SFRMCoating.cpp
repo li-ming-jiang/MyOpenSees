@@ -171,15 +171,40 @@ SFRMCoating::getSpecificHeat(void)
 double
 SFRMCoating::getEnthalpy()
 {
-    	return 0;	
+    if (trial_temp < 200.0)
+        enthalpy = 3236 * trial_temp + 4.16 * 0.5 * pow(trial_temp, 2);
+    else if (trial_temp < 400.0)
+        enthalpy = -380600 + 6815 * trial_temp - 12.6 * 0.5 * pow(trial_temp, 2);
+    else if (trial_temp < 700.0)
+        enthalpy = 708200 + 1645 * trial_temp - 0.36 * 0.5 * pow(trial_temp, 2);
+    else if (trial_temp < 1200.0)
+        enthalpy = 88200 + (1645 - 0.36 * 700) * trial_temp;
+    else
+        opserr << "SFRM Coating ,invalid temperature" << trial_temp << endln;
+
+    return enthalpy;
 }
 
 
 double
 SFRMCoating::getEnthalpy(double temp)
 {
-    
-    return 0;	
+    double enthp = 0;
+    double nod_temp = temp - 273.15;
+
+    if (nod_temp < 200.0)
+        enthp = 3236 * nod_temp + 4.16 * 0.5 * pow(nod_temp, 2);
+    else if (nod_temp < 400.0)
+        enthp = -380600 + 6815 * nod_temp - 12.6 * 0.5 * pow(nod_temp, 2);
+    else if (nod_temp < 700.0)
+        enthp = 708200 + 1645 * nod_temp - 0.36 * 0.5 * pow(nod_temp, 2);
+    else if (nod_temp < 1200.0)
+        enthp = 88200 + (1645 - 0.36 * 700) * nod_temp;
+    else
+        opserr << "SFRM Coating ,invalid temperature" << nod_temp << endln;
+
+    return enthp;
+
 }
 
 
