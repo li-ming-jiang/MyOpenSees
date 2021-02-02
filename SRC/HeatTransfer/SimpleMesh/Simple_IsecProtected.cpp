@@ -25,7 +25,7 @@ Simple_IsecProtected::~Simple_IsecProtected()
 }
 
 int 
-Simple_IsecProtected::InitialMeshCtrl(Vector& MeshCtrls)
+Simple_IsecProtected::InitialMeshCtrl(Vector& MeshCtrls, bool numCtrl)
 {
 	 EleX= MeshCtrls(0);
 	 EleY= MeshCtrls(1);
