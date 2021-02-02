@@ -684,6 +684,11 @@ TimberHTMaterial::getIfHeatGen()
 double
 TimberHTMaterial::getHeatGen(double locy)
 {
+    double alp1 = 0.3;    //400-600
+    double alp2 = 0.5;   //600-800
+    double alp3 = 1.0;  // initial, locy<0.005
+    double alp4 = 1.2;  // phTag =3, flaming
+
     //double Qgen = 0;
     double alpha = 0;
 	double locRatio = 1; 
@@ -692,38 +697,38 @@ TimberHTMaterial::getHeatGen(double locy)
     {
         if (TempTag == 0) {
             if (trial_temp < 400)
-                return 0;
+                alpha= 0;
             //else if (trial_temp < 400)
               //  alpha = (trial_temp - 300) / 100 * 0.1;   //combustion area at 400-600 range
             else if (trial_temp < 600)
-                alpha = (trial_temp - 400) / 200 * 0.43;   //combustion area at 400-600 range  alpha = (trial_temp - 400) / 200 * 0.43;
+                alpha = (trial_temp - 400) / 200 * alp1;   //combustion area at 400-600 range  alpha = (trial_temp - 400) / 200 * 0.43;
             else if (trial_temp < 800)
-               alpha = (trial_temp - 600) / 200 * 0.57 + 0.43;   //combustion area at 500-800 range
+               alpha = (trial_temp - 600) / 200 * alp2 + alp1;   //combustion area at 500-800 range
             else
-                alpha = 1;
+                alpha = alp2+alp1;
         }
         else if (TempTag == 1) {
-                alpha = 1;
+                alpha = alp2 + alp1;
 
             //alpha = 1- (pht2 - pht1) / dt3;
         }
-        if (locy < 0.005) {
+        if (locy < 0.01) {
             if (transt23 - charTime < 200) {
-                alpha = (transt23 - charTime) / 200;
+                alpha = (transt23 - charTime) / 200*alp3;
             }
             else
-                alpha = 1;
+                alpha = alp3;
         }
       
        
     }
 	else if(trialphTag ==3){
-        if (trial_temp < 750)
+        if (trial_temp < 650)
             alpha = 0;
-        else if (trial_temp < 850)
-            alpha = 0.1 + (trial_temp - 850) / 100*0.1;
+        else if (trial_temp < 800)
+            alpha = (1 + (trial_temp - 800) / 150)*alp4;
         else if (trial_temp < 950)
-            alpha = 0.1 - (trial_temp - 850) / 100*0.1;
+            alpha = (1 - (trial_temp - 800) / 150)*alp4;
         else
             alpha = 0;
 	}
@@ -739,7 +744,7 @@ TimberHTMaterial::getHeatGen(double locy)
         
         Qgen = alpha* HtComb;
 
-    if (Qgen < 0)
+    if (Qgen < -1e-5)
         opserr << "incorrect Heat of generation" << endln;
 
     return Qgen ;
