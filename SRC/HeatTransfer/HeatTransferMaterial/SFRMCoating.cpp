@@ -67,11 +67,11 @@ SFRMCoating::getConductivity(void)
 	double materialK = 0;
 	if(TypeTag ==1){
 		if (trial_temp <= 300.0) 
-      materialK = 0.0778-0.000054*trial_temp;
-    else if(trial_temp <= 700.0)
-      materialK = -0.08+0.000469*trial_temp;
-    else
-      materialK = -0.08+0.000469*700;
+            materialK = 0.0778-0.000054*trial_temp;
+        else if(trial_temp <= 700.0)
+            materialK = -0.08+0.000472*trial_temp;
+        else
+            materialK = -0.08+0.000472*700;
 	}
   else if(TypeTag ==2){
     if (trial_temp <= 200.0)
@@ -124,8 +124,13 @@ SFRMCoating::getSpecificHeat(void)
 {
   
   if(TypeTag ==1){
-	if (trial_temp < 200.0)
+    if (trial_temp <0)
+          cp = 3236;
+	else if (trial_temp < 100.0)
       cp = 3236 + 4.16*trial_temp;
+    else if(trial_temp < 200.0)
+        //cp = 3236 + 4.16 * trial_temp;
+      cp = 3009+ 6.43 * trial_temp;
     else if(trial_temp < 400.0)
       cp = 6815 - 12.60*trial_temp;
     else if(trial_temp < 700.0)
