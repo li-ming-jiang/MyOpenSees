@@ -1960,26 +1960,27 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   }
 
   
-  theHTNodeSet = new HTNodeSet(HTNodeSetTag);
+  
   
   if (NodeRange!=0) {
+    theHTNodeSet = new HTNodeSet(HTNodeSetTag);
     theHTNodeSet->addNodeID(NodeRange);
   }
   else{
-	opserr<<"WARNING: TclHTModule failed to add HTNodeSet: "<<argv[1]<<endln;
+    opserr << "WARNING: There are no nodes to add to the HTNodeSet." << endln;
+    opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+    return -1;
   }
   
-  if(theHTNodeSet!=0)
-	theTclHTModule->addHTNodeSet(theHTNodeSet);
-  else
-	opserr<<"WARNING: TclHTModule failed to add HTNodeSet: "<<argv[1]<<endln;
-  
-
-  opserr<<"NodeSet "<<HTNodeSetTag <<" selects nodes:"<<NodeRange<<endln;
-
-
-	return TCL_OK;
-  
+  if (theHTNodeSet != 0) {
+      theTclHTModule->addHTNodeSet(theHTNodeSet);
+      opserr << "NodeSet " << HTNodeSetTag << " selects nodes:" << NodeRange << endln;
+      return TCL_OK;
+  }
+  else {
+      opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+      return -1;
+  }
 }
 
 //HTPattern
@@ -2758,7 +2759,6 @@ TclHeatTransferCommand_addMPTemperatureBC(ClientData clientData, Tcl_Interp *int
   //if HTEntity tag is detected
   if(strcmp(argv[count],"-HTNodeSet") == 0||strcmp(argv[count],"-NodeSet") == 0||strcmp(argv[count],"nodeset") == 0)
   {
-    
     count++;
     
     if (Tcl_GetInt(interp, argv[count], &masterIDtag) != TCL_OK) {
@@ -3226,9 +3226,9 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
         }
         count++;
         theTest = new CTestNormResidual(testTol, maxIterations, analysisFlag);
-        
+        opserr << "Using NormResidual test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
     }
-    else if (strcmp(argv[count], "tempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
+    else if (strcmp(argv[count], "TempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
         count++;
         double testTol;
         if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
@@ -3249,13 +3249,15 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
         }
         count++;
         theTest = new CTestNormTempIncr(testTol, maxIterations, analysisFlag);
+        opserr << "Using NormTempIncr test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
+        
     }
 	if (theTest == 0) {
 		opserr << "WARNING analysis Transient - no convergence test yet specified, \n";
 	    opserr << " CTestNormTempIncr default will be used\n";
 #ifdef _DEBUG
         // theTest = new CTestNormTempIncr(1e-3, 500,1);
-        theTest = new CTestNormResidual(1e-1, 2000, 1);
+        // theTest = new CTestNormResidual(1e-1, 2000, 1);
 
 #else
         theTest = new CTestNormTempIncr(1e-3, 2000, 0);
@@ -3264,16 +3266,18 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
     if (strcmp(argv[count], "Newton") == 0 || strcmp(argv[count], "newton") == 0) {
         count++;
         theAlgorithm = new NewtonMethod(*theTest);
+        opserr << "Using the NewtonMethod algorithm.\n";
     }
-    else if (strcmp(argv[count], "Newton") == 0 || strcmp(argv[count], "newton") == 0) {
+    else if (strcmp(argv[count], "ModifiedNewton") == 0 || strcmp(argv[count], "modifiedNewton") == 0 || strcmp(argv[count], "modifiednewton") == 0) {
         count++;
         theAlgorithm = new ModifiedNewtonMethod(*theTest);
+        opserr << "Using the ModifiedNewtonMethod algorithm.\n";
     }
 	if (theAlgorithm == 0) {
 	    opserr << "WARNING analysis Transient - no Algorithm yet specified, \n";
 	    opserr << " NewtonMethod default will be used\n";	    
 #ifdef _DEBUG
-        theAlgorithm = new ModifiedNewtonMethod(*theTest);
+        theAlgorithm = new NewtonMethod(*theTest);
 #else
         theAlgorithm = new NewtonMethod(*theTest);
 #endif
@@ -3448,7 +3452,7 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     ID RecNodeID = 0;
-   RecNodeID =theRecNodeSet->getNodeID();
+   RecNodeID = theRecNodeSet->getNodeID();
   
 #ifdef _DEBUG
    opserr<< "TclHeatTransferModule::HTRecorder, theRecNodeID "<<RecNodeID<<endln;

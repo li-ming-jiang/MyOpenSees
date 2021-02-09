@@ -122,18 +122,34 @@ SFRMCoating::getRho(void)
 double 
 SFRMCoating::getSpecificHeat(void)
 {
-  
+    //if (TypeTag == 1) {
+    //    if (trial_temp < 0)
+    //        cp = 3236;
+    //    else if (trial_temp < 100.0)
+    //        cp = 3236 + 4.16 * trial_temp;
+    //    else if (trial_temp < 200.0)
+    //        //cp = 3236 + 4.16 * trial_temp;
+    //        cp = 3009 + 6.43 * trial_temp;
+    //    else if (trial_temp < 400.0)
+    //        cp = 6815 - 12.60 * trial_temp;
+    //    else if (trial_temp < 700.0)
+    //        cp = 1645 - 0.36 * trial_temp;
+    //    else if (trial_temp < 1200.0)
+    //        cp = 1645 - 0.36 * 700;
+    //    else
+    //        opserr << "SFRM Coating ,invalid temperature" << trial_temp;
+    //}
   if(TypeTag ==1){
 	if (trial_temp < 200.0)
-      cp = 3236 + 4.16*trial_temp;
+      cp = 3236 + 5.295*trial_temp;
     else if(trial_temp < 400.0)
-      cp = 6815 - 12.60*trial_temp;
+      cp = 7089 - 13.97*trial_temp;
     else if(trial_temp < 700.0)
       cp = 1645 - 0.36*trial_temp;
     else if(trial_temp < 1200.0)
       cp = 1645 - 0.36*700;
 	else 
-		opserr<<"SFRM Coating ,invalid temperature"<<trial_temp;
+		opserr<<"sfrm coating ,invalid temperature"<<trial_temp;
   }
   else if(TypeTag ==2){
 	if (trial_temp < 100.0)
@@ -171,39 +187,41 @@ SFRMCoating::getSpecificHeat(void)
 double
 SFRMCoating::getEnthalpy()
 {
-    if (trial_temp < 200.0)
-        enthalpy = 3236 * trial_temp + 4.16 * 0.5 * pow(trial_temp, 2);
-    else if (trial_temp < 400.0)
-        enthalpy = -380600 + 6815 * trial_temp - 12.6 * 0.5 * pow(trial_temp, 2);
-    else if (trial_temp < 700.0)
-        enthalpy = 708200 + 1645 * trial_temp - 0.36 * 0.5 * pow(trial_temp, 2);
-    else if (trial_temp < 1200.0)
-        enthalpy = 88200 + (1645 - 0.36 * 700) * trial_temp;
-    else
-        opserr << "SFRM Coating ,invalid temperature" << trial_temp << endln;
+    //if (trial_temp < 200.0)
+    //    enthalpy = 3236 * trial_temp + 5.295 * 0.5 * pow(trial_temp, 2);
+    //else if (trial_temp < 400.0)
+    //    enthalpy = -385300 + 7089 * trial_temp - 13.97 * 0.5 * pow(trial_temp, 2);
+    //else if (trial_temp < 700.0)
+    //    enthalpy = 1088800 + 1645 * trial_temp - 0.36 * 0.5 * pow(trial_temp, 2);
+    //else if (trial_temp < 1200.0)
+    //    enthalpy = 88200 + (1645 - 0.36 * 700) * trial_temp;
+    //else
+    //    opserr << "SFRM Coating ,invalid temperature" << trial_temp << endln;
 
-    return enthalpy;
+    //return enthalpy;
+    return 0;
 }
 
 
 double
 SFRMCoating::getEnthalpy(double temp)
 {
-    double enthp = 0;
-    double nod_temp = temp - 273.15;
+    //double enthp = 0;
+    //double nod_temp = temp - 273.15;
 
-    if (nod_temp < 200.0)
-        enthp = 3236 * nod_temp + 4.16 * 0.5 * pow(nod_temp, 2);
-    else if (nod_temp < 400.0)
-        enthp = -380600 + 6815 * nod_temp - 12.6 * 0.5 * pow(nod_temp, 2);
-    else if (nod_temp < 700.0)
-        enthp = 708200 + 1645 * nod_temp - 0.36 * 0.5 * pow(nod_temp, 2);
-    else if (nod_temp < 1200.0)
-        enthp = 88200 + (1645 - 0.36 * 700) * nod_temp;
-    else
-        opserr << "SFRM Coating ,invalid temperature" << nod_temp << endln;
+    //if (nod_temp < 200.0)
+    //    enthp = 3236 * nod_temp + 4.295 * 0.5 * pow(nod_temp, 2);
+    //else if (nod_temp < 400.0)
+    //    enthp = -385300 + 7089 * nod_temp - 13.97 * 0.5 * pow(nod_temp, 2);
+    //else if (nod_temp < 700.0)
+    //    enthp = 1088800 + 1645 * nod_temp - 0.36 * 0.5 * pow(nod_temp, 2);
+    //else if (nod_temp < 1200.0)
+    //    enthp = 88200 + (1645 - 0.36 * 700) * nod_temp;
+    //else
+    //    opserr << "SFRM Coating ,invalid temperature" << nod_temp << endln;
 
-    return enthp;
+    //return enthp;
+    return 0;
 
 }
 

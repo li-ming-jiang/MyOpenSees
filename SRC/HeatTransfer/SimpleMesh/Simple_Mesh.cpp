@@ -480,10 +480,10 @@ int Simple_Mesh::SelectingElesbyFace(ID& ElesRange, int FaceTag, int& eleFaceID)
 	}
 	else if((theEntity->getEntityTypeTag())==1||(theEntity->getEntityTypeTag())==11){
     //2D Isection Beam or IsectionBeamProtected;
-		int NumCtrX= theEntity->GetNumCtrlID()(0);
-		int NumCtrY= theEntity->GetNumCtrlID()(1);
-		int NumCtrX_Web = theEntity->GetNumCtrlID()(2);
-		int NumCtrY_Web = theEntity->GetNumCtrlID()(3);
+		int NumCtrX= theEntity->GetNumCtrlID()(0);  // flange elements in x + web elements in x
+		int NumCtrY= theEntity->GetNumCtrlID()(1); // flange elements in y
+		int NumCtrX_Web = theEntity->GetNumCtrlID()(2); // web elements in x
+		int NumCtrY_Web = theEntity->GetNumCtrlID()(3); // web elements in y
 
 		if(theEntity->getEntityTypeTag()==11){
 			

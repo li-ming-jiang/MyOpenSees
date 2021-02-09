@@ -37,8 +37,8 @@ Simple_IsecProtected::InitialMeshCtrl(Vector& MeshCtrls, bool numCtrl)
 	NumCtrlID(1)= HTI_Tf/EleY+0.2;                           //Num of elements generated in flange along Y-axis
 	NumCtrlID(2) = HTI_Tw/EleX_Web+0.2;                      //Num of elements generated in Web along x-axis
 	NumCtrlID(3) = (HTI_Hw-HTI_Coat*2)/EleY_Web+ HTI_Coat/Ele_coat*2 +0.2;    //Num of elements generated in Web along y-axis
-	NumCtrlID(4) = HTI_Coat/Ele_coat+0.2;    
-	
+	NumCtrlID(4) = HTI_Coat/Ele_coat+0.2;
+
 	EleX= (HTI_Bf-HTI_Tw - HTI_Coat*2)/(NumCtrlID(0)-NumCtrlID(2)-NumCtrlID(4)*2);
 	 EleY= HTI_Tf/NumCtrlID(1);
 	 EleX_Web= HTI_Tw/NumCtrlID(2);
@@ -56,7 +56,7 @@ Simple_IsecProtected::InitialMeshCtrl(Vector& MeshCtrls, bool numCtrl)
 			return -1;
 		}
 	
-	if(NumCtrlID(0)==0||NumCtrlID(1)==0||NumCtrlID(2)==0||NumCtrlID(3)==0)
+	if(NumCtrlID(0)==0||NumCtrlID(1)==0||NumCtrlID(2)==0||NumCtrlID(3)==0 || NumCtrlID(4) == 0)
 		{
 			opserr<<"Error: NumCtrlID in Isection: "<< this->getTag()<<" has 0 vlaue"<<endln;
 			return -2;
@@ -307,7 +307,9 @@ int Simple_IsecProtected::GenerateNodes(HeatTransferDomain* theHTDomain, int nDo
 			else {
 				TempNode = new HeatTransferNode(OriginNodeTag + NodeTag, nDoF, NodeCrdX, NodeCrdY);
 			}
-
+			#ifdef _DEBUG
+						//opserr << "Lower flange node " << OriginNodeTag + NodeTag << " with x = " << NodeCrdX << " and y = " << NodeCrdY << endln;
+			#endif
 			if (theHTDomain->addNode(TempNode) < 0) {
 				opserr << "HTDomain failed to generate node with coordinates: " << NodeCrdX << ", " << NodeCrdY << endln;
 				return -1;
@@ -329,6 +331,10 @@ int Simple_IsecProtected::GenerateNodes(HeatTransferDomain* theHTDomain, int nDo
 			NodeCrdY = Seeds2(i + NumY + 1);
 			if (fabs(NodeCrdY) < 1e-10)
 				NodeCrdY = 0;
+
+			#ifdef _DEBUG
+			 //opserr<<"web node "<< OriginNodeTag + NodeTag << " with x = " << NodeCrdX << " and y = " << NodeCrdY <<endln;
+			#endif
 
 			HeatTransferNode* TempNode = 0;
 			if (OriginLocs.Size() == 1) {
@@ -369,6 +375,9 @@ int Simple_IsecProtected::GenerateNodes(HeatTransferDomain* theHTDomain, int nDo
 				opserr << "HTDomain failed to generate node with coordinates: " << NodeCrdX << ", " << NodeCrdY << endln;
 				return -1;
 			}
+			#ifdef _DEBUG
+						//opserr << "Upper flange node " << OriginNodeTag + NodeTag << " with x = " << NodeCrdX << " and y = " << NodeCrdY << endln;
+			#endif
 		}
 	}
 
