@@ -96,20 +96,20 @@ int Simple_Mesh::GeneratingNodes(const Vector& originLocs )
   else
   {
 #ifdef _DEBUG
-    opserr<<"SimpleMesh::GeneratingNodes encountered redefined OriginLocs"<<endln;
+    opserr<<"SimpleMesh::GeneratingNodes encountered redefined OriginLocs."<<endln;
 #endif
   }
   OriginNodeTag = theHTDomain->getNumNodes()+1;
   int nDoF=1;
 
 	if (theEntity->GenerateNodes(theHTDomain, nDoF, OriginLocs) < 0) {
-		opserr << "Simple Mesh: " << this->getTag() << "failed to generate nodes" << endln;
+		opserr << "Simple Mesh: " << this->getTag() << "failed to generate nodes." << endln;
 		return -1;
 	}
 	else {
 
 #ifdef _DEBUG
-	 opserr << "SimpleMesh has successfully generated " << (theHTDomain->getNumNodes()) - OriginNodeTag+1 << " HeatTransfer Nodes..." << endln;
+	 opserr << "SimpleMesh " << this->getTag() << " has successfully generated " << (theHTDomain->getNumNodes()) - OriginNodeTag+1 << " HeatTransfer Nodes." << endln;
 #endif
 
 	}
@@ -128,12 +128,12 @@ int Simple_Mesh::GeneratingEles(const ID& eleParameters)
   }
   else
   {
-    opserr<< "SimpleMesh " << this->getTag()<< "encounters redefined EleParameteres"<<endln;
+    opserr<< "SimpleMesh " << this->getTag()<< " encounters redefined EleParameteres."<<endln;
   }
   
 
 #ifdef _DEBUG
-	opserr<<"SimpleMesh "<<this->getTag()<<" starts to generate elements...."<< theEntity->getEntityTypeTag() <<endln;
+	opserr<<"SimpleMesh "<<this->getTag()<<" starts to generate elements for entity of type "<< theEntity->getEntityTypeTag() <<endln;
 #endif
 
   
@@ -144,7 +144,7 @@ int Simple_Mesh::GeneratingEles(const ID& eleParameters)
 	int result = theEntity->GenerateEles(theHTDomain, EleParameters, theHTMaterial,theHTMaterial1);
 
 	if (result < 0) {
-		opserr << "HeatTransferDomain Failed to generate elements";
+		opserr << "HeatTransferDomain Failed to generate elements.\n" << endln;
 		return -1;
 	}
 
@@ -152,7 +152,7 @@ int Simple_Mesh::GeneratingEles(const ID& eleParameters)
 		
 #ifdef _DEBUG
 		if(isHTDomain)
-		opserr<<"SimpleMesh has successfully generated "<<(theHTDomain->getNumElements())-OriginEleTag+1 <<" HeatTransfer Elements..."<<endln;
+		opserr<<"SimpleMesh " << this->getTag() << " has successfully generated "<<(theHTDomain->getNumElements())-OriginEleTag+1 <<" HeatTransfer Elements.\n"<<endln;
 #endif
 
 return 0;

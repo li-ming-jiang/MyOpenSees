@@ -57,9 +57,9 @@ HTConstants 1 35.0 293.15 0.85 0.85
 
 # thermal load assignment 
 set fileName AST1.dat
-FireModel	UserDefined	1	-file	$fileName -type 1
+# FireModel	UserDefined	1	-file	$fileName -type 1
 # FireModel standard 1
-# FireModel hydroCarbon 1
+FireModel hydroCarbon 1
 
 
 

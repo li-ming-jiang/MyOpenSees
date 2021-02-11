@@ -1888,6 +1888,11 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     
     theHTDomain->SelectingNodes(NodeRange, 0, xlocLB,xlocUB);
     // for geting uncertain number of doubel values
+    if (NodeRange == 0) {
+        opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
+        opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+        return -1;
+    }
   
   }
   }
@@ -1923,7 +1928,11 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     
     theHTDomain->SelectingNodes(NodeRange, 1, ylocLB,ylocUB);
     // for geting uncertain number of doubel values
-    
+    if (NodeRange == 0) {
+        opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
+        opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+        return -1;
+    }
   }
   }
   //search node in the range of zloc
@@ -1955,7 +1964,12 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     }
     
     theHTDomain->SelectingNodes(NodeRange, 2, zlocLB,zlocUB);
-    // for geting uncertain number of doubel values 
+    // for geting uncertain number of double values 
+    if (NodeRange == 0) {
+        opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
+        opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+        return -1;
+    }
   }
   }
 

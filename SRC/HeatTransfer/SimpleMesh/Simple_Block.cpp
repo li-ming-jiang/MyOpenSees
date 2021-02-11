@@ -241,6 +241,7 @@ int Simple_Block::GenerateNodes(HeatTransferDomain* theHTDomain, int nDoF, const
 				opserr << "HTDomain failed to generate node with coordinates: " << NodeCrdX << ", " << NodeCrdY << endln;
 				return -1;
 			}
+			//opserr << "Generated node: " << OriginNodeTag + (NumCtrX + 1) * i + j << ", x = " << NodeCrdX << ", y =  " << NodeCrdY << endln;
 			
 
 		}
