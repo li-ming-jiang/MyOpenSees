@@ -187,42 +187,36 @@ Simple_Mesh::SelectingNodes(ID& NodesRange,int crdTag,double MinValue, double Ma
 	vector<int> SelectedNodes;
 	int NodeTag =0;
 	for(int i=0;i<iniNumOfNodes;i++){
-		if(isHTDomain)
+		if (isHTDomain)
 		{
-			if(iniSelecting)
-				NodeTag = OriginNodeTag+i;
+			if (iniSelecting)
+				NodeTag = OriginNodeTag + i;
 			else
-				NodeTag	= NodesRange(i);
-			//opserr<<(theHTDomain->getNode(NodeTag)->getCrds())<<"     ";
+				NodeTag = NodesRange(i);
+
 			double NodalCrd = (theHTDomain->getNode(NodeTag)->getCrds())(crdTag);
-			if((NodalCrd<=MaxValue+Tolerance)&&(NodalCrd>=MinValue-Tolerance)){
+			if ((NodalCrd <= MaxValue + Tolerance) && (NodalCrd >= MinValue - Tolerance)) {
 				SelectedNodes.push_back(NodeTag);
 			}
-		 }
-		else 
-		{
-			/*
-			if(iniSelecting)
-				NodeTag = OriginNodeTag+i;
-			else
-				NodeTag	= NodesRange(i);
-
-			Node* theNode = theDomain->getNode(NodeTag);
-			if((theNode->getCrds()(crdTag)<=MaxValue+Tolerance)&&(theNode->getCrds()(crdTag)>=MinValue-Tolerance))
-				SelectedNodes.push_back(NodeTag);*/
+		}
+		else {
+			opserr << "ERROR: Simple_Mesh trying to select a node not within the domain." << endln;
+			return -1;
 		}
 	  
 	}
 	int NewIDsize = SelectedNodes.size();
+	//Mhd Anwar Orabi 2021
+	if (NewIDsize == 0)
+		NodesRange = 0;
+	else
+		NodesRange.resize(NewIDsize);
 
-	//opserr<<"SimpleMesh::SelectingNodes has selected "<<NewIDsize<<" Nodes for crd"<<crdTag<<endln;
-
-	NodesRange.resize(NewIDsize);
-	for (int i = 0; i< NewIDsize; i++) {
+	for (int i = 0; i < NewIDsize; i++) {
 		NodesRange(i)=SelectedNodes[i];
 	}
 #ifdef _DEBUG
-	opserr<<NodesRange<<endln;
+	opserr << "Debug mode node range currently selected is:" << NodesRange << endln;
 #endif
   return 0;
 }

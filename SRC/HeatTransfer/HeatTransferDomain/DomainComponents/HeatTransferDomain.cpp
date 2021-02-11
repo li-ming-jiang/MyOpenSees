@@ -1137,7 +1137,7 @@ HeatTransferDomain::SelectingNodes(ID& NodesRange, int crdTag, double MinValue, 
                 NodeTag = i+1;
             else
                 NodeTag = NodesRange(i);
-           // opserr<<"nodetag"<< NodeTag<<"  "<<(this->getNode(NodeTag)->getCrds())<<"     ";
+
             double NodalCrd = (this->getNode(NodeTag)->getCrds())(crdTag);
             if ((NodalCrd <= MaxValue + Tolerance) && (NodalCrd >= MinValue - Tolerance)) {
                 SelectedNodes.push_back(NodeTag);

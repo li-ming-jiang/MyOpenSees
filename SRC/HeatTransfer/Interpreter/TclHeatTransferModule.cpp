@@ -155,6 +155,8 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 int TclHeatTransferCommand_HTAnalyze(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 
+int TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
+
 TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
 {
   // Set the interpreter (the destructor needs it to delete commands)
@@ -205,6 +207,7 @@ TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
   Tcl_CreateCommand(interp, "HTAnalyze", (Tcl_CmdProc* )TclHeatTransferCommand_HTAnalyze,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTReset", (Tcl_CmdProc* )TclHeatTransferCommand_HTReset,(ClientData)NULL, NULL);
   
+  Tcl_CreateCommand(interp, "HTPrintNodes", (Tcl_CmdProc*)TclHeatTransferCommand_PrintNodes, (ClientData)NULL, NULL);
   
   //Tcl_CreateCommand(interp, "HTMaterial", (Tcl_ObjCmdProc*) TclHeatTransferCommand_addHTMaterial,(ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 
@@ -1801,6 +1804,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   
   HTNodeSet* theHTNodeSet = 0;
   Simple_Entity* theHTEntity = 0;
+  Simple_Mesh* theHTMesh = 0;
   int HTNodeSetTag = 0;
   int HTEntityTag = 0;
   int FaceID =0;
@@ -1834,7 +1838,7 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     //HTEntityTag obtained
 
     int EntityMeshTag = theHTEntity->getMeshTag();
-    Simple_Mesh* theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
+    theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
 
     //to obtain faceTag
     if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
@@ -1885,9 +1889,19 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       opserr << "WARNING::TclHeatTransfer::xlocUB " << xlocUB <<"should be greater than xlocLb "<<xlocLB;
       return TCL_ERROR;
     }
-    
-    theHTDomain->SelectingNodes(NodeRange, 0, xlocLB,xlocUB);
-    // for geting uncertain number of doubel values
+    if (theHTMesh == 0) {
+        #ifdef _DEBUG
+        opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
+        #endif  
+        theHTDomain->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
+    }
+    else {
+        #ifdef _DEBUG
+        opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
+        #endif
+        theHTMesh->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
+    }
+    // for geting uncertain number of double values
     if (NodeRange == 0) {
         opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
         opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
@@ -3578,4 +3592,49 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 // HTNodeRecorder(int tag, const ID* theNodes, HeatTransferDomain& theDomain,OPS_Stream &theOutputHandle); 
 
 return TCL_OK;
+}
+
+int 
+TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv) {
+
+    if (theTclHTModule == 0) {
+        opserr << "WARNING current HeatTransfer Module has been destroyed - HTNodeSet\n";
+        return TCL_ERROR;
+    }
+
+    if (theHTDomain == 0) {
+        opserr << "WARNING no active HeatTransfer Domain - HTNodeSet\n";
+        return TCL_ERROR;
+    }
+
+    if (argc > 1) {
+        opserr << "Too many arguments for HTPrintNodes, which takes no arguments at all!" << endln;
+        return TCL_ERROR;
+    }
+
+    int NumNodes = 0;
+    int NodeTag = 0;
+    double Nodalx; 
+    double Nodaly;
+    double Nodalz;
+
+
+    NumNodes = theHTDomain->getNumNodes();
+    opserr << "There are " << NumNodes << " in the current domain." << endln;
+    opserr << "Node Tag, x, y, z " << endln;
+    for (int i = 0; i < NumNodes; i++) {
+        NodeTag = i + 1;
+        Nodalx = (theHTDomain->getNode(NodeTag)->getCrds())(0);
+        Nodaly = (theHTDomain->getNode(NodeTag)->getCrds())(1);
+        Nodalz = (theHTDomain->getNode(NodeTag)->getCrds())(2);
+        if (abs(Nodalx) < 1e-6 || abs(Nodalx) > 1e6)
+            Nodalx = 0;
+        if (abs(Nodaly) < 1e-6 || abs(Nodaly) > 1e6)
+            Nodaly = 0;
+        if (abs(Nodalz) < 1e-6 || abs(Nodalz) > 1e6)
+            Nodalz = 0;
+        opserr << NodeTag << ", "<< Nodalx <<", "<< Nodaly<<", "<< Nodalz << endln;
+    }
+
+    return 0;
 }
