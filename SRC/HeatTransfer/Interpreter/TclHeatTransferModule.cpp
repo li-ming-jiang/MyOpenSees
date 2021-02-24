@@ -1816,240 +1816,264 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   }
   
   int count=2;
-  
-  //if HTEntity tag is detected, then we definitely expect faceID
-  if(strcmp(argv[count],"-HTEntity") == 0||strcmp(argv[count],"-Entity") == 0||strcmp(argv[count],"HTEntity") == 0){
-    
-    count++;
-    
-    if (Tcl_GetInt(interp, argv[count], &HTEntityTag) != TCL_OK) {
-      opserr << "WARNING:: invalid HT Entity tag for defining HTNodeSet: " << argv[1] << "\n";
-      return TCL_ERROR;
-    }else{
-      count++;
-    }
-    
 
-    theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
-    if (theHTEntity == 0) {
-        opserr << "WARNING:: HTNodeSet failed to get the HTEntity: " << argv[1] << "\n";
+  
+if (strcmp(argv[count], "-HTNodeSet") == 0 || strcmp(argv[count], "-NodeSet") == 0 || strcmp(argv[count], "nodeset") == 0)
+{
+    count++;
+
+    //-----for geting uncertain number of integer data.
+    int ArgStart = count;
+    int ArgEnd = 0;
+    int data;
+    ID NodeSetRange(0);
+
+    while (count < argc && ArgEnd == 0) {
+        if (count == argc - 1)
+            ArgEnd = count + 1;
+        else if (Tcl_GetInt(interp, argv[count], &data) != TCL_OK)
+        {
+            opserr << "Error creating NodeSet " << argv[1] << endln;
+            opserr << "\"" << argv[count] << "\" detected after using -NodeSet flag." << endln;
+            opserr << "Can only have integers after the -NodeSet flag when creating a new combined nodeset." << endln;
+            return TCL_ERROR;
+        }
+        else
+            count++;
+    }
+    if (ArgEnd - ArgStart <= 0) {
+        opserr << "Error creating NodeSet " << argv[1] << endln;
+        opserr << "Not enough arguments to create a combined of NodeSets. Need at least 1 valid component NodeSet." << endln;
         return TCL_ERROR;
     }
-    //HTEntityTag obtained
+    //~ detecting the remaining number of input
+    NodeSetRange.resize(ArgEnd - ArgStart);
+    if (ArgStart != ArgEnd) {
+        for (int i = ArgStart; i < ArgEnd; i++) {
+            Tcl_GetInt(interp, argv[i], &data);
+            NodeSetRange(i - ArgStart) = data;
+        }
+    }
+    vector <int> NodeRangeV;
+    for (int i = 0; i < NodeSetRange.Size(); i++) {
+        HTNodeSet* theNodeSet = theTclHTModule->getHTNodeSet(NodeSetRange(i));
+        if (theNodeSet == 0)
+        {
+            opserr << "Cannot create combined NodeSet " << argv[1] << endln;
+            opserr << "Component NodeSet at position " << i + 1 << " with ID " << NodeSetRange(i) << " not found." << endln;
+            return TCL_ERROR;
+        }
+        ID tempNodeSetID = theNodeSet->getNodeID();
+        if (tempNodeSetID == 0) {
+            opserr << "Cannot create combined NodeSet " << argv[1] << endln;
+            opserr << "Component NodeSet at position " << i + 1 << " with ID " << NodeSetRange(i) << " is empty." << endln;
+            return TCL_ERROR;
+        }
+        for (int j = 0; j < tempNodeSetID.Size(); j++) {
+            NodeRangeV.push_back(tempNodeSetID(j));
+        }
+    }
 
-    int EntityMeshTag = theHTEntity->getMeshTag();
-    theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
+    NodeRange.resize(NodeRangeV.size());
+    for (int i = 0; i < NodeRangeV.size(); i++)
+        NodeRange(i) = NodeRangeV[i];
 
-    //to obtain faceTag
-    if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
+}
+else
+{
+    //if HTEntity tag is detected, then we definitely expect faceID
+    if (strcmp(argv[count], "-HTEntity") == 0 || strcmp(argv[count], "-Entity") == 0 || strcmp(argv[count], "HTEntity") == 0) {
+
         count++;
-        if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
-            opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
+
+        if (Tcl_GetInt(interp, argv[count], &HTEntityTag) != TCL_OK) {
+            opserr << "WARNING:: invalid HT Entity tag for defining HTNodeSet: " << argv[1] << "\n";
             return TCL_ERROR;
         }
         else {
             count++;
         }
 
-        theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
+
+        theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
+        if (theHTEntity == 0) {
+            opserr << "WARNING:: HTNodeSet failed to get the HTEntity: " << argv[1] << "\n";
+            return TCL_ERROR;
+        }
+        //HTEntityTag obtained
+
+        int EntityMeshTag = theHTEntity->getMeshTag();
+        theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
+
+        //to obtain faceTag
+        if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
+            count++;
+            if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
+                opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
+                return TCL_ERROR;
+            }
+            else {
+                count++;
+            }
+
+            theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
+
+        }
 
     }
-  
-  }
-	
-	//end of HTEntity tag 
-  
+
+    //end of HTEntity tag 
+
   //search node in the range of xloc
   //check whether it is the end of arguments
-  if(argc-count>0){
-  if(strcmp(argv[count],"-Locx") == 0||strcmp(argv[count],"Locx") == 0||strcmp(argv[count],"locx") == 0||strcmp(argv[count],"-locx") == 0){
-     count++;
-		
-    
-    double xlocLB, xlocUB;
-    
-    if (Tcl_GetDouble (interp, argv[count], &xlocLB) != TCL_OK) {
-      opserr << "WARNING invalid xloc" << endln;
-      opserr << " for adding node to HTNodeSet: " << endln;
-      return TCL_ERROR;
-    }
-    count++;
-	if(argc-count>0){
-    if (Tcl_GetDouble (interp, argv[count], &xlocUB) == TCL_OK) {
-      count++;
-    }
-    else
-      xlocUB=xlocLB;
-	}
-	else
-      xlocUB=xlocLB;
+    if (argc - count > 0) {
+        if (strcmp(argv[count], "-Locx") == 0 || strcmp(argv[count], "Locx") == 0 || strcmp(argv[count], "locx") == 0 || strcmp(argv[count], "-locx") == 0) {
+            count++;
 
-    
-    if (xlocUB<xlocLB) {
-      opserr << "WARNING::TclHeatTransfer::xlocUB " << xlocUB <<"should be greater than xlocLb "<<xlocLB;
-      return TCL_ERROR;
-    }
-    if (theHTMesh == 0) {
-        #ifdef _DEBUG
-        opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
-        #endif  
-        theHTDomain->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
-    }
-    else {
-        #ifdef _DEBUG
-        opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
-        #endif
-        theHTMesh->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
-    }
-    // for geting uncertain number of double values
-    if (NodeRange == 0) {
-        opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
-        opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-        return -1;
-    }
-  
-  }
-  }
-  //search node in the range of yloc
-  if(argc-count>0){
-  if(strcmp(argv[count],"-Locy") == 0||strcmp(argv[count],"Locy") == 0||strcmp(argv[count],"locy") == 0){
-    count++;
-    
-    
-    
-    double ylocLB, ylocUB;
-    
-    if (Tcl_GetDouble (interp, argv[count], &ylocLB) != TCL_OK) {
-      opserr << "WARNING invalid yloc" << endln;
-      opserr << " for adding node to HTNodeSet: " << endln;
-      return TCL_ERROR;
-    }
-    count++;
-    if(argc-count>0){
-		if (Tcl_GetDouble (interp, argv[count], &ylocUB) == TCL_OK) {
-		count++;
-		}
-		else
-		ylocUB=ylocLB;
-	}
-	else
-		ylocUB=ylocLB;
-    
-    if (ylocUB<ylocLB) {
-      opserr << "WARNING::TclHeatTransfer::ylocUB " << ylocUB <<"should be greater than ylocLb "<<ylocLB;
-      return TCL_ERROR;
-    }
-    if (theHTMesh == 0) {
-    #ifdef _DEBUG
-            opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
-    #endif  
-        theHTDomain->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
-    }
-    else {
-    #ifdef _DEBUG
-            opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
-    #endif
-        theHTMesh->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
-    }
 
-    // for geting uncertain number of doubel values
-    if (NodeRange == 0) {
-        opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
-        opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-        return -1;
-    }
-  }
-  }
-  //search node in the range of zloc
-  if(argc-count>0){
-  if(strcmp(argv[count],"-Locz") == 0||strcmp(argv[count],"Locz") == 0||strcmp(argv[count],"locz") == 0){
-    count++;
-    
-    double zlocLB, zlocUB;
-    
-    if (Tcl_GetDouble (interp, argv[count], &zlocLB) != TCL_OK) {
-      opserr << "WARNING invalid zloc" << endln;
-      opserr << " for adding node to HTNodeSet: " << endln;
-      return TCL_ERROR;
-    }
-    count++;
-    if(argc-count>0){
-    if (Tcl_GetDouble (interp, argv[count], &zlocUB) == TCL_OK) {
-      count++;
-    }
-    else
-      zlocUB=zlocLB;
-	}
-	else
-      zlocUB=zlocLB;
-    
-    if (zlocUB<zlocLB) {
-      opserr << "WARNING::TclHeatTransfer::zlocUB " << zlocUB <<"should be greater than zlocLb "<<zlocLB;
-      return TCL_ERROR;
-    }
-    if (theHTMesh == 0) {
-    #ifdef _DEBUG
-            opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
-    #endif  
-        theHTDomain->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
-    }
-    else {
-    #ifdef _DEBUG
-            opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
-    #endif
-        theHTMesh->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
-    }
-    
-    // for geting uncertain number of double values 
-    if (NodeRange == 0) {
-        opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
-        opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-        return -1;
-    }
-  }
-  }
-  if (argc - count > 0) {
-      if (strcmp(argv[count], "-HTNodeSet") == 0 || strcmp(argv[count], "-NodeSet") == 0 || strcmp(argv[count], "nodeset") == 0)
-      {
-          count++;
+            double xlocLB, xlocUB;
 
-          //-----for geting uncertain number of integer data.
-          int ArgStart = count;
-          int ArgEnd = 0;
-          int data;
-          ID NodeSetRange(0);
+            if (Tcl_GetDouble(interp, argv[count], &xlocLB) != TCL_OK) {
+                opserr << "WARNING invalid xloc" << endln;
+                opserr << " for adding node to HTNodeSet: " << endln;
+                return TCL_ERROR;
+            }
+            count++;
+            if (argc - count > 0) {
+                if (Tcl_GetDouble(interp, argv[count], &xlocUB) == TCL_OK) {
+                    count++;
+                }
+                else
+                    xlocUB = xlocLB;
+            }
+            else
+                xlocUB = xlocLB;
 
-          while (count < argc && ArgEnd == 0) {
-              if (count == argc - 1)
-                  ArgEnd = count + 1;
-              else if (Tcl_GetInt(interp, argv[count], &data) != TCL_OK)
-                  ArgEnd = count;
-              else
-                  count++;
-          }
-          //~ detecting the remaining number of input
-          NodeSetRange.resize(ArgEnd - ArgStart);
-          if (ArgStart != ArgEnd) {
-              for (int i = ArgStart; i < ArgEnd; i++) {
-                  Tcl_GetInt(interp, argv[i], &data);
-                  NodeSetRange(i - ArgStart) = data;
-              }
-          }
-          vector <int> NodeRangeV; 
-          for (int i = 0; i < NodeSetRange.Size(); i++) {
-              HTNodeSet* theNodeSet = theTclHTModule->getHTNodeSet(NodeSetRange(i));
-              ID tempNodeSetID = theNodeSet->getNodeID();
-              for (int j = 0; j < tempNodeSetID.Size(); j++) {
-                  NodeRangeV.push_back(tempNodeSetID(j));
-              }
-          }
-          NodeRange.resize(NodeRangeV.size());
-          for (int i = 0; i < NodeRangeV.size(); i++)
-              NodeRange(i) = NodeRangeV[i];
 
-      }
-  }
-  
+            if (xlocUB < xlocLB) {
+                opserr << "WARNING::TclHeatTransfer::xlocUB " << xlocUB << "should be greater than xlocLb " << xlocLB;
+                return TCL_ERROR;
+            }
+            if (theHTMesh == 0) {
+#ifdef _DEBUG
+                opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
+#endif  
+                theHTDomain->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
+            }
+            else {
+#ifdef _DEBUG
+                opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
+#endif
+                theHTMesh->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
+            }
+            // for geting uncertain number of double values
+            if (NodeRange == 0) {
+                opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
+                opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+                return -1;
+            }
+
+        }
+    }
+    //search node in the range of yloc
+    if (argc - count > 0) {
+        if (strcmp(argv[count], "-Locy") == 0 || strcmp(argv[count], "Locy") == 0 || strcmp(argv[count], "locy") == 0) {
+            count++;
+
+
+
+            double ylocLB, ylocUB;
+
+            if (Tcl_GetDouble(interp, argv[count], &ylocLB) != TCL_OK) {
+                opserr << "WARNING invalid yloc" << endln;
+                opserr << " for adding node to HTNodeSet: " << endln;
+                return TCL_ERROR;
+            }
+            count++;
+            if (argc - count > 0) {
+                if (Tcl_GetDouble(interp, argv[count], &ylocUB) == TCL_OK) {
+                    count++;
+                }
+                else
+                    ylocUB = ylocLB;
+            }
+            else
+                ylocUB = ylocLB;
+
+            if (ylocUB < ylocLB) {
+                opserr << "WARNING::TclHeatTransfer::ylocUB " << ylocUB << "should be greater than ylocLb " << ylocLB;
+                return TCL_ERROR;
+            }
+            if (theHTMesh == 0) {
+#ifdef _DEBUG
+                opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
+#endif  
+                theHTDomain->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
+            }
+            else {
+#ifdef _DEBUG
+                opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
+#endif
+                theHTMesh->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
+            }
+
+            // for geting uncertain number of doubel values
+            if (NodeRange == 0) {
+                opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
+                opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+                return -1;
+            }
+        }
+    }
+    //search node in the range of zloc
+    if (argc - count > 0) {
+        if (strcmp(argv[count], "-Locz") == 0 || strcmp(argv[count], "Locz") == 0 || strcmp(argv[count], "locz") == 0) {
+            count++;
+
+            double zlocLB, zlocUB;
+
+            if (Tcl_GetDouble(interp, argv[count], &zlocLB) != TCL_OK) {
+                opserr << "WARNING invalid zloc" << endln;
+                opserr << " for adding node to HTNodeSet: " << endln;
+                return TCL_ERROR;
+            }
+            count++;
+            if (argc - count > 0) {
+                if (Tcl_GetDouble(interp, argv[count], &zlocUB) == TCL_OK) {
+                    count++;
+                }
+                else
+                    zlocUB = zlocLB;
+            }
+            else
+                zlocUB = zlocLB;
+
+            if (zlocUB < zlocLB) {
+                opserr << "WARNING::TclHeatTransfer::zlocUB " << zlocUB << "should be greater than zlocLb " << zlocLB;
+                return TCL_ERROR;
+            }
+            if (theHTMesh == 0) {
+#ifdef _DEBUG
+                opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
+#endif  
+                theHTDomain->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
+            }
+            else {
+#ifdef _DEBUG
+                opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
+#endif
+                theHTMesh->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
+            }
+
+            // for geting uncertain number of double values 
+            if (NodeRange == 0) {
+                opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
+                opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
+                return -1;
+            }
+        }
+    }
+}
   
   
   if (NodeRange!=0) {
