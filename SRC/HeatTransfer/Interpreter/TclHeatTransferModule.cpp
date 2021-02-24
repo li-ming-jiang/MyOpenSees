@@ -156,6 +156,7 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
 int TclHeatTransferCommand_HTAnalyze(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 
 int TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
+int TclHeatTransferCommand_getHTTime(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
 
 TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
 {
@@ -208,7 +209,7 @@ TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
   Tcl_CreateCommand(interp, "HTReset", (Tcl_CmdProc* )TclHeatTransferCommand_HTReset,(ClientData)NULL, NULL);
   
   Tcl_CreateCommand(interp, "HTPrintNodes", (Tcl_CmdProc*)TclHeatTransferCommand_PrintNodes, (ClientData)NULL, NULL);
-  
+  Tcl_CreateCommand(interp, "getHTTime", (Tcl_CmdProc*)TclHeatTransferCommand_getHTTime, (ClientData)NULL, NULL);
   //Tcl_CreateCommand(interp, "HTMaterial", (Tcl_ObjCmdProc*) TclHeatTransferCommand_addHTMaterial,(ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 
 
@@ -3723,4 +3724,40 @@ TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int
     }
 
     return 0;
+}
+int
+TclHeatTransferCommand_getHTTime(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv) {
+
+    if (theTclHTModule == 0) {
+        opserr << "WARNING current HeatTransfer Module has been destroyed\n";
+        return TCL_ERROR;
+    }
+
+    if (theHTDomain == 0) {
+        opserr << "WARNING no active HeatTransfer Domain\n";
+        return TCL_ERROR;
+    }
+
+    if (argc > 1) {
+        opserr << "Too many arguments for getHTTime, which takes no arguments at all!" << endln;
+        return TCL_ERROR;
+    }
+
+    double time = theHTDomain->getCurrentTime();
+
+    // get the display format
+    char format[80];
+    if (argc == 1) {
+        //      strcpy(format,"%f");
+        sprintf(format, "%f", time);
+    }
+    else if (argc == 2) {
+        //      strcpy(format,argv[1]);
+        sprintf(format, argv[1], time);
+    }
+
+    // now we copy the value to the tcl string that is returned
+    //  sprintf(interp->result,format,time);
+    Tcl_SetResult(interp, format, TCL_VOLATILE);
+    return TCL_OK;
 }

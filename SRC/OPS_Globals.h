@@ -29,7 +29,7 @@
 
 
 #define OPS_VERSION "3.0.0"
-#define OPSF_VERSION "Anwar-DEBUG 3.2"
+#define OPSF_VERSION "Anwar-DEBUG 3.2.1"
 #define OPS_LASTUPDATED "24/02/2021"
 
 #ifndef _WIN64
