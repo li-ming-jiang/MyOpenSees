@@ -1939,8 +1939,19 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       opserr << "WARNING::TclHeatTransfer::ylocUB " << ylocUB <<"should be greater than ylocLb "<<ylocLB;
       return TCL_ERROR;
     }
-    
-    theHTDomain->SelectingNodes(NodeRange, 1, ylocLB,ylocUB);
+    if (theHTMesh == 0) {
+    #ifdef _DEBUG
+            opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
+    #endif  
+        theHTDomain->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
+    }
+    else {
+    #ifdef _DEBUG
+            opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
+    #endif
+        theHTMesh->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
+    }
+
     // for geting uncertain number of doubel values
     if (NodeRange == 0) {
         opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
@@ -1976,8 +1987,19 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
       opserr << "WARNING::TclHeatTransfer::zlocUB " << zlocUB <<"should be greater than zlocLb "<<zlocLB;
       return TCL_ERROR;
     }
+    if (theHTMesh == 0) {
+    #ifdef _DEBUG
+            opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
+    #endif  
+        theHTDomain->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
+    }
+    else {
+    #ifdef _DEBUG
+            opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
+    #endif
+        theHTMesh->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
+    }
     
-    theHTDomain->SelectingNodes(NodeRange, 2, zlocLB,zlocUB);
     // for geting uncertain number of double values 
     if (NodeRange == 0) {
         opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
@@ -1986,7 +2008,47 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
     }
   }
   }
+  if (argc - count > 0) {
+      if (strcmp(argv[count], "-HTNodeSet") == 0 || strcmp(argv[count], "-NodeSet") == 0 || strcmp(argv[count], "nodeset") == 0)
+      {
+          count++;
 
+          //-----for geting uncertain number of integer data.
+          int ArgStart = count;
+          int ArgEnd = 0;
+          int data;
+          ID NodeSetRange(0);
+
+          while (count < argc && ArgEnd == 0) {
+              if (count == argc - 1)
+                  ArgEnd = count + 1;
+              else if (Tcl_GetInt(interp, argv[count], &data) != TCL_OK)
+                  ArgEnd = count;
+              else
+                  count++;
+          }
+          //~ detecting the remaining number of input
+          NodeSetRange.resize(ArgEnd - ArgStart);
+          if (ArgStart != ArgEnd) {
+              for (int i = ArgStart; i < ArgEnd; i++) {
+                  Tcl_GetInt(interp, argv[i], &data);
+                  NodeSetRange(i - ArgStart) = data;
+              }
+          }
+          vector <int> NodeRangeV; 
+          for (int i = 0; i < NodeSetRange.Size(); i++) {
+              HTNodeSet* theNodeSet = theTclHTModule->getHTNodeSet(NodeSetRange(i));
+              ID tempNodeSetID = theNodeSet->getNodeID();
+              for (int j = 0; j < tempNodeSetID.Size(); j++) {
+                  NodeRangeV.push_back(tempNodeSetID(j));
+              }
+          }
+          NodeRange.resize(NodeRangeV.size());
+          for (int i = 0; i < NodeRangeV.size(); i++)
+              NodeRange(i) = NodeRangeV[i];
+
+      }
+  }
   
   
   
@@ -2762,7 +2824,7 @@ TclHeatTransferCommand_setFirePars(ClientData clientData, Tcl_Interp* interp, in
 
 }
 
-//Add HeatFluxBC
+//Add MP BC
 int
 TclHeatTransferCommand_addMPTemperatureBC(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 {
@@ -3598,12 +3660,12 @@ int
 TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv) {
 
     if (theTclHTModule == 0) {
-        opserr << "WARNING current HeatTransfer Module has been destroyed - HTNodeSet\n";
+        opserr << "WARNING current HeatTransfer Module has been destroyed\n";
         return TCL_ERROR;
     }
 
     if (theHTDomain == 0) {
-        opserr << "WARNING no active HeatTransfer Domain - HTNodeSet\n";
+        opserr << "WARNING no active HeatTransfer Domain\n";
         return TCL_ERROR;
     }
 
