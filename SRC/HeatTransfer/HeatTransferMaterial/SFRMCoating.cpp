@@ -91,6 +91,12 @@ SFRMCoating::getConductivity(void)
     else
       materialK = 0.0054+0.000321*700;
   }
+  else if (TypeTag == 4) {
+        if (trial_temp <= 750.0)
+            materialK = 0.11 + 0.00028 * trial_temp;
+        else
+            materialK = 0.32;
+}
   else
     opserr<<"SFRMCoating::unrecognised TypeTag "<<TypeTag;
   
@@ -112,8 +118,11 @@ SFRMCoating::getRho(void)
   else if (TypeTag==2) {
     rho = 423.2;
   }
-  else if (TypeTag==2) {
+  else if (TypeTag==3) {
     rho = 451.8;
+  }
+  else if (TypeTag == 4) {
+      rho = 357.0;
   }
   return rho;
 }
@@ -176,6 +185,12 @@ SFRMCoating::getSpecificHeat(void)
       cp = 1826-1.08*700;
 	else 
 		opserr<<"SFRM Coating ,invalid temperature"<<trial_temp;
+  }
+  else if (TypeTag == 4) {
+      if (trial_temp <= 1200.0)
+          cp = 1111;
+      else
+          opserr << "SFRM Coating ,invalid temperature" << trial_temp;
   }
   else
     opserr<<"SFRMCoating::unrecognised TypeTag "<<TypeTag;
