@@ -96,7 +96,25 @@ SFRMCoating::getConductivity(void)
             materialK = 0.11 + 0.00028 * trial_temp;
         else
             materialK = 0.32;
-}
+    }
+  else if (TypeTag == 5) {
+        if (trial_temp <= 50)
+            materialK = 0.094;
+        else if (trial_temp <= 100)
+            materialK = (6.24e-4) * trial_temp + 0.0628;
+        else if (trial_temp <= 200)
+            materialK = (-3.33e-4) * trial_temp + 0.1585;
+        else if (trial_temp <= 300)
+            materialK = (2.95e-4) * trial_temp + 0.0329;
+        else if (trial_temp <= 800)
+            materialK = (1.362e-4) * trial_temp + 0.0805;
+        else if (trial_temp <= 1000)
+            materialK = (3.615e-4) * trial_temp - 0.0997;
+        else if (trial_temp <= 1200)
+            materialK = 0.2618;
+        else
+            materialK = 0.32;
+    }
   else
     opserr<<"SFRMCoating::unrecognised TypeTag "<<TypeTag;
   
@@ -131,23 +149,6 @@ SFRMCoating::getRho(void)
 double 
 SFRMCoating::getSpecificHeat(void)
 {
-    //if (TypeTag == 1) {
-    //    if (trial_temp < 0)
-    //        cp = 3236;
-    //    else if (trial_temp < 100.0)
-    //        cp = 3236 + 4.16 * trial_temp;
-    //    else if (trial_temp < 200.0)
-    //        //cp = 3236 + 4.16 * trial_temp;
-    //        cp = 3009 + 6.43 * trial_temp;
-    //    else if (trial_temp < 400.0)
-    //        cp = 6815 - 12.60 * trial_temp;
-    //    else if (trial_temp < 700.0)
-    //        cp = 1645 - 0.36 * trial_temp;
-    //    else if (trial_temp < 1200.0)
-    //        cp = 1645 - 0.36 * 700;
-    //    else
-    //        opserr << "SFRM Coating ,invalid temperature" << trial_temp;
-    //}
   if(TypeTag ==1){
 	if (trial_temp < 200.0)
       cp = 3236 + 5.295*trial_temp;
@@ -192,9 +193,25 @@ SFRMCoating::getSpecificHeat(void)
       else
           opserr << "SFRM Coating ,invalid temperature" << trial_temp;
   }
+  else if (TypeTag == 5) {
+      if (trial_temp <= 25)
+          cp = 841;
+      else if (trial_temp <= 100)
+          cp = 1.3653 * trial_temp + 806.8667;
+      else if (trial_temp <= 140)
+          cp = 191.14 * trial_temp - 18171;
+      else if (trial_temp <= 200)
+          cp = -123.0583 * trial_temp + 25817;
+      else if (trial_temp <= 600)
+          cp = 0.4882 * trial_temp + 1107.8;
+      else if (trial_temp <= 1000)
+          cp = 0.3 * trial_temp + 1220.8;
+      else
+          cp = 1520.8;
+  
+  }
   else
     opserr<<"SFRMCoating::unrecognised TypeTag "<<TypeTag;
-  // cp =170;
     return cp;
 }
 
@@ -202,6 +219,23 @@ SFRMCoating::getSpecificHeat(void)
 double
 SFRMCoating::getEnthalpy()
 {
+    if (TypeTag == 5) {
+        if (trial_temp <= 25)
+            enthalpy = 841 * trial_temp;
+        else if (trial_temp <= 100)
+            enthalpy = 102.4 * trial_temp + 18465;
+        else if (trial_temp <= 500)
+            enthalpy = 140.55 * trial_temp + 2.1688e6;
+        else if (trial_temp <= 600)
+            enthalpy = 380.6 * trial_temp + 2.0488e6;
+        else if (trial_temp <= 1000)
+            enthalpy = 236.3 * trial_temp + 2.1353e6;
+        else if (trial_temp <= 1200)
+            enthalpy = 2371600;
+        
+        return enthalpy;
+    }
+    else { return 0; }
     //if (trial_temp < 200.0)
     //    enthalpy = 3236 * trial_temp + 5.295 * 0.5 * pow(trial_temp, 2);
     //else if (trial_temp < 400.0)
@@ -214,13 +248,30 @@ SFRMCoating::getEnthalpy()
     //    opserr << "SFRM Coating ,invalid temperature" << trial_temp << endln;
 
     //return enthalpy;
-    return 0;
 }
 
 
 double
 SFRMCoating::getEnthalpy(double temp)
 {
+    double temp_C = temp - 273.15;
+    if (TypeTag == 5) {
+        if (temp_C <= 25)
+            enthalpy = 841 * temp_C;
+        else if (temp_C <= 100)
+            enthalpy = 102.4 * temp_C + 18465;
+        else if (temp_C <= 500)
+            enthalpy = 140.55 * temp_C + 2.1688e6;
+        else if (temp_C <= 600)
+            enthalpy = 380.6 * temp_C + 2.0488e6;
+        else if (temp_C <= 1000)
+            enthalpy = 236.3 * temp_C + 2.1353e6;
+        else if (temp_C <= 1200)
+            enthalpy = 2371600;
+
+        return enthalpy;
+    }
+    else { return 0; }
     //double enthp = 0;
     //double nod_temp = temp - 273.15;
 
