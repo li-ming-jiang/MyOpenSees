@@ -142,6 +142,14 @@ SFRMCoating::getRho(void)
   else if (TypeTag == 4) {
       rho = 357.0;
   }
+  else if (TypeTag == 5) {
+      if (trial_temp <= 25)
+          rho = 297.48;
+      else if (trial_temp <= 1200)
+          rho = 4.504e-10 * pow(trial_temp, 4) - 9.087e-07 * pow(trial_temp, 3) + 0.0008126 * pow(trial_temp, 2) - 0.3926 * trial_temp + 306.8;
+      else if (trial_temp > 1200)
+          rho = 369.54;
+  }
   return rho;
 }
 

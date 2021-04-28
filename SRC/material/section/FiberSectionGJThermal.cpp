@@ -1237,42 +1237,118 @@ FiberSectionGJThermal::determineFiberTemperature(const Vector& DataMixed, double
             dataTempe[i] = DataMixed(i);
         }
 
-        if (fabs(dataTempe[0]) <= 1e-10 && fabs(dataTempe[4]) <= 1e-10 && fabs(dataTempe[24]) <= 1e-10 && fabs(dataTempe[20]) <= 1e-10 && fabs(dataTempe[12]) <= 1e-10) //no tempe load
-        {
-            return 0;
-        }
         // Added by Mhd Anwar Orabi 2021
-        //Check if we are out of bounds anywhere
-        if (fiberLocy < dataTempe[25])
+        // Check if we are in right plate
+        if (fiberLocy > dataTempe[29])
         {
-            opserr << "WARNING: Fiber location locy: " << fiberLocy << " below minimum Y " << dataTempe[25] << " of the defined thermal load area." << endln;
-        }
-        else if (fiberLocy > dataTempe[29]) {
-            opserr << "WARNING: Fiber location locy: " << fiberLocy << " above maximum Y " << dataTempe[29] << " of the defined thermal load area." << endln;
-
-        }
-        else if (fiberLocz < dataTempe[30]) {
-            opserr << "WARNING: Fiber location locz: " << fiberLocz << " below minimum Z " << dataTempe[30] << " of the defined thermal load area." << endln;
-        }
-        else if (fiberLocz > dataTempe[34]) {
-            opserr << "WARNING: Fiber location locz: " << fiberLocz << " above maximum Z " << dataTempe[34] << " of the defined thermal load area." << endln;
-        }
-        // perform the bi-linear interpolation
-        for (int i = 1; i < 5; i++) {
-            if (fiberLocz <= dataTempe[i + 30]) {
-                for (int j = 1; j < 5; j++) {
-                    if (fiberLocy <= dataTempe[j + 25]) {
-                        // interpolate across Z = Zi-1:
-                        double Tzi_1 = dataTempe[i + 5 * j - 6] + (fiberLocy - dataTempe[j + 25 - 1]) * (dataTempe[i + 5 * j - 1] - dataTempe[i + 5 * j - 6]) / (dataTempe[j + 25] - dataTempe[j + 25 - 1]);
-                        // interpolate across Z = Zi:
-                        double Tzi = dataTempe[i + 5 * j - 5] + (fiberLocy - dataTempe[j + 25 - 1]) * (dataTempe[i + 5 * j] - dataTempe[i + 5 * j - 5]) / (dataTempe[j + 25] - dataTempe[j + 25 - 1]);
-                        // interpolate across Y = fiberLocy:
-                        return FiberTemperature = *&Tzi_1 + (fiberLocz - dataTempe[i + 30 - 1]) * (*&Tzi - *&Tzi_1) / (dataTempe[i + 30] - dataTempe[i + 30 - 1]);
-                    }
-                }
+            // check if we are in the bottom or topmost constant temp locations:
+            if (fiberLocz <= dataTempe[30])
+                return FiberTemperature = dataTempe[20];
+            else if (fiberLocz >= dataTempe[34])
+                return FiberTemperature = dataTempe[24];
+            // interpolate along plate length
+            else if (fiberLocz <= dataTempe[31])
+            {
+                //interpolate between T22 and T21
+                return LinearlyInterpolate(dataTempe[30], dataTempe[20], dataTempe[31], dataTempe[21], fiberLocz);
+            }
+            else if (fiberLocz <= dataTempe[32])
+            {
+                //interpolate between T23 and T22
+                return LinearlyInterpolate(dataTempe[31], dataTempe[21], dataTempe[32], dataTempe[22], fiberLocz);
+            }
+            else if (fiberLocz <= dataTempe[33])
+            {
+                //interpolate between T24 and T23
+                return LinearlyInterpolate(dataTempe[32], dataTempe[22], dataTempe[33], dataTempe[23], fiberLocz);
+            }
+            else if (fiberLocz <= dataTempe[34])
+            {
+                //interpolate between T25 and T24
+                return LinearlyInterpolate(dataTempe[33], dataTempe[23], dataTempe[34], dataTempe[24], fiberLocz);
             }
         }
+
+        // Check if we are in left plate
+        if (fiberLocy < dataTempe[25])
+        {
+            // check if we are in the bottom or topmost constant temp locations:
+            if (fiberLocz <= dataTempe[30])
+                return FiberTemperature = dataTempe[15];
+            else if (fiberLocz >= dataTempe[34])
+                return FiberTemperature = dataTempe[19];
+            // interpolate along plate length
+            else if (fiberLocz <= dataTempe[31])
+            {
+                //interpolate between T17 and T16
+                return LinearlyInterpolate(dataTempe[30], dataTempe[15], dataTempe[31], dataTempe[16], fiberLocz);
+            }
+            else if (fiberLocz <= dataTempe[32])
+            {
+                //interpolate between T18 and T17
+                return LinearlyInterpolate(dataTempe[31], dataTempe[16], dataTempe[32], dataTempe[17], fiberLocz);
+            }
+            else if (fiberLocz <= dataTempe[33])
+            {
+                //interpolate between T19 and T18
+                return LinearlyInterpolate(dataTempe[32], dataTempe[17], dataTempe[33], dataTempe[18], fiberLocz);
+            }
+            else if (fiberLocz <= dataTempe[34])
+            {
+                //interpolate between T20 and T19
+                return LinearlyInterpolate(dataTempe[33], dataTempe[18], dataTempe[34], dataTempe[19], fiberLocz);
+            }
+        }
+
+        // Check if we are in the web
+        if (fiberLocz < dataTempe[34] && fiberLocz > dataTempe[30] && fiberLocy < dataTempe[29] && fiberLocy > dataTempe[25])
+        {
+            if (fiberLocz <= dataTempe[31])
+                return LinearlyInterpolate(dataTempe[30], dataTempe[0], dataTempe[31], dataTempe[1], fiberLocz);
+            else if (fiberLocz <= dataTempe[32])
+                return LinearlyInterpolate(dataTempe[31], dataTempe[1], dataTempe[32], dataTempe[2], fiberLocz);
+            else if (fiberLocz <= dataTempe[33])
+                return LinearlyInterpolate(dataTempe[32], dataTempe[2], dataTempe[33], dataTempe[3], fiberLocz);
+            else if (fiberLocz < dataTempe[34])
+                return LinearlyInterpolate(dataTempe[33], dataTempe[3], dataTempe[34], dataTempe[4], fiberLocz);
+        }
+
+        // Check if we are in the top flange
+        if (fiberLocy < dataTempe[29] && fiberLocy > dataTempe[25] && fiberLocz >= dataTempe[34]) 
+        {
+            if (fiberLocy <= dataTempe[26])
+                return LinearlyInterpolate(dataTempe[25], dataTempe[10], dataTempe[26], dataTempe[11], fiberLocy);
+            else if (fiberLocy <= dataTempe[27])
+                return LinearlyInterpolate(dataTempe[26], dataTempe[11], dataTempe[27], dataTempe[12], fiberLocy);
+            else if (fiberLocy <= dataTempe[28])
+                return LinearlyInterpolate(dataTempe[27], dataTempe[12], dataTempe[28], dataTempe[13], fiberLocy);
+            else if (fiberLocy < dataTempe[29])
+                return LinearlyInterpolate(dataTempe[28], dataTempe[13], dataTempe[29], dataTempe[14], fiberLocy);
+        }
+
+        // Check if we are in the bottom flange
+        if (fiberLocy < dataTempe[29] && fiberLocy > dataTempe[25] && fiberLocz <= dataTempe[30])
+        {
+            if (fiberLocy <= dataTempe[26])
+                return LinearlyInterpolate(dataTempe[25], dataTempe[5], dataTempe[26], dataTempe[6], fiberLocy);
+            else if (fiberLocy <= dataTempe[27])
+                return LinearlyInterpolate(dataTempe[26], dataTempe[6], dataTempe[27], dataTempe[7], fiberLocy);
+            else if (fiberLocy <= dataTempe[28])
+                return LinearlyInterpolate(dataTempe[27], dataTempe[7], dataTempe[28], dataTempe[8], fiberLocy);
+            else if (fiberLocy < dataTempe[29])
+                return LinearlyInterpolate(dataTempe[28], dataTempe[8], dataTempe[29], dataTempe[9], fiberLocy);
+        }
+
+        //Check if we are out of bounds anywhere
+        //there are no out of bounds for this interpolation.
     }
    
 }
     
+double
+FiberSectionGJThermal::LinearlyInterpolate(double xi, double yi, double xf, double yf, double x) {
+    double a, b;
+    a = (yf - yi) / (xf - xi);
+    b = yi - a * xi;
+    return a * x + b;
+}
