@@ -29,8 +29,8 @@
 
 
 #define OPS_VERSION "3.0.0"
-#define OPSF_VERSION "Anwar-RELEASE 3.2.5"
-#define OPS_LASTUPDATED "28/04/2021"
+#define OPSF_VERSION "Anwar-RELEASE 3.2.6"
+#define OPS_LASTUPDATED "19/05/2021"
 
 #ifndef _WIN64
 #define WIN_ARCH "32-Bit"
