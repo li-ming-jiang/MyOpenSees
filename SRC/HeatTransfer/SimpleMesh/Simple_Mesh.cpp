@@ -20,13 +20,13 @@
 
 
 Simple_Mesh::Simple_Mesh(int tag, Simple_Entity* Entity,HeatTransferDomain* theDomain,HeatTransferMaterial* theHTMaterial, Vector& MeshCtrls,
-						 HeatTransferMaterial* theHTMaterial1 )
+						 HeatTransferMaterial* theHTMaterial1, bool numCtrl)
 :TaggedObject(tag),theHTDomain(theDomain),isHTDomain(true), theHTMaterial(theHTMaterial),OriginLocs(0),EleParameters(0),
  theHTMaterial1(theHTMaterial1)
 {
-	 theEntity = Entity;
-   theEntity->setMeshTag(this->getTag());
-	 theEntity->InitialMeshCtrl(MeshCtrls);
+	theEntity = Entity;
+	theEntity->setMeshTag(this->getTag());
+	 theEntity->InitialMeshCtrl(MeshCtrls,numCtrl);
 
 	 if (theEntity->InitialSeeds()==false)
 		 opserr<<"Mesh "<<this->getTag()<< "failed to Intial the mesh Seeds"<<endln;
@@ -128,7 +128,7 @@ int Simple_Mesh::GeneratingEles(const ID& eleParameters)
   }
   else
   {
-    opserr<<"SimpleMesh::GeneratingEles encounters redefined EleParameteres"<<endln;
+    opserr<< "SimpleMesh " << this->getTag()<< "encounters redefined EleParameteres"<<endln;
   }
   
 
@@ -259,7 +259,7 @@ int Simple_Mesh::SelectingNodesbyFace(ID& NodesRange, int FaceTag) {
 			}
 		}else if (FaceTag==3) {
 			NodesRange.resize(NumCtrY+1);
-			for(int i =0;i<NumCtrX+1;i++) {
+			for(int i =0;i<NumCtrY+1;i++) {
 			 NodesRange(i) = OriginNodeTag+(NumCtrX+1)*i+NumCtrX;
 			}
 		}else if (FaceTag==2) {
