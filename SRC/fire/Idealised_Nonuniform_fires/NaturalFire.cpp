@@ -40,20 +40,20 @@
 
 NaturalFire::NaturalFire(int tag, double D,
 	double Q, double H, int lineTag, double smokeTemp, PathTimeSeriesThermal* FireParPath)
-	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(D), hc(0),absorp(0),
-	q(Q), h(H), smokeT(smokeTemp),addq(1e5),centerLine(lineTag)
+	:FireModel(tag, 7), FireParPath(FireParPath), fireLocs(3), d(D), hc(0), absorp(0),
+	q(Q), h(H), smokeT(smokeTemp), addq(1e5), centerLine(lineTag)
 {
-    // check the direction of central line of a Hasemi fire
-    // 1 indicates it is parrallel to x1 axis, 2 indicates
-    // parallelt to x2 axis, 3 indicates parallel to x3 axis.
-    if ((lineTag != 1) && (lineTag != 2) && (lineTag != 3)) {
+	// check the direction of central line of a Hasemi fire
+	// 1 indicates it is parrallel to x1 axis, 2 indicates
+	// parallelt to x2 axis, 3 indicates parallel to x3 axis.
+	if ((lineTag != 1) && (lineTag != 2) && (lineTag != 3)) {
 		opserr << "NaturalFire::NaturalFire - invalid line tag provided for Hasemi fire.\n"
 			<< " Only 1, or 2, or 3 is correct.\n";
-		}
+	}
 	if ((d > 10.0) || (q > 5e7)) {
 		opserr << "NaturalFire::NaturalFire - error in specifying the fire, diameter "
 			<< " shoudn't be greater than 10m, fire size shoudn't be greater than 50MW.\n";
-		}
+	}
 }
 
 NaturalFire::NaturalFire(int tag, int lineTag, PathTimeSeriesThermal* FireParPath)
@@ -67,7 +67,7 @@ NaturalFire::NaturalFire(int tag, int lineTag, PathTimeSeriesThermal* FireParPat
 		opserr << "NaturalFire::NaturalFire - invalid line tag provided for Hasemi fire.\n"
 			<< " Only 1, or 2, or 3 is correct.\n";
 	}
-	
+
 }
 
 NaturalFire::~NaturalFire()
@@ -79,14 +79,14 @@ NaturalFire::~NaturalFire()
 
 int
 NaturalFire::setFirePars(double time, const Vector& firePars) {
-	
+
 	Vector FirePars = 0;
 	if (FireParPath != 0) {
 		FirePars = FireParPath->getFactors(time);
 	}
-	else if (FireParPath==0&&firePars != 0)
+	else if (FireParPath == 0 && firePars != 0)
 		FirePars = firePars;
-	
+
 
 	if (FirePars.Size() == 3) {
 		fireLocs(0) = FirePars(0);
@@ -112,7 +112,7 @@ NaturalFire::setFirePars(double time, const Vector& firePars) {
 		fireLocs(2) = FirePars(2);
 		q = FirePars(3);
 		d = FirePars(4);
-		smokeT = FirePars(5)+273.15;
+		smokeT = FirePars(5) + 273.15;
 	}
 	else if (FirePars.Size() == 7) {
 		fireLocs(0) = FirePars(0);
@@ -120,7 +120,7 @@ NaturalFire::setFirePars(double time, const Vector& firePars) {
 		fireLocs(2) = FirePars(2);
 		q = FirePars(3);
 		d = FirePars(4);
-		smokeT = FirePars(5)+273.15;
+		smokeT = FirePars(5) + 273.15;
 		addq = FirePars(6);
 
 	}
@@ -136,15 +136,15 @@ NaturalFire::setFirePars(double time, const Vector& firePars) {
 
 	}
 	else {
-			opserr << "WARNING! NaturalFire::getFlux failed to get the location of fire origin" << endln;
-			return -1;
-		}
+		opserr << "WARNING! NaturalFire::getFlux failed to get the location of fire origin" << endln;
+		return -1;
+	}
 #ifdef _DEBUG
 	//opserr << FirePars << endln;
 #endif // DEBUG
 
-	
-		return 0;
+
+	return 0;
 }
 
 double
@@ -167,12 +167,12 @@ NaturalFire::getFirePars(int ParTag) {
 		opserr << "WARNING! invalid tag for NaturalFire::getFirePars " << ParTag << endln;
 		return -1;
 	}
-		
+
 
 }
 
-double 
-NaturalFire::getFireOut( double time, const Vector& coords)
+double
+NaturalFire::getFireOut(double time, const Vector& coords)
 {
 	if (FireParPath != 0) {
 		if (this->setFirePars(time) < 0)
@@ -185,7 +185,7 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 
 
 	// now calculate r	
-	
+
 	int size = coords.Size();
 
 	double deltaX1, deltaX2, sum, r;
@@ -222,117 +222,139 @@ NaturalFire::getFireOut( double time, const Vector& coords)
 	sum = deltaX1 * deltaX1 + deltaX2 * deltaX2;
 	r = sqrt(sum);
 
-	if(abs(h)<1e-6)
-		opserr<< "Travelling fire: h got a zero "<< endln;
+	if (abs(h) < 1e-6)
+		opserr << "Travelling fire: h got a zero " << endln;
 
-	// first calculate flame length
-	double Lf = 0.0148 * pow(q, 0.4) - 1.02 * d;
+	if (q <0) {
+		//localised flashover
+		gas_t = -q + 273.15;
 
-	double constant = 1.11 * 1e6 * pow(d, 2.5);
-	double Qd_ast = q / constant;
-	double z_acute;
+		if (r < d / 2.0)
+			q_dot = absorp * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + hc * (gas_t - 293.15);
+		else if (r < d / 2.0 + 0.5) {
+			double q_dot_n = absorp * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + hc * (gas_t - 293.15);
+			double q_dot_s = q_dot + absorp * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + hc * (smokeT - 293.15);
+			q_dot = q_dot_n + (r - d / 2.0) / 0.5 * (q_dot_s - q_dot_n);
+		}
 
-	if (Qd_ast < 1.0) {
-		double a = 2.0 / 3.0;
-		double term = pow(Qd_ast, 0.4) - pow(Qd_ast, a);
-		z_acute = 2.4 * d * term;
+		else
+			q_dot = absorp * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + hc * (smokeT - 293.15);
+
 	}
 	else {
-		double term = 1.0 - pow(Qd_ast, 0.4);
-		z_acute = 2.4 * d * term;
-	}
-	double term = 1.11 * 1e6 * pow(h, 2.5);
-	double Qh_ast = q / term;
+		//localised fire
+			// first calculate flame length
+		double Lf = 0.0148 * pow(q, 0.4) - 1.02 * d;
 
-	// now calculate H plus Lh
-	double Lt = 2.9 * h * pow(Qh_ast, 0.33);
+		double constant = 1.11 * 1e6 * pow(d, 2.5);
+		double Qd_ast = q / constant;
+		double z_acute;
 
-
-	double q_smoke = absorp * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + hc * (smokeT - 293.15);
-
-	if (Lf < h) {
-//------------------not impinge ceiling----------------------------------------------
-		
-		if (r/ h > 0.18) {
-			gas_t = 5.38 * pow(q / 1000.0/r, 2.0 / 3.0) / h;
+		if (Qd_ast < 1.0) {
+			double a = 2.0 / 3.0;
+			double term = pow(Qd_ast, 0.4) - pow(Qd_ast, a);
+			z_acute = 2.4 * d * term;
 		}
 		else {
-			gas_t = 16.9 * pow(q/1000.0, 2.0/3.0) / pow(h,5.0/3.0);
-
+			double term = 1.0 - pow(Qd_ast, 0.4);
+			z_acute = 2.4 * d * term;
 		}
+		double term = 1.11 * 1e6 * pow(h, 2.5);
+		double Qh_ast = q / term;
 
-		//opserr << " GAS: " << gas_t << " Q: "<< q<<" h "<< pow(q / 1000.0 / r, 2.0 / 3.0);
-		gas_t = gas_t + 293.15;
+		// now calculate H plus Lh
+		double Lt = 2.9 * h * pow(Qh_ast, 0.33);
 
 
-		if (Addqs > q_smoke)
-			Addqs = q_smoke;
+		double q_smoke = absorp * 5.67e-8 * (pow(smokeT, 4) - pow(293.15, 4)) + hc * (smokeT - 293.15);
 
-		//if (r < d)
+		if (Lf < h) {
+			//------------------not impinge ceiling----------------------------------------------
+
+			if (r / h > 0.18) {
+				gas_t = 5.38 * pow(q / 1000.0 / r, 2.0 / 3.0) / h;
+			}
+			else {
+				gas_t = 16.9 * pow(q / 1000.0, 2.0 / 3.0) / pow(h, 5.0 / 3.0);
+
+			}
+
+			//opserr << " GAS: " << gas_t << " Q: "<< q<<" h "<< pow(q / 1000.0 / r, 2.0 / 3.0);
+			gas_t = gas_t + 293.15;
+
+
+			if (Addqs > q_smoke)
+				Addqs = q_smoke;
+
+			//if (r < d)
 			q_dot = absorp * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + hc * (gas_t - 293.15) + Addqs;
-		//else
-			//q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
-		
+			//else
+				//q_dot = 0.85 * 5.67e-8 * (pow(gas_t, 4) - pow(293.15, 4)) + 35 * (gas_t - 293.15);
 
-		if (q_dot < q_smoke) {
+
+			if (q_dot < q_smoke) {
 #ifdef _DEBUG
-			opserr << "Natural fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
+				//opserr << "Natural fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
 #endif
-			q_dot = q_smoke;
+				q_dot = q_smoke;
+
+			}
 
 		}
-		
+		else {
+			//---------------------impinge ceiling--------------------------------------
+					// now calculate y
+			double y = (r + h + z_acute) / (Lt + z_acute);
+
+			// now determine the flux
+
+			if (y <= 0.3) {
+				q_dot = 100000;
+			}
+			else if ((y > 0.3) && (y < 1.0)) {
+				q_dot = 136300 - 121000 * y;
+			}
+			else if (y >= 1.0) {
+				q_dot = 15000 * pow(y, -3.7);
+			}
+
+			if (Addqs > q_smoke)
+				Addqs = q_smoke;
+			q_dot = q_dot + Addqs; //modify the maximum q
+
+			if (q_dot > 120000)
+				q_dot = 120000;
+
+			//adibadic temperature principle: eps*qr -eps*sigma*T^4 +h (smokeT-T)=0
+			// Gauge heat flux = eps*qr-eps*sigma*Tg^4+h(smokeT-Tg)
+			if (q_dot < q_smoke) {
+#ifdef _DEBUG
+				//opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
+#endif
+				q_dot = q_smoke;
+
+			}
+		}
+
+
+#ifdef _DEBUG
+		//int tag = node->getTag();
+		//opserr<<" Travelling fire: "<<fireLocs(1)<<","<<x3<<", q"<<q<<" r:  "<<r<<"____ "<< " q:  "<<q_dot<<"____ ";
+#endif
+
+
 	}
-	else {
-//---------------------impinge ceiling--------------------------------------
-		// now calculate y
-		double y = (r + h + z_acute) / (Lt + z_acute);
 
-		// now determine the flux
-
-		if (y <= 0.3) {
-			q_dot = 100000;
-		}
-		else if ((y > 0.3) && (y < 1.0)) {
-			q_dot = 136300 - 121000 * y;
-		}
-		else if (y >= 1.0) {
-			q_dot = 15000 * pow(y, -3.7);
-		}
-
-		if (Addqs  > q_smoke)
-			Addqs = q_smoke;
-		q_dot = q_dot + Addqs; //modify the maximum q
-		
-		if (q_dot > 120000)
-			q_dot = 120000;
-
-		//adibadic temperature principle: eps*qr -eps*sigma*T^4 +h (smokeT-T)=0
-		// Gauge heat flux = eps*qr-eps*sigma*Tg^4+h(smokeT-Tg)
-		if (q_dot < q_smoke) {
-#ifdef _DEBUG
-			opserr << "Travelling fire: q_dot " << q_dot << "q_smoke: " << q_smoke << endln;
-#endif
-			q_dot = q_smoke;
-
-		}
-	}
-	
-
-#ifdef _DEBUG
-	//int tag = node->getTag();
-	//opserr<<" Travelling fire: "<<fireLocs(1)<<","<<x3<<", q"<<q<<" r:  "<<r<<"____ "<< " q:  "<<q_dot<<"____ ";
-#endif
 	return q_dot;
 
 }
 
 
-double 
+double
 NaturalFire::getFlux(HeatTransferNode* node, double time)
 {
 	const Vector& coords = node->getCrds();
-	double qdot = this->getFireOut(time,coords);
+	double qdot = this->getFireOut(time, coords);
 	return qdot;
 }
 
@@ -340,12 +362,12 @@ NaturalFire::getFlux(HeatTransferNode* node, double time)
 void
 NaturalFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 {
-    int flux_type = theFlux->getTypeTag();
+	int flux_type = theFlux->getTypeTag();
 
 	if (flux_type == 1) {
 		Convection* convec = (Convection*)theFlux;
-		if(abs(hc)<1e-5)
-			hc=convec->getParameter();
+		if (abs(hc) < 1e-5)
+			hc = convec->getParameter();
 		convec->applyFluxBC(time);
 	}
 	else if (flux_type == 2) {
@@ -359,9 +381,9 @@ NaturalFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 			absorp = rad->getAbsorptivity();
 		rad->applyFluxBC(time);
 	}
-	else if (flux_type == 3) 
-		{
-		PrescribedSurfFlux* pflux = (PrescribedSurfFlux*) theFlux;
+	else if (flux_type == 3)
+	{
+		PrescribedSurfFlux* pflux = (PrescribedSurfFlux*)theFlux;
 
 		//int flux_type = pflux->getTypeTag();
 		int eleTag = pflux->getElementTag();
@@ -370,17 +392,22 @@ NaturalFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 		if (theDomain == 0) {
 			opserr << "NaturalFire::applyFluxBC() - HeatFluxBC has not been associated with a domain";
 			exit(-1);
-			}
+		}
 
 		HeatTransferElement* theEle = theDomain->getElement(eleTag);
 		if (theEle == 0) {
 			opserr << "NaturalFire::applyFluxBC() - no element with tag " << eleTag << " exists in the domain";
 			exit(-1);
-			}
+		}
 
 		const ID& faceNodes = theEle->getNodesOnFace(fTag);
 		int size = faceNodes.Size();
 		Vector nodalFlux(size);
+		if (abs(absorp) < 1e-5)
+			absorp = 0.85;     //if not assigned
+
+		if (abs(hc) < 1e-5)
+			hc = 35;      //if not assigned.
 
 		for (int i = 0; i < size; i++) {
 			int nodTag = faceNodes(i);
@@ -388,17 +415,18 @@ NaturalFire::applyFluxBC(HeatFluxBC* theFlux, double time)
 			if (theNode == 0) {
 				opserr << "NaturalFire::applyFluxBC() - no node with tag " << nodTag << " exists in the domain";
 				exit(-1);
-				}
-			nodalFlux(i) = this->getFlux(theNode,time); 
-			//opserr << "Flux at node " << nodTag << " is " << nodalFlux(i) << endln;
 			}
+			nodalFlux(i) = this->getFlux(theNode, time);
+			//opserr << "Flux at node " << nodTag << " is " << nodalFlux(i) << endln;
+		}
 
 		pflux->setData(nodalFlux);
 		pflux->applyFluxBC();
-		} else {
-			opserr << "NaturalFire::applyFluxBC() - incorrect flux type "
-				<< flux_type << " provided\n";
-			exit(-1);
-		}
+	}
+	else {
+		opserr << "NaturalFire::applyFluxBC() - incorrect flux type "
+			<< flux_type << " provided\n";
+		exit(-1);
+	}
 }
 
