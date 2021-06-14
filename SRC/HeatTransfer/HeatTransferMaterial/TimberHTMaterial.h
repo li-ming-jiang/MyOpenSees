@@ -74,6 +74,7 @@ class TimberHTMaterial: public HeatTransferMaterial
 		//static double charEndt;
 		Vector MatPars;
 		double pht1, pht2;
+		double pht13, pht23;
 		double HtComb, Qgen;
 		double charTime;
 		HeatTransferDomain* theHTDomain;
@@ -81,6 +82,10 @@ class TimberHTMaterial: public HeatTransferMaterial
 		Matrix* thePars;
 		double T1, T2, T3;
 		double transt23;
+		double commit_time;
+		double current_time;
+		double current_Qc;
+		double commit_Qc;
 		int determinePhase(double temp, double time);
 };
 

@@ -41,7 +41,7 @@ using std::ifstream;
 TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theDomain, Vector matPars)
 :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), thePars(0), HtComb(0.0), trialphTag(0), TempTag(0),
  ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0),TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain),
-    commit_rho(0), commit_cp(0), commit_k(0), Qgen(0)
+    commit_rho(0), commit_cp(0), commit_k(0), Qgen(0), commit_time(0), current_time(0), current_Qc(0), commit_Qc(0)
 {
     if ( k == 0){
 		k = new Matrix(3,3);
@@ -54,6 +54,8 @@ TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theD
     moist = 0;
     pht1 = 0;
     pht2 = 0;
+    pht13 = 0;
+    pht23 = 0;
     //phaseTag =0: Wet Wood
     // phaseTag =1: Dry Wood
     // phaseTag =2: Char 
@@ -71,7 +73,7 @@ TimberHTMaterial::TimberHTMaterial(int tag,int typeTag, HeatTransferDomain* theD
 TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* theDomain, Matrix thepars, Vector matPars)
     :HeatTransferMaterial(tag), trial_temp(0.0), charTime(0.0), HtComb(0.0), trialphTag(0), TempTag(0),
     ini_temp(0.0), rho(0), cp(0.0), enthalpy(0.0), TypeTag(typeTag), PhaseTag(0), theHTDomain(theDomain),
-    commit_rho(0), commit_cp(0), commit_k(0), Qgen(0)
+    commit_rho(0), commit_cp(0), commit_k(0), Qgen(0), commit_time(0), current_time(0), current_Qc(0), commit_Qc(0)
 {
     if (k == 0) {
         k = new Matrix(3, 3);
@@ -86,6 +88,8 @@ TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* the
     MatPars = matPars;
     pht1 = 0;
     pht2 = 0;
+    pht13 = 0;
+    pht23 = 0;
     rho0 = 0;
     moist = 0;
     //phaseTag =0: Wet Wood
@@ -115,7 +119,10 @@ TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* the
     }
     else
         opserr << "Timber Material recieves incorrect material properties" << endln;
-    
+    transt23 = 0.05 * 19e6 * (*thePars)(0, 1) / HtComb;
+#ifdef _DEBUG
+    opserr << "transt23 " << transt23 << endln;
+#endif
 }
 
 TimberHTMaterial::~TimberHTMaterial()
@@ -191,22 +198,27 @@ TimberHTMaterial::getConductivity(void)
         else if (trialphTag == 2) {
             if (trial_temp <= 300)
                 materialK = commit_k;
+            else if (trial_temp <= 600)
+                materialK = 0.81 * (*thePars)(0, 2) + ((*thePars)(3, 2) - 0.81 * (*thePars)(0, 2)) * (trial_temp - 300) / 300;
             else if (trial_temp <= 800)
-                materialK = 0.81 * (*thePars)(0, 2) + ((*thePars)(3, 2) - 0.81 * (*thePars)(0, 2)) * (trial_temp - 300) / 500;
-            else if (TempTag == 1) {
-                materialK = (*thePars)(3, 2);
-            }
-          
+                materialK = (*thePars)(3, 2) + (0.39 * (*thePars)(3, 2)) * (trial_temp - 600) / 200;
+            else if (trial_temp <= 1200)
+                materialK = 1.39 * (*thePars)(3, 2) + (1.50 - 1.39 * (*thePars)(3, 2)) * (trial_temp - 800) / 400;     
             //char
         }
         else if (trialphTag == 3) {
-            if (trial_temp <= 800) {
+            if (trial_temp <= 600)
                 materialK = commit_k;
-                if (commit_k > (*thePars)(3, 2))
-                    materialK = (*thePars)(3, 2);
+            else {
+                if (trial_temp <= 800)
+                    materialK = (*thePars)(3, 2) + (0.39 * (*thePars)(3, 2)) * (trial_temp - 600) / 200;
+                else if (trial_temp <= 1200)
+                    materialK = 1.39 * (*thePars)(3, 2) + (1.50 - 1.39 * (*thePars)(3, 2)) * (trial_temp - 800) / 400;
+
+                if (materialK < commit_k)
+                    materialK = commit_k;    //lower temperature than previously commited, using the commited k
             }
-            else if (trial_temp <= 1200)
-                materialK = (*thePars)(3, 2) + (1.5 - (*thePars)(3, 2)) * (trial_temp - 800) / 400;
+
             //ash
         }
         else
@@ -251,16 +263,16 @@ TimberHTMaterial::getRho(void)
     }
     else {
         if (trialphTag == 0) {
-            rho = 1.13 * (*thePars)(1, 1) - (0.09 * (*thePars)(1, 1)) * (trial_temp - 20) / 75;
+            rho = (*thePars)(0, 1) - (0.0736 * (*thePars)(0, 1)) * (trial_temp - 20) / 75;
             //wet wood
         }
         else if (trialphTag == 10) {
             if (trial_temp <= 95)
                 rho = commit_rho;
             else if (trial_temp <= 125)
-                rho = 1.04 * (*thePars)(1, 1) - (0.04 * (*thePars)(1, 1)) * (trial_temp - 95) / 30;
+                rho = 0.9264 * (*thePars)(0, 1) - (0.0294 * (*thePars)(0, 1)) * (trial_temp - 95) / 30;
             else
-                rho = (*thePars)(1, 1);
+                rho = (*thePars)(0, 1);
         }
         else if (trialphTag == 1) {
             // if (trial_temp <= 200)
@@ -269,7 +281,7 @@ TimberHTMaterial::getRho(void)
             if (trial_temp <= 125)
                 rho = commit_rho;
             else if (trial_temp <= 300)
-                rho = (*thePars)(1, 1) - (0.24 * (*thePars)(1, 1)) * (trial_temp - 125) / 175;
+                rho = 0.897 * (*thePars)(0, 1) - (0.215 * (*thePars)(0, 1)) * (trial_temp - 125) / 175;
             // rho = (*thePars)(1, 1) + ((*thePars)(2, 1) - (*thePars)(1, 1)) * (trial_temp - 125) / 175;
 
              //dry wood
@@ -278,25 +290,23 @@ TimberHTMaterial::getRho(void)
             if (trial_temp <= 300)
                 rho = commit_rho;
                 //rho = 641.91 - 138.97 * (trial_temp - 125) / 175;
-            else if (trial_temp <= 800)
-                rho = 0.76 * (*thePars)(1, 1) - (0.50 * (*thePars)(1, 1)) * (trial_temp - 300) / 500;
-            else if (TempTag == 1) {
-                rho = 0.26 * (*thePars)(1, 1);
-            }
+            else if (trial_temp <= 600)
+                rho = 0.682 * (*thePars)(0, 1) - (0.431 * (*thePars)(0, 1)) * (trial_temp - 300) / 300;
+            else if (trial_temp <= 1200)
+                rho = 0.251 * (*thePars)(0, 1) - (0.251 * (*thePars)(0, 1)) * (trial_temp - 600) / 600;
 
             //char
         }
         else if (trialphTag == 3) {
-            if (trial_temp <= 800) {
-                
-                if (commit_rho < 0.26 * (*thePars)(1, 1)) {
-                    rho = commit_rho;
-                }
-                else
-                    rho = 0.26 * (*thePars)(1, 1);
-            } 
-            else if(trial_temp<1200)
-                rho = 0.26 * (*thePars)(1, 1) - (0.26 * (*thePars)(1, 1)) * (trial_temp - 800) / 400;
+            if (trial_temp <= 600)
+                rho = commit_rho;
+            else {
+                if (trial_temp <= 1200)
+                    rho = 0.251 * (*thePars)(0, 1) - (0.251 * (*thePars)(0, 1)) * (trial_temp - 600) / 600;
+                if(rho> commit_rho)
+                    rho = commit_rho;    //lower temperature than previously commited, using the commited rho
+            }
+
             //ash
         }
         else
@@ -349,7 +359,7 @@ TimberHTMaterial::getSpecificHeat(void)
             cp = (*thePars)(0, 3);
         }
         else if (trialphTag == 10) {
-            double maxcp = 13600;
+            double maxcp = 14208e3 / (*thePars)(0, 1);
             if (trial_temp <= 95)
                 cp = (*thePars)(0, 3);
              else if (trial_temp <= 105)
@@ -373,11 +383,11 @@ TimberHTMaterial::getSpecificHeat(void)
         else if (trialphTag == 2) {
             if (trial_temp <= 300)
                 cp = commit_cp;               //if temperature is lower than 300, the commited cp is used
-            else if (trial_temp <= 800)
-                cp = (*thePars)(1, 3) - ((*thePars)(1, 3) - (*thePars)(3, 3)) * (trial_temp - 300) / 500;
-            else if (TempTag == 1) {
+            else if (trial_temp <= 600)
+                cp = (*thePars)(1, 3) - ((*thePars)(1, 3) - (*thePars)(3, 3)) * (trial_temp - 300) / 300;
+            else  
                 cp = (*thePars)(3, 3);
-            }
+            
 
             //char
         }
@@ -540,6 +550,8 @@ TimberHTMaterial::commitState(void)
     commit_rho = rho;
     commit_cp = cp;
     commit_k = (*k)(0, 0);
+    commit_time = current_time;
+    commit_Qc = current_Qc;
     return 0;
 }
 
@@ -564,7 +576,12 @@ TimberHTMaterial::revertToStart(void)
 int
 TimberHTMaterial::determinePhase(double temp, double time)
 {
-    
+    double trial_Qc = commit_Qc;
+    double alp1 = 1.0;
+    double alp2 = 1.5;
+    double alpha = 0;
+    double factor = 1.0;
+
     trialphTag = PhaseTag;
     
     //determine phase
@@ -611,20 +628,21 @@ TimberHTMaterial::determinePhase(double temp, double time)
         if(trialphTag < 2)
              TempTag = 0;
         else if (trialphTag == 2) {
-            //char layer back to <300oC
+            //char layer back to <300oC, minus the duration
             pht1 = time - charTime;
         }
     }
-    else if (temp < T3)
+    else if (temp <=1200)
     {
-        //<800oC
+        //<600oC
         if (trialphTag < 2|| trialphTag ==10) {
+            //just over 300oC
             if (pht1 < 1e-6 ) {
                 if (trialphTag == 1 || trialphTag == 10) {
                     pht1 = time;
                     pht2 = time;
                 }
-                    
+                //record the initial char time 
             }
 
            
@@ -636,16 +654,54 @@ TimberHTMaterial::determinePhase(double temp, double time)
         }
         else if (trialphTag == 2)
         {
+            //already char layer state
             pht2 = time;
             TempTag = 0;
-        }
+            current_Qc = commit_Qc;
+            //char to ash transition 2->3
+             charTime = pht2 - pht1;
 
-        charTime = pht2 - pht1;
-        //if T<800 but timber has long time of combustion
-        if(charTime> transt23)
-            trialphTag = 3;
-        //char
+             if (trial_temp < 300)
+                 alpha = 0;
+             //else if (trial_temp < 400)
+               //  alpha = (trial_temp - 300) / 100 * 0.1;   //combustion area at 400-600 range
+             else if (trial_temp < 400)
+                 alpha = ((trial_temp - 300) / 100) * alp1;   //combustion area at 400-600 range  alpha = (trial_temp - 400) / 200 * 0.43;
+             else if (trial_temp < 600)
+                 alpha = alp1; //linear transition from alph1 to alp2 if different
+             else if (trial_temp < 800)
+                 alpha = alp1 + ((trial_temp - 600) / 200) * (alp2 - alp1);
+             else
+                 alpha = alp2;
+
+             //determine factor from abosorbed heat to generated heat
+             if (trial_temp < 600)
+                 factor = 0.05;
+             else
+                 factor = 0.03;
+
+             current_Qc = current_Qc + alpha * HtComb / factor*(time-commit_time);
+            //if T>600 and timber has long time of combustion
+             if (current_Qc > 19e6* (*thePars)(0, 1) && trial_temp > T3) {
+                 trialphTag = 3;
+                 pht13 = time; //reset the pht1 for transition to 3;
+                 pht23 = time;
+                 TempTag = 1;
+             }
+                
+        }
+        else if (trialphTag == 3) {
+            pht23 = time;
+            if(pht23-pht13>10)
+                TempTag = 0;  //set a 10s short transition time for smooth change of thermal properties
+        }
+        
     }
+    else {
+        trialphTag = 3;  //over 1200oC
+    }
+      
+    /*
     else {
         if (trialphTag < 3) {
             if ((pht2-pht1>1e-6)&&TempTag==0) {
@@ -665,6 +721,8 @@ TimberHTMaterial::determinePhase(double temp, double time)
         }
         //ash
     }
+    */
+    
 
       
     return 0;
@@ -684,10 +742,10 @@ TimberHTMaterial::getIfHeatGen()
 double
 TimberHTMaterial::getHeatGen(double locy)
 {
-    double alp1 = 0.3;    //400-600
-    double alp2 = 0.5;   //600-800
+    double alp1 = 1.0;    //400-600
+    double alp2 = 1.5;   //600-800
     double alp3 = 1.0;  // initial, locy<0.005
-    double alp4 = 1.2;  // phTag =3, flaming
+    double alp4 = 1.0;  // phTag =3, flaming
 
     //double Qgen = 0;
     double alpha = 0;
@@ -696,41 +754,48 @@ TimberHTMaterial::getHeatGen(double locy)
     if (trialphTag == 2)
     {
         if (TempTag == 0) {
-            if (trial_temp < 400)
-                alpha= 0;
+            if (trial_temp < 300)
+                alpha = 0;
             //else if (trial_temp < 400)
               //  alpha = (trial_temp - 300) / 100 * 0.1;   //combustion area at 400-600 range
             else if (trial_temp < 600)
-                alpha = (trial_temp - 400) / 200 * alp1;   //combustion area at 400-600 range  alpha = (trial_temp - 400) / 200 * 0.43;
+                alpha = alp1; //linear transition from alph1 to alp2 if different
             else if (trial_temp < 800)
-               alpha = (trial_temp - 600) / 200 * alp2 + alp1;   //combustion area at 500-800 range
+                alpha = alp1 + ((trial_temp - 600) / 200) * (alp2 - alp1);
             else
-                alpha = alp2+alp1;
+                alpha = alp2;
         }
-        else if (TempTag == 1) {
-                alpha = alp2 + alp1;
 
-            //alpha = 1- (pht2 - pht1) / dt3;
-        }
-        if (locy < 0.01) {
-            if (transt23 - charTime < 200) {
-                alpha = (transt23 - charTime) / 200*alp3;
-            }
-            else
-                alpha = alp3;
-        }
+        
+//        if (locy < 0.015) {
+//               if (transt23 - charTime < 200) {
+//                    alpha = ((transt23 - charTime) / 200) * alp3;
+//                }
+//                else
+//                    alpha = alp3;
+//        }
       
        
     }
 	else if(trialphTag ==3){
-        if (trial_temp < 650)
-            alpha = 0;
-        else if (trial_temp < 800)
-            alpha = (1 + (trial_temp - 800) / 150)*alp4;
-        else if (trial_temp < 950)
-            alpha = (1 - (trial_temp - 800) / 150)*alp4;
-        else
-            alpha = 0;
+        //flames heating the ash layer
+        if (TempTag == 1) {
+            if (pht23 > pht13) {
+                alpha = alp1 + ((pht23 - pht13) / 10) * (alp2 - alp1);  //transition to ash layer:alp2
+            }
+        }
+        else {
+            if (trial_temp < 400)
+                alpha = 0;
+            else if (trial_temp < 600)
+                alpha = (1 + (trial_temp - 600) / 200) * alp2;
+            else if (trial_temp < 800)
+                alpha = (1 - (trial_temp - 600) / 200) * alp2;
+            else
+                alpha = 0;
+        }
+
+       
 	}
     //Considering locy indicating depth effect
        //locy=0, exposed surface ,ratio =1; locy =100, deep layer, ratio=0. You can change 100 to large value
@@ -739,13 +804,16 @@ TimberHTMaterial::getHeatGen(double locy)
       // else if (locRatio>1)
         //   locRatio = 1;  
 
-       locRatio = 1;
-		alpha = locRatio * alpha;
+     //  locRatio = 1;   currently not used
+	//	alpha = locRatio * alpha;
         
         Qgen = alpha* HtComb;
 
-    if (Qgen < -1e-5)
-        opserr << "incorrect Heat of generation" << endln;
+        if (Qgen < -1e-5) {
+            opserr << "incorrect Heat of generation" << endln;
+            Qgen = 0;
+        }
+        
 
     return Qgen ;
 }

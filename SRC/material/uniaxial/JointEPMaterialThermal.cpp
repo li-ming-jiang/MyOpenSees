@@ -31,6 +31,10 @@
 //
 // What: "@(#) JointEPMaterialThermal.C, revA"
 
+// Modified：LMJ, 2021
+// This is to model connection behaviour in fire
+// Fire Group @ The Hong Kong Polytechnic University, openseesforfire@github.io
+
 
 #include <JointEPMaterialThermal.h>
 #include <Vector.h>
@@ -85,7 +89,7 @@ OPS_JointEPMaterial(void)
 
 
 JointEPMaterialThermal::JointEPMaterialThermal(int tag, double e, double eyp, int soft)
-:UniaxialMaterial(tag,MAT_TAG_ElasticPPMaterial),
+:UniaxialMaterial(tag,MAT_TAG_JointEPMaterialThermal),
  ezero(0.0), E(e), ep(0.0), E0(e), softIndex(soft),
  trialStrain(0.0), trialStress(0.0), trialTangent(E),
  commitStrain(0.0), commitStress(0.0), commitTangent(E)
@@ -96,7 +100,7 @@ JointEPMaterialThermal::JointEPMaterialThermal(int tag, double e, double eyp, in
 
 JointEPMaterialThermal::JointEPMaterialThermal(int tag, double e, double eyp,
 				     double eyn, double ez, int soft  )
-:UniaxialMaterial(tag,MAT_TAG_ElasticPPMaterial),
+:UniaxialMaterial(tag,MAT_TAG_JointEPMaterialThermal),
  ezero(ez), E(e), E0(e),  ep(0.0), softIndex(soft),
  trialStrain(0.0), trialStress(0.0), trialTangent(E),
  commitStrain(0.0), commitStress(0.0), commitTangent(E)
