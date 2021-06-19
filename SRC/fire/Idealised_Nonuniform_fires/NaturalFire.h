@@ -68,6 +68,7 @@ class NaturalFire : public FireModel
 	  double addq;
 	  int centerLine;
 	  double hc, absorp;
+	  int fmode;
 };
 
 #endif
