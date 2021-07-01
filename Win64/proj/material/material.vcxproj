@@ -246,6 +246,7 @@
     <ClCompile Include="..\..\..\SRC\material\uniaxial\SteelMPF.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\TclModelBuilderUniaxialMaterialCommand.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\TensionOnlyMaterial.cpp" />
+    <ClCompile Include="..\..\..\SRC\material\uniaxial\TimberECThermal.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\TriMatrix.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\UniaxialJ2Plasticity.cpp" />
     <ClCompile Include="..\..\..\SRC\material\uniaxial\UniaxialMaterial.cpp" />
@@ -600,6 +601,7 @@
     <ClInclude Include="..\..\..\SRC\material\uniaxial\SteelMP.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\SteelMPF.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\TensionOnlyMaterial.h" />
+    <ClInclude Include="..\..\..\SRC\material\uniaxial\TimberECThermal.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\TriMatrix.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\UniaxialJ2Plasticity.h" />
     <ClInclude Include="..\..\..\SRC\material\uniaxial\UniaxialMaterial.h" />

@@ -207,10 +207,11 @@
 #define MAT_TAG_ConcreteCM                      90
 #define MAT_TAG_SteelMPF                        91
 #define MAT_TAG_ElasticMaterialThermal          92   //L.Jiang [SIF]
-#define MAT_TAG_SteelECThermal			93   //L.Jiang [SIF]
+#define MAT_TAG_SteelECThermal			        93   //L.Jiang [SIF]
 #define MAT_TAG_StainlessECThermal              94   //L.Jiang [SIF]
-#define MAT_TAG_ConcreteECThermal		95   //L.Jiang [SIF]
-#define MAT_TAG_JointEPMaterialThermal    98
+#define MAT_TAG_ConcreteECThermal	            95         //L.Jiang [SIF]
+#define MAT_TAG_JointEPMaterialThermal          98      //L.Jiang [SIF]
+#define MAT_TAG_TimberECThermal		            99               //L.Jiang [SIF]
 #define MAT_TAG_BoucWenOriginal                 96
 #define MAT_TAG_DamperMaterial                  97
 
