@@ -17,57 +17,53 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
+
 // Added by Liming Jiang (UoE)
 // Created: 06/13
 //
 // Description: This file contains the class definition for 
-// TimberECThermal. TimberECThermal is modified on the basis of Steel02Thermal
-// and steel01Thermal.TimberECThermal is developed for modelling steel material 
-// which strictly satisfies Eurocode regarding the temperature dependent properties.
+// TimberECThermal. TimberECThermal is modified from Concrete02Thermal
+// TimberECThermal is dedicated to provide a concrete material which 
+// strictly satisfy Eurocode regarding the temperature dependent properties.
+
+// Concrete02 is written by FMK in the year of 2006 and based on Concr2.f
+
 
 
 
 #ifndef TimberECThermal_h
 #define TimberECThermal_h
 
-
 #include <UniaxialMaterial.h>
-
-// Default values for isotropic hardening parameters a1, a2, a3, and a4
-#define STEEL_01_DEFAULT_A1        0.0
-#define STEEL_01_DEFAULT_A2       55.0
-#define STEEL_01_DEFAULT_A3        0.0
-#define STEEL_01_DEFAULT_A4       55.0
 
 class TimberECThermal : public UniaxialMaterial
 {
 public:
-    TimberECThermal(int tag, int typeTag, double fy, double E0,
-        double a1 = STEEL_01_DEFAULT_A1, double a2 = STEEL_01_DEFAULT_A2,
-        double a3 = STEEL_01_DEFAULT_A3, double a4 = STEEL_01_DEFAULT_A4);
-    TimberECThermal();
-    ~TimberECThermal();
+    TimberECThermal(int tag, double _fc, double _epsc0, double _fcu,
+        double _epscu, double _rat, double _ft, double _Ets);
+
+    TimberECThermal(void);
+
+    virtual ~TimberECThermal();
 
     const char* getClassType(void) const { return "TimberECThermal"; };
+    double getInitialTangent(void);
+    UniaxialMaterial* getCopy(void);
 
 
-    double getThermalElongation(void); //return ThermalElongation
-    double getElongTangent(double, double&, double&, double);//Added for temperature dependent tangent and thermalElongation
+    int setTrialStrain(double strain, double rate);     //JZ this function is no use, just for the definiation of pure virtual function.
+    int setTrialStrain(double strain, double FiberTemperature, double strainRate); //***JZ
 
-    int setTrialStrain(double strain, double strainRate = 0);
-    int setTrialStrain(double strain, double FiberTemperature, double strainRate); //Added for Temperature-strain-stress
-
-    int setTrial(double strain, double& stress, double& tangent, double strainRate = 0.0);
     double getStrain(void);
     double getStress(void);
     double getTangent(void);
-    double getInitialTangent(void) { return E0; };
+
+    double getThermalElongation(void); //***JZ
+    double getElongTangent(double, double&, double&, double);//***JZ //PK add to include max temp
 
     int commitState(void);
     int revertToLastCommit(void);
     int revertToStart(void);
-
-    UniaxialMaterial* getCopy(void);
 
     int sendSelf(int commitTag, Channel& theChannel);
     int recvSelf(int commitTag, Channel& theChannel,
@@ -77,80 +73,57 @@ public:
 
     int getVariable(const char* variable, Information&);
 
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
-    int setParameter(const char** argv, int argc, Parameter& param);
-    int    updateParameter(int parameterID, Information& info);
-    int    activateParameter(int parameterID);
-    double getStressSensitivity(int gradIndex, bool conditional);
-    double getInitialTangentSensitivity(int gradIndex);
-    int    commitSensitivity(double strainGradient, int gradIndex, int numGrads);
-    // AddingSensitivity:END ///////////////////////////////////////////
 
 protected:
 
 private:
+    void Tens_Envlp(double epsc, double& sigc, double& Ect);
+    void Compr_Envlp(double epsc, double& sigc, double& Ect);
 
-    /////For Temperature-dependent properties///////////////////////////////start
-    int typeTag;
-    double Temp;  // material temp  
-    double ThermalElongation; // 
-    double fyT;
-    double E0T;
-    double fp;
-    double TemperautreC;
-    /////For Temperature-dependent properties///////////////////////////////////end 
-
-
-    /*** Material Properties ***/
-    double fy;  // Yield stress
-    double E0;  // Initial stiffness
-    double b;   // Hardening ratio (b = Esh/E0)
-    double a1;
-    double a2;
-    double a3;
-    double a4;  // a1 through a4 are coefficients for isotropic hardening
-
-    /*** CONVERGED History Variables ***/
-    double CminStrain;  // Minimum strain in compression
-    double CmaxStrain;  // Maximum strain in tension
-    double CshiftP;     // Shift in hysteresis loop for positive loading
-    double CshiftN;     // Shift in hysteresis loop for negative loading
-    int Cloading;       // Flag for loading/unloading
-                        // 1 = loading (positive strain increment)
-                        // -1 = unloading (negative strain increment)
-                        // 0 initially
-
-    /*** CONVERGED State Variables ***/
-    double Ctemp;
-    double Cstrain;
-    double Cstress;
-    double Ctangent;
+    double Temp;  // concrete temp
+    double steps;    //the amount of the steps.
+    double strainRatio; //input strain over 0.0025(EU 1992)  
+    double ThermalElongation; // eps(theata) = alpha * temperature
+    double fcT;
+    double epsc0T;
+    double fcuT;
+    double epscuT;
+    double ftT;
+    double EtsT;
+    double cooling; //PK add
+    double Tempmax;  // PK add max temp
 
 
-    /*** TRIAL History Variables ***/
-    double TminStrain;
-    double TmaxStrain;
-    double TshiftP;
-    double TshiftN;
-    int Tloading;
+    // matpar : Concrete FIXED PROPERTIES
+    double fc;    // concrete compression strength           : mp(1)
+    double epsc0; // strain at compression strength          : mp(2)
+    double fcu;   // stress at ultimate (crushing) strain    : mp(3)
+    double epscu; // ultimate (crushing) strain              : mp(4)       
+    double rat;   // ratio between unloading slope at epscu and original slope : mp(5)
+    double ft;    // concrete tensile strength               : mp(6)
+    double Ets;   // tension stiffening slope                : mp(7)
 
-    /*** TRIAL State Variables ***/
-    double Ttemp;
-    double Tstrain;
-    double Tstress;
-    double Ttangent; // Not really a state variable, but declared here
-                     // for convenience
 
-    // Calculates the trial state variables based on the trial strain
-    void determineTrialState(double dStrain);
 
-    // Determines if a load reversal has occurred based on the trial strain
-    void detectLoadReversal(double dStrain);
+    // hstvP : Concerete HISTORY VARIABLES last committed step
+    double ecminP;  //  hstP(1)
+    double deptP;   //  hstP(2)
+    double epsP;  //  = strain at previous converged step
+    double sigP;  //  = stress at previous converged step
+    double eP;    //   stiffness modulus at last converged step;
 
-    // AddingSensitivity:BEGIN //////////////////////////////////////////
-    int parameterID;
-    Matrix* SHVs;
-    // AddingSensitivity:END ///////////////////////////////////////////
+    double TempP; //PK add the previous temperature
+
+    // hstv : Concerete HISTORY VARIABLES  current step
+    double ecmin;
+    double dept;
+    double sig;
+    double e;
+    double eps;
+
+
 };
 
+
 #endif
+
