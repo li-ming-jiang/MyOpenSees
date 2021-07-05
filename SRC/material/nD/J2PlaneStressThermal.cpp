@@ -96,7 +96,7 @@ J2PlaneStressThermal::J2PlaneStressThermal(int tag, int typeTag,
 )
 	:NDMaterial(tag, ND_TAG_J2PlaneStressThermal),
 	TypeTag(typeTag),E(e), nu(nu), fy(fy_0), fy_inf(fy_infty),
-	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
+	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(4),
 	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3),d(d0),H(H0),HT(H0),
 	Ce(3, 3), C(3, 3), Ce0(3, 3), Ccommit(3, 3), fy0(fy_0), fy0_inf(fy_infty), E0(e)
 {
@@ -130,6 +130,8 @@ J2PlaneStressThermal::J2PlaneStressThermal(int tag, int typeTag,
 
 	TempAndElong(0) = 0;
 	TempAndElong(1) = 0;
+	TempAndElong(2) = 0;
+	TempAndElong(3) = 0;
 
 	Cchange = -1;
 	Tchange = 0;
@@ -145,7 +147,7 @@ J2PlaneStressThermal::J2PlaneStressThermal(int tag, int typeTag,
 
 J2PlaneStressThermal::J2PlaneStressThermal()
 	:NDMaterial(0, 0),
-	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(2),
+	eps(3), sig(3), sige(3), eps_p(3), sigeP(3), TempAndElong(4),
 	epsCommit(3), sigCommit(3), sigeCommit(3), eps_pCommit(3), sigePCommit(3),
 	Ce(3, 3), C(3, 3), Ccommit(3, 3)
 {

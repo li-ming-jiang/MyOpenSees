@@ -450,17 +450,20 @@ LayeredShellFiberSectionThermal::setResponse(const char **argv, int argc,
       return 0;
     }
     int pointNum = atoi(argv[1]);
-    if (pointNum > 0 && pointNum <= nLayers) {
-      
-      output.tag("FiberOutput");
-      output.attr("number",pointNum);
-      output.attr("zLoc",loci[pointNum-1]);
-      output.attr("thickness",ti[pointNum-1]);
-      
-      theResponse =  theFibers[pointNum-1]->setResponse(&argv[2], argc-2, output);
-      
-      output.endTag();
+
+    if (pointNum <= 0) {
+        pointNum = 1;
     }
+    else if (pointNum > nLayers) {
+        pointNum = nLayers;
+    }
+    output.tag("FiberOutput");
+    output.attr("number", pointNum);
+    output.attr("zLoc", loci[pointNum - 1]);
+    output.attr("thickness", ti[pointNum - 1]);
+
+    theResponse = theFibers[pointNum - 1]->setResponse(&argv[2], argc - 2, output);
+    output.endTag();
   }
   output.endTag(); // SectionOutput
   return theResponse;
