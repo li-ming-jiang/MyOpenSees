@@ -24,7 +24,7 @@ public:
 private:
 	 Vector Seeds1;
 	 Vector Seeds2;
-	double EleX, EleY , EleX_Web, EleY_Web, Ele_coat;
+	double EleX, EleY, EleX_Web, EleY_Web, Ele_coat;
  
     double HTI_centerX, HTI_centerY, HTI_Bf, HTI_Tf, HTI_Tw, HTI_Hw, HTI_UBf, HTI_UTf, HTI_Coat;
 	ID NumCtrlID;
