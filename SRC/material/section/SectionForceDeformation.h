@@ -107,6 +107,8 @@ class SectionForceDeformation : public Material
   //--- Adding Thermal Materials:[BEGIN]   by UoE OpenSees Group ----//  
   virtual int setTrialSectionDeformation(const Vector&, const Vector &); //JZ
   virtual const Vector &getTemperatureStress(const Vector &tData);//27 is for 'FireLoadPattern'
+  //virtual const Vector &getTemperatureStress(const Vector &tData, bool zAxis); // Added by Mhd Anwar Orabi - 2021
+  //virtual void setZaxis(bool zAxis); // Added by Mhd Anwar Orabi - 2021
   //--- Adding Thermal Functions:[END]   by UoE OpenSees Group ----//
 
   virtual const Vector& getThermalElong(void);
@@ -116,7 +118,6 @@ class SectionForceDeformation : public Material
   Vector *sDefault;
   
  private:
-
 };
 
 extern bool OPS_addSectionForceDeformation(SectionForceDeformation *newComponent);

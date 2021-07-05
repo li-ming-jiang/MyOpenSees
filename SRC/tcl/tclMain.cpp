@@ -242,8 +242,11 @@ g3TclMain(int argc, char **argv, Tcl_AppInitProc * appInitProc, int rank, int np
 	
 	fprintf(stderr,"      (c) Copyright 1999-2016 The Regents of the University of California\n");
 	fprintf(stderr,"                              All Rights Reserved\n");
-	fprintf(stderr,"  (Copyright and Disclaimer @ http://www.berkeley.edu/OpenSees/copyright.html)\n\n\n");
+	fprintf(stderr,"  (Copyright and Disclaimer @ http://www.berkeley.edu/OpenSees/copyright.html)\n\n");
+	fprintf(stderr, "                              OpenSEES for Fire\n");
+	fprintf(stderr, "           Version: %s, Last updated on %s\n\n\n", OPSF_VERSION, OPS_LASTUPDATED);
       }
+
 #ifdef _PARALLEL_INTERPRETERS
     }
 #endif
