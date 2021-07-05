@@ -1069,9 +1069,10 @@ int
 TclCommand_addNode(ClientData clientData, Tcl_Interp *interp, int argc, 
                         TCL_Char **argv)
 {
+
   // ensure the destructor has not been called - 
   if (theTclBuilder == 0) {
-    opserr << "WARNING builder has been destroyed." << endln;
+    opserr << "WARNING builder has been destroyed" << endln;
     return TCL_ERROR;
   }
 
@@ -3017,15 +3018,6 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 	  // End of for the if (ndm==2)
 	  else if (ndm == 3)
 	  {
-	  // Added by Mhd Anwar Orabi 2021
-	  bool zAxis;
-		  if (strcmp(argv[count], "-z") == 0) {
-			  zAxis = true;
-			  count++;
-		  } 
-		  else {
-			  zAxis = false;
-		  }
 		  //so far three kinds of temperature distribution
 		  double t1, locY1, t2, locY2, t3, locY3, t4, locY4, t5, locY5,
 			  t6, t7, locZ1, t8, t9, locZ2, t10, t11, locZ3, t12, t13, locZ4, t14, t15, locZ5;
@@ -3061,21 +3053,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
 				  double RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4;
 				  TimeSeries* theSeries;
-				  bool genInterpolation;
-				  if (strcmp(argv[count], "-genInterpolation") == 0) {
-					  genInterpolation = true;
-					  count++;
-				  }
-				  else {
-					  genInterpolation = false;
-				  }
+
 				  if (argc - count == 4) {
-					  if (genInterpolation) {
-						  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 2], 25);
-					  }
-					  else {
-						  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 1], 15);
-					  }
+					  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 1], 15);
 					  using2Ddata = false;
 
 					  if (Tcl_GetDouble(interp, argv[count], &RcvLoc1) != TCL_OK) {
@@ -3097,18 +3077,10 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 
 					  //end for recieving input
 					  for (int i = 0; i<theEleTags.Size(); i++) {
-						  // Modified by Mhd Anwar Orabi 2021
-						  if (genInterpolation) {
-							  theLoad = new Beam3dThermalAction(eleLoadTag, theSeries, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
-								  theEleTags(i));
-						  } else if (!zAxis) {
-							  theLoad = new Beam3dThermalAction(eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
-								  theSeries, theEleTags(i));
-						  }
-						  else {
-							  theLoad = new Beam3dThermalAction(zAxis, eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
-								  theSeries, theEleTags(i));
-						  }
+
+						  theLoad = new Beam3dThermalAction(eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
+							  theSeries, theEleTags(i));
+
 						  if (theLoad == 0) {
 							  opserr << "WARNING eleLoad - out of memory creating load of type " << argv[count];
 							  return TCL_ERROR;
@@ -3248,76 +3220,38 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 			  //end of  if (argc-count == 25){
 			  else if (argc - count == 4) {
 
-				  // Modified by Mhd Anwar Orabi 2021
-				  if (!zAxis) {
-					  if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  if (Tcl_GetDouble(interp, argv[count + 1], &locY1) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  if (Tcl_GetDouble(interp, argv[count + 2], &t5) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid T5 " << argv[count] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  if (Tcl_GetDouble(interp, argv[count + 3], &locY5) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid LocY5 " << argv[count + 1] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  locY2 = locY1 + (locY5 - locY1) / 4;
-					  locY3 = locY1 + (locY5 - locY1) / 2;
-					  locY4 = locY1 + 3 * (locY5 - locY1) / 4;
-					  t2 = t1 + (t5 - t1) / 4;
-					  t3 = t1 + (t5 - t1) / 2;
-					  t4 = t1 + 3 * (t5 - t1) / 4;
-					  locZ1 = locZ2 = locZ3 = locZ4 = locZ5 = 0;
-					  t6 = t7 = t8 = t9 = t10 = 0;
-					  t11 = t12 = t13 = t14 = t15 = 0;
+				  if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
+					  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
+					  return TCL_ERROR;
 				  }
-				  else {
-					  if (Tcl_GetDouble(interp, argv[count], &t1) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  if (Tcl_GetDouble(interp, argv[count + 1], &locZ1) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid LocZ1 " << argv[count + 1] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  if (Tcl_GetDouble(interp, argv[count + 2], &t5) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid T5 " << argv[count] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  if (Tcl_GetDouble(interp, argv[count + 3], &locZ5) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid LocZ5 " << argv[count + 1] << " for -beamThermal\n";
-						  return TCL_ERROR;
-					  }
-					  locZ2 = locZ1 + (locZ5 - locZ1) / 4;
-					  locZ3 = locZ1 + (locZ5 - locZ1) / 2;
-					  locZ4 = locZ1 + 3 * (locZ5 - locZ1) / 4;
-					  t2 = t1 + (t5 - t1) / 4;
-					  t3 = t1 + (t5 - t1) / 2;
-					  t4 = t1 + 3 * (t5 - t1) / 4;
-					  locY1 = locY2 = locY3 = locY4 = locY5 = 0;
-					  t6 = t7 = t8 = t9 = t10 = 0;
-					  t11 = t12 = t13 = t14 = t15 = 0;
+				  if (Tcl_GetDouble(interp, argv[count + 1], &locY1) != TCL_OK) {
+					  opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1] << " for -beamThermal\n";
+					  return TCL_ERROR;
 				  }
-				  
+				  if (Tcl_GetDouble(interp, argv[count + 2], &t5) != TCL_OK) {
+					  opserr << "WARNING eleLoad - invalid T1 " << argv[count] << " for -beamThermal\n";
+					  return TCL_ERROR;
+				  }
+				  if (Tcl_GetDouble(interp, argv[count + 3], &locY5) != TCL_OK) {
+					  opserr << "WARNING eleLoad - invalid LocY1 " << argv[count + 1] << " for -beamThermal\n";
+					  return TCL_ERROR;
+				  }
+
+				  locY2 = locY1 + (locY5 - locY1) / 4;
+				  locY3 = locY1 + (locY5 - locY1) / 2;
+				  locY4 = locY1 + 3 * (locY5 - locY1) / 4;
+				  t2 = t1 + (t5 - t1) / 4;
+				  t3 = t1 + (t5 - t1) / 2;
+				  t4 = t1 + 3 * (t5 - t1) / 4;
+				  locZ1 = locZ2 = locZ3 = locZ4 = locZ5 = 0;
+				  t6 = t7 = t8 = t9 = t10 = 0;
+				  t11 = t12 = t13 = t14 = t15 = 0;
+
 				  for (int i = 0; i<theEleTags.Size(); i++) {
-					  // Modified by Mhd Anwar Orabi 2021
-					  if (!zAxis) {
-						  theLoad = new Beam3dThermalAction(eleLoadTag,
-							  t1, locY1, t2, locY2, t3, locY3, t4, locY4,
-							  t5, locY5, t6, t7, locZ1, t8, t9, locZ2, t10, t11, locZ3,
-							  t12, t13, locZ4, t14, t15, locZ5, theEleTags(i));
-					  }
-					  else {
-						  theLoad = new Beam3dThermalAction(zAxis,eleLoadTag,
-							  t1, locY1, t2, locY2, t3, locY3, t4, locY4,
-							  t5, locY5, t6, t7, locZ1, t8, t9, locZ2, t10, t11, locZ3,
-							  t12, t13, locZ4, t14, t15, locZ5, theEleTags(i));
-					  }
+					  theLoad = new Beam3dThermalAction(eleLoadTag,
+						  t1, locY1, t2, locY2, t3, locY3, t4, locY4,
+						  t5, locY5, t6, t7, locZ1, t8, t9, locZ2, t10, t11, locZ3,
+						  t12, t13, locZ4, t14, t15, locZ5, theEleTags(i));
 					  if (theLoad == 0) {
 						  opserr << "WARNING eleLoad - out of memory creating load of type " << argv[count];
 						  return TCL_ERROR;

@@ -225,6 +225,7 @@ int Simple_Isection::GenerateNodes(HeatTransferDomain* theHTDomain, int nDoF, co
 			else {
 				TempNode = new HeatTransferNode(OriginNodeTag + NodeTag, nDoF, NodeCrdX, NodeCrdY);
 			}
+
 			if (theHTDomain->addNode(TempNode) < 0) {
 				opserr << "HTDomain failed to generate node with coordinates: " << NodeCrdX << ", " << NodeCrdY << endln;
 				return -1;
@@ -253,7 +254,6 @@ int Simple_Isection::GenerateNodes(HeatTransferDomain* theHTDomain, int nDoF, co
 			else {
 				TempNode = new HeatTransferNode(OriginNodeTag + NodeTag, nDoF, NodeCrdX, NodeCrdY);
 			}
-
 			if (theHTDomain->addNode(TempNode) < 0) {
 				opserr << "HTDomain failed to generate node with coordinates: " << NodeCrdX << ", " << NodeCrdY << endln;
 				return -1;

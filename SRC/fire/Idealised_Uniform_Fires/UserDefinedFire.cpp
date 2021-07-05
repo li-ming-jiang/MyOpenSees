@@ -167,11 +167,8 @@ UserDefinedFire::~UserDefinedFire()
     delete theData;
   if (time != 0)
     delete time;
-  //Mhd Anwar Orabi 2021: added the type_tag check to protect against deleting thePar when it was no initialised.
-  if (type_tag == 3 || type_tag == 4) {
-	  if (thePar != 0)
-		  delete thePar;
-  };
+  if (thePar != 0)
+	  delete thePar;
 }
 
 

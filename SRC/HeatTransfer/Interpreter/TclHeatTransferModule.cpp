@@ -74,9 +74,8 @@ using std::setiosflags;
 #include <HT_SolutionAlgorithm.h>
 #include <LinearAlgorithm.h>
 #include <NewtonMethod.h>
-#include <ModifiedNewtonMethod.h>
+//#include <ModifiedNewtonMethod.h>
 #include <CTestNormTempIncr.h>
-#include <CTestNormResidual.h>
 #include <PenaltyBC_Handler.h>
 #include <RCM.h>
 #include <HT_DOF_Numberer.h>
@@ -155,9 +154,6 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 int TclHeatTransferCommand_HTAnalyze(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 
-int TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
-int TclHeatTransferCommand_getHTTime(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
-
 TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
 {
   // Set the interpreter (the destructor needs it to delete commands)
@@ -208,8 +204,7 @@ TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
   Tcl_CreateCommand(interp, "HTAnalyze", (Tcl_CmdProc* )TclHeatTransferCommand_HTAnalyze,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTReset", (Tcl_CmdProc* )TclHeatTransferCommand_HTReset,(ClientData)NULL, NULL);
   
-  Tcl_CreateCommand(interp, "HTPrintNodes", (Tcl_CmdProc*)TclHeatTransferCommand_PrintNodes, (ClientData)NULL, NULL);
-  Tcl_CreateCommand(interp, "getHTTime", (Tcl_CmdProc*)TclHeatTransferCommand_getHTTime, (ClientData)NULL, NULL);
+  
   //Tcl_CreateCommand(interp, "HTMaterial", (Tcl_ObjCmdProc*) TclHeatTransferCommand_addHTMaterial,(ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 
 
@@ -1805,7 +1800,6 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   
   HTNodeSet* theHTNodeSet = 0;
   Simple_Entity* theHTEntity = 0;
-  Simple_Mesh* theHTMesh = 0;
   int HTNodeSetTag = 0;
   int HTEntityTag = 0;
   int FaceID =0;
@@ -1817,285 +1811,174 @@ TclHeatTransferCommand_HTNodeSet(ClientData clientData, Tcl_Interp *interp, int 
   }
   
   int count=2;
-
   
-if (strcmp(argv[count], "-HTNodeSet") == 0 || strcmp(argv[count], "-NodeSet") == 0 || strcmp(argv[count], "nodeset") == 0)
-{
+  //if HTEntity tag is detected, then we definitely expect faceID
+  if(strcmp(argv[count],"-HTEntity") == 0||strcmp(argv[count],"-Entity") == 0||strcmp(argv[count],"HTEntity") == 0){
+    
     count++;
-
-    //-----for geting uncertain number of integer data.
-    int ArgStart = count;
-    int ArgEnd = 0;
-    int data;
-    ID NodeSetRange(0);
-
-    while (count < argc && ArgEnd == 0) {
-        if (count == argc - 1)
-            ArgEnd = count + 1;
-        else if (Tcl_GetInt(interp, argv[count], &data) != TCL_OK)
-        {
-            opserr << "Error creating NodeSet " << argv[1] << endln;
-            opserr << "\"" << argv[count] << "\" detected after using -NodeSet flag." << endln;
-            opserr << "Can only have integers after the -NodeSet flag when creating a new combined nodeset." << endln;
-            return TCL_ERROR;
-        }
-        else
-            count++;
+    
+    if (Tcl_GetInt(interp, argv[count], &HTEntityTag) != TCL_OK) {
+      opserr << "WARNING:: invalid HT Entity tag for defining HTNodeSet: " << argv[1] << "\n";
+      return TCL_ERROR;
+    }else{
+      count++;
     }
-    if (ArgEnd - ArgStart <= 0) {
-        opserr << "Error creating NodeSet " << argv[1] << endln;
-        opserr << "Not enough arguments to create a combined of NodeSets. Need at least 1 valid component NodeSet." << endln;
+    
+
+    theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
+    if (theHTEntity == 0) {
+        opserr << "WARNING:: HTNodeSet failed to get the HTEntity: " << argv[1] << "\n";
         return TCL_ERROR;
     }
-    //~ detecting the remaining number of input
-    NodeSetRange.resize(ArgEnd - ArgStart);
-    if (ArgStart != ArgEnd) {
-        for (int i = ArgStart; i < ArgEnd; i++) {
-            Tcl_GetInt(interp, argv[i], &data);
-            NodeSetRange(i - ArgStart) = data;
-        }
-    }
-    vector <int> NodeRangeV;
-    for (int i = 0; i < NodeSetRange.Size(); i++) {
-        HTNodeSet* theNodeSet = theTclHTModule->getHTNodeSet(NodeSetRange(i));
-        if (theNodeSet == 0)
-        {
-            opserr << "Cannot create combined NodeSet " << argv[1] << endln;
-            opserr << "Component NodeSet at position " << i + 1 << " with ID " << NodeSetRange(i) << " not found." << endln;
-            return TCL_ERROR;
-        }
-        ID tempNodeSetID = theNodeSet->getNodeID();
-        if (tempNodeSetID == 0) {
-            opserr << "Cannot create combined NodeSet " << argv[1] << endln;
-            opserr << "Component NodeSet at position " << i + 1 << " with ID " << NodeSetRange(i) << " is empty." << endln;
-            return TCL_ERROR;
-        }
-        for (int j = 0; j < tempNodeSetID.Size(); j++) {
-            NodeRangeV.push_back(tempNodeSetID(j));
-        }
-    }
+    //HTEntityTag obtained
 
-    NodeRange.resize(NodeRangeV.size());
-    for (int i = 0; i < NodeRangeV.size(); i++)
-        NodeRange(i) = NodeRangeV[i];
+    int EntityMeshTag = theHTEntity->getMeshTag();
+    Simple_Mesh* theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
 
-}
-else
-{
-    //if HTEntity tag is detected, then we definitely expect faceID
-    if (strcmp(argv[count], "-HTEntity") == 0 || strcmp(argv[count], "-Entity") == 0 || strcmp(argv[count], "HTEntity") == 0) {
-
+    //to obtain faceTag
+    if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
         count++;
-
-        if (Tcl_GetInt(interp, argv[count], &HTEntityTag) != TCL_OK) {
-            opserr << "WARNING:: invalid HT Entity tag for defining HTNodeSet: " << argv[1] << "\n";
+        if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
+            opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
             return TCL_ERROR;
         }
         else {
             count++;
         }
 
-
-        theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
-        if (theHTEntity == 0) {
-            opserr << "WARNING:: HTNodeSet failed to get the HTEntity: " << argv[1] << "\n";
-            return TCL_ERROR;
-        }
-        //HTEntityTag obtained
-
-        int EntityMeshTag = theHTEntity->getMeshTag();
-        theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
-
-        //to obtain faceTag
-        if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
-            count++;
-            if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
-                opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
-                return TCL_ERROR;
-            }
-            else {
-                count++;
-            }
-
-            theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
-
-        }
+        theHTMesh->SelectingNodesbyFace(NodeRange, FaceID);
 
     }
-
-    //end of HTEntity tag 
-
+  
+  }
+	
+	//end of HTEntity tag 
+  
   //search node in the range of xloc
   //check whether it is the end of arguments
-    if (argc - count > 0) {
-        if (strcmp(argv[count], "-Locx") == 0 || strcmp(argv[count], "Locx") == 0 || strcmp(argv[count], "locx") == 0 || strcmp(argv[count], "-locx") == 0) {
-            count++;
-
-
-            double xlocLB, xlocUB;
-
-            if (Tcl_GetDouble(interp, argv[count], &xlocLB) != TCL_OK) {
-                opserr << "WARNING invalid xloc" << endln;
-                opserr << " for adding node to HTNodeSet: " << endln;
-                return TCL_ERROR;
-            }
-            count++;
-            if (argc - count > 0) {
-                if (Tcl_GetDouble(interp, argv[count], &xlocUB) == TCL_OK) {
-                    count++;
-                }
-                else
-                    xlocUB = xlocLB;
-            }
-            else
-                xlocUB = xlocLB;
-
-
-            if (xlocUB < xlocLB) {
-                opserr << "WARNING::TclHeatTransfer::xlocUB " << xlocUB << "should be greater than xlocLb " << xlocLB;
-                return TCL_ERROR;
-            }
-            if (theHTMesh == 0) {
-#ifdef _DEBUG
-                opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
-#endif  
-                theHTDomain->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
-            }
-            else {
-#ifdef _DEBUG
-                opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
-#endif
-                theHTMesh->SelectingNodes(NodeRange, 0, xlocLB, xlocUB);
-            }
-            // for geting uncertain number of double values
-            if (NodeRange == 0) {
-                opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval x = (" << xlocLB << ", " << xlocUB << ")." << endln;
-                opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-                return -1;
-            }
-
-        }
+  if(argc-count>0){
+  if(strcmp(argv[count],"-Locx") == 0||strcmp(argv[count],"Locx") == 0||strcmp(argv[count],"locx") == 0||strcmp(argv[count],"-locx") == 0){
+     count++;
+		
+    
+    double xlocLB, xlocUB;
+    
+    if (Tcl_GetDouble (interp, argv[count], &xlocLB) != TCL_OK) {
+      opserr << "WARNING invalid xloc" << endln;
+      opserr << " for adding node to HTNodeSet: " << endln;
+      return TCL_ERROR;
     }
-    //search node in the range of yloc
-    if (argc - count > 0) {
-        if (strcmp(argv[count], "-Locy") == 0 || strcmp(argv[count], "Locy") == 0 || strcmp(argv[count], "locy") == 0) {
-            count++;
-
-
-
-            double ylocLB, ylocUB;
-
-            if (Tcl_GetDouble(interp, argv[count], &ylocLB) != TCL_OK) {
-                opserr << "WARNING invalid yloc" << endln;
-                opserr << " for adding node to HTNodeSet: " << endln;
-                return TCL_ERROR;
-            }
-            count++;
-            if (argc - count > 0) {
-                if (Tcl_GetDouble(interp, argv[count], &ylocUB) == TCL_OK) {
-                    count++;
-                }
-                else
-                    ylocUB = ylocLB;
-            }
-            else
-                ylocUB = ylocLB;
-
-            if (ylocUB < ylocLB) {
-                opserr << "WARNING::TclHeatTransfer::ylocUB " << ylocUB << "should be greater than ylocLb " << ylocLB;
-                return TCL_ERROR;
-            }
-            if (theHTMesh == 0) {
-#ifdef _DEBUG
-                opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
-#endif  
-                theHTDomain->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
-            }
-            else {
-#ifdef _DEBUG
-                opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
-#endif
-                theHTMesh->SelectingNodes(NodeRange, 1, ylocLB, ylocUB);
-            }
-
-            // for geting uncertain number of doubel values
-            if (NodeRange == 0) {
-                opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval y = (" << ylocLB << ", " << ylocUB << ")." << endln;
-                opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-                return -1;
-            }
-        }
+    count++;
+	if(argc-count>0){
+    if (Tcl_GetDouble (interp, argv[count], &xlocUB) == TCL_OK) {
+      count++;
     }
-    //search node in the range of zloc
-    if (argc - count > 0) {
-        if (strcmp(argv[count], "-Locz") == 0 || strcmp(argv[count], "Locz") == 0 || strcmp(argv[count], "locz") == 0) {
-            count++;
+    else
+      xlocUB=xlocLB;
+	}
+	else
+      xlocUB=xlocLB;
 
-            double zlocLB, zlocUB;
-
-            if (Tcl_GetDouble(interp, argv[count], &zlocLB) != TCL_OK) {
-                opserr << "WARNING invalid zloc" << endln;
-                opserr << " for adding node to HTNodeSet: " << endln;
-                return TCL_ERROR;
-            }
-            count++;
-            if (argc - count > 0) {
-                if (Tcl_GetDouble(interp, argv[count], &zlocUB) == TCL_OK) {
-                    count++;
-                }
-                else
-                    zlocUB = zlocLB;
-            }
-            else
-                zlocUB = zlocLB;
-
-            if (zlocUB < zlocLB) {
-                opserr << "WARNING::TclHeatTransfer::zlocUB " << zlocUB << "should be greater than zlocLb " << zlocLB;
-                return TCL_ERROR;
-            }
-            if (theHTMesh == 0) {
-#ifdef _DEBUG
-                opserr << "Nodeset " << argv[1] << " is selecting nodes from within the domain, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
-#endif  
-                theHTDomain->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
-            }
-            else {
-#ifdef _DEBUG
-                opserr << "Nodeset " << argv[1] << " is selecting nodes from within mesh, and inside the interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
-#endif
-                theHTMesh->SelectingNodes(NodeRange, 2, zlocLB, zlocUB);
-            }
-
-            // for geting uncertain number of double values 
-            if (NodeRange == 0) {
-                opserr << "WARNING: There are no nodes to add to the HTNodeSet at interval z = (" << zlocLB << ", " << zlocUB << ")." << endln;
-                opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-                return -1;
-            }
-        }
+    
+    if (xlocUB<xlocLB) {
+      opserr << "WARNING::TclHeatTransfer::xlocUB " << xlocUB <<"should be greater than xlocLb "<<xlocLB;
+      return TCL_ERROR;
     }
-}
+    
+    theHTDomain->SelectingNodes(NodeRange, 0, xlocLB,xlocUB);
+    // for geting uncertain number of doubel values
   
+  }
+  }
+  //search node in the range of yloc
+  if(argc-count>0){
+  if(strcmp(argv[count],"-Locy") == 0||strcmp(argv[count],"Locy") == 0||strcmp(argv[count],"locy") == 0){
+    count++;
+    
+    
+    
+    double ylocLB, ylocUB;
+    
+    if (Tcl_GetDouble (interp, argv[count], &ylocLB) != TCL_OK) {
+      opserr << "WARNING invalid yloc" << endln;
+      opserr << " for adding node to HTNodeSet: " << endln;
+      return TCL_ERROR;
+    }
+    count++;
+    if(argc-count>0){
+		if (Tcl_GetDouble (interp, argv[count], &ylocUB) == TCL_OK) {
+		count++;
+		}
+		else
+		ylocUB=ylocLB;
+	}
+	else
+		ylocUB=ylocLB;
+    
+    if (ylocUB<ylocLB) {
+      opserr << "WARNING::TclHeatTransfer::ylocUB " << ylocUB <<"should be greater than ylocLb "<<ylocLB;
+      return TCL_ERROR;
+    }
+    
+    theHTDomain->SelectingNodes(NodeRange, 1, ylocLB,ylocUB);
+    // for geting uncertain number of doubel values
+    
+  }
+  }
+  //search node in the range of zloc
+  if(argc-count>0){
+  if(strcmp(argv[count],"-Locz") == 0||strcmp(argv[count],"Locz") == 0||strcmp(argv[count],"locz") == 0){
+    count++;
+    
+    double zlocLB, zlocUB;
+    
+    if (Tcl_GetDouble (interp, argv[count], &zlocLB) != TCL_OK) {
+      opserr << "WARNING invalid zloc" << endln;
+      opserr << " for adding node to HTNodeSet: " << endln;
+      return TCL_ERROR;
+    }
+    count++;
+    if(argc-count>0){
+    if (Tcl_GetDouble (interp, argv[count], &zlocUB) == TCL_OK) {
+      count++;
+    }
+    else
+      zlocUB=zlocLB;
+	}
+	else
+      zlocUB=zlocLB;
+    
+    if (zlocUB<zlocLB) {
+      opserr << "WARNING::TclHeatTransfer::zlocUB " << zlocUB <<"should be greater than zlocLb "<<zlocLB;
+      return TCL_ERROR;
+    }
+    
+    theHTDomain->SelectingNodes(NodeRange, 2, zlocLB,zlocUB);
+    // for geting uncertain number of doubel values 
+  }
+  }
+
+  
+  theHTNodeSet = new HTNodeSet(HTNodeSetTag);
   
   if (NodeRange!=0) {
-    theHTNodeSet = new HTNodeSet(HTNodeSetTag);
     theHTNodeSet->addNodeID(NodeRange);
   }
   else{
-    opserr << "WARNING: There are no nodes to add to the HTNodeSet." << endln;
-    opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-    return -1;
+	opserr<<"WARNING: TclHTModule failed to add HTNodeSet: "<<argv[1]<<endln;
   }
   
-  if (theHTNodeSet != 0) {
-      theTclHTModule->addHTNodeSet(theHTNodeSet);
-      opserr << "NodeSet " << HTNodeSetTag << " selects nodes:" << NodeRange << endln;
-      return TCL_OK;
-  }
-  else {
-      opserr << "WARNING: TclHTModule failed to add HTNodeSet: " << argv[1] << endln;
-      return -1;
-  }
+  if(theHTNodeSet!=0)
+	theTclHTModule->addHTNodeSet(theHTNodeSet);
+  else
+	opserr<<"WARNING: TclHTModule failed to add HTNodeSet: "<<argv[1]<<endln;
+  
+
+  opserr<<"NodeSet "<<HTNodeSetTag <<" selects nodes:"<<NodeRange<<endln;
+
+
+	return TCL_OK;
+  
 }
 
 //HTPattern
@@ -2849,7 +2732,7 @@ TclHeatTransferCommand_setFirePars(ClientData clientData, Tcl_Interp* interp, in
 
 }
 
-//Add MP BC
+//Add HeatFluxBC
 int
 TclHeatTransferCommand_addMPTemperatureBC(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
 {
@@ -2874,6 +2757,7 @@ TclHeatTransferCommand_addMPTemperatureBC(ClientData clientData, Tcl_Interp *int
   //if HTEntity tag is detected
   if(strcmp(argv[count],"-HTNodeSet") == 0||strcmp(argv[count],"-NodeSet") == 0||strcmp(argv[count],"nodeset") == 0)
   {
+    
     count++;
     
     if (Tcl_GetInt(interp, argv[count], &masterIDtag) != TCL_OK) {
@@ -3313,90 +3197,27 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
 	delete theHTAnalysis;
 	theHTAnalysis = 0;
 	 }
-     int count = 1;
-     if (strcmp(argv[count],"HeatTransfer") == 0) {
-         count++;
+	if (strcmp(argv[1],"HeatTransfer") == 0) {
 	// make sure all the components have been built,
 	// otherwise print a warning and use some defaults
 	if (theAnalysisModel == 0) 
 	    theAnalysisModel = new HT_AnalysisModel();
-    if (strcmp(argv[count], "Residual") == 0 || strcmp(argv[count], "residual") == 0) {
-        count++;
-        double testTol;
-        if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
-            opserr << "WARNING test object tolerance must be a double.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int maxIterations;
-        if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
-            opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int analysisFlag;
-        if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
-            opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
-            return TCL_ERROR;
-        }
-        count++;
-        theTest = new CTestNormResidual(testTol, maxIterations, analysisFlag);
-        opserr << "Using NormResidual test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
-    }
-    else if (strcmp(argv[count], "TempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
-        count++;
-        double testTol;
-        if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
-            opserr << "WARNING test object tolerance must be a double.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int maxIterations;
-        if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
-            opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int analysisFlag;
-        if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
-            opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
-            return TCL_ERROR;
-        }
-        count++;
-        theTest = new CTestNormTempIncr(testTol, maxIterations, analysisFlag);
-        opserr << "Using NormTempIncr test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
-        
-    }
+
 	if (theTest == 0) {
 		opserr << "WARNING analysis Transient - no convergence test yet specified, \n";
 	    opserr << " CTestNormTempIncr default will be used\n";
 #ifdef _DEBUG
-        // theTest = new CTestNormTempIncr(1e-3, 500,1);
-        // theTest = new CTestNormResidual(1e-1, 2000, 1);
-
+        theTest = new CTestNormTempIncr(1e-3, 500,1);
 #else
         theTest = new CTestNormTempIncr(1e-3, 2000, 0);
 #endif
 	}
-    if (strcmp(argv[count], "Newton") == 0 || strcmp(argv[count], "newton") == 0) {
-        count++;
-        theAlgorithm = new NewtonMethod(*theTest);
-        opserr << "Using the NewtonMethod algorithm.\n";
-    }
-    else if (strcmp(argv[count], "ModifiedNewton") == 0 || strcmp(argv[count], "modifiedNewton") == 0 || strcmp(argv[count], "modifiednewton") == 0) {
-        count++;
-        theAlgorithm = new ModifiedNewtonMethod(*theTest);
-        opserr << "Using the ModifiedNewtonMethod algorithm.\n";
-    }
+	
 	if (theAlgorithm == 0) {
 	    opserr << "WARNING analysis Transient - no Algorithm yet specified, \n";
 	    opserr << " NewtonMethod default will be used\n";	    
-#ifdef _DEBUG
-        theAlgorithm = new NewtonMethod(*theTest);
-#else
-        theAlgorithm = new NewtonMethod(*theTest);
-#endif
-	   
+
+	    theAlgorithm = new NewtonMethod(*theTest); 
 	}
 	if (theHandler == 0) {
 	    opserr << "WARNING analysis Transient dt tFinal - no ConstraintHandler\n";
@@ -3567,7 +3388,7 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     ID RecNodeID = 0;
-   RecNodeID = theRecNodeSet->getNodeID();
+   RecNodeID =theRecNodeSet->getNodeID();
   
 #ifdef _DEBUG
    opserr<< "TclHeatTransferModule::HTRecorder, theRecNodeID "<<RecNodeID<<endln;
@@ -3679,85 +3500,4 @@ int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp,
 // HTNodeRecorder(int tag, const ID* theNodes, HeatTransferDomain& theDomain,OPS_Stream &theOutputHandle); 
 
 return TCL_OK;
-}
-
-int 
-TclHeatTransferCommand_PrintNodes(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv) {
-
-    if (theTclHTModule == 0) {
-        opserr << "WARNING current HeatTransfer Module has been destroyed\n";
-        return TCL_ERROR;
-    }
-
-    if (theHTDomain == 0) {
-        opserr << "WARNING no active HeatTransfer Domain\n";
-        return TCL_ERROR;
-    }
-
-    if (argc > 1) {
-        opserr << "Too many arguments for HTPrintNodes, which takes no arguments at all!" << endln;
-        return TCL_ERROR;
-    }
-
-    int NumNodes = 0;
-    int NodeTag = 0;
-    double Nodalx; 
-    double Nodaly;
-    double Nodalz;
-
-
-    NumNodes = theHTDomain->getNumNodes();
-    opserr << "There are " << NumNodes << " in the current domain." << endln;
-    opserr << "Node Tag, x, y, z " << endln;
-    for (int i = 0; i < NumNodes; i++) {
-        NodeTag = i + 1;
-        Nodalx = (theHTDomain->getNode(NodeTag)->getCrds())(0);
-        Nodaly = (theHTDomain->getNode(NodeTag)->getCrds())(1);
-        Nodalz = (theHTDomain->getNode(NodeTag)->getCrds())(2);
-        if (abs(Nodalx) < 1e-6 || abs(Nodalx) > 1e6)
-            Nodalx = 0;
-        if (abs(Nodaly) < 1e-6 || abs(Nodaly) > 1e6)
-            Nodaly = 0;
-        if (abs(Nodalz) < 1e-6 || abs(Nodalz) > 1e6)
-            Nodalz = 0;
-        opserr << NodeTag << ", "<< Nodalx <<", "<< Nodaly<<", "<< Nodalz << endln;
-    }
-
-    return 0;
-}
-int
-TclHeatTransferCommand_getHTTime(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv) {
-
-    if (theTclHTModule == 0) {
-        opserr << "WARNING current HeatTransfer Module has been destroyed\n";
-        return TCL_ERROR;
-    }
-
-    if (theHTDomain == 0) {
-        opserr << "WARNING no active HeatTransfer Domain\n";
-        return TCL_ERROR;
-    }
-
-    if (argc > 1) {
-        opserr << "Too many arguments for getHTTime, which takes no arguments at all!" << endln;
-        return TCL_ERROR;
-    }
-
-    double time = theHTDomain->getCurrentTime();
-
-    // get the display format
-    char format[80];
-    if (argc == 1) {
-        //      strcpy(format,"%f");
-        sprintf(format, "%f", time);
-    }
-    else if (argc == 2) {
-        //      strcpy(format,argv[1]);
-        sprintf(format, argv[1], time);
-    }
-
-    // now we copy the value to the tcl string that is returned
-    //  sprintf(interp->result,format,time);
-    Tcl_SetResult(interp, format, TCL_VOLATILE);
-    return TCL_OK;
 }

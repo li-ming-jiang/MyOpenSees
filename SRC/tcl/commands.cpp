@@ -1253,9 +1253,8 @@ HeatTransfer(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
 		theTclHTModule = new TclHeatTransferModule(ndm,interp);
 		return TCL_OK;
 	 }
-     else {
-         return TCL_ERROR;
-     }
+	else
+    return TCL_ERROR;
 
 	}
 

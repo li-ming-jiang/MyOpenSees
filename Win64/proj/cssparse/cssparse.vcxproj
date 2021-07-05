@@ -59,7 +59,6 @@
       <ObjectFileName>.\..\..\obj\cssparse\debug/</ObjectFileName>
       <ProgramDataBaseFileName>.\..\..\obj\cssparse\debug/</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>C:\ActiveTcl\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <OutputFile>.\..\..\lib\debug\cssparse.lib</OutputFile>
@@ -85,7 +84,6 @@
       <AssemblerListingLocation>.\..\..\obj\cssparse\release/</AssemblerListingLocation>
       <ObjectFileName>.\..\..\obj\cssparse\release/</ObjectFileName>
       <ProgramDataBaseFileName>.\..\..\obj\cssparse\release/</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>C:\ActiveTcl\lib;C:\ActiveTcl\include;C:\Program Files\Python\tcl;</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <OutputFile>.\..\..\lib\release\cssparse.lib</OutputFile>
