@@ -52,10 +52,11 @@ class ShellThermalAction : public ElementalLoad
                 double t1, double locY1, double t2, double locY2,
                 int theElementTag);
 	ShellThermalAction(int tag, 
-					 double locY1, double locY2,
-					 TimeSeries* theSeries,int theElementTag
-					 );
-
+			    double locY1, double locY2,
+			    TimeSeries* theSeries,int theElementTag);
+    ShellThermalAction(int tag,
+                double locY1, double locY2, double locY3, double locY4,
+                TimeSeries* theSeries, TimeSeries* theSeries1, int theElementTag );
 	ShellThermalAction(int tag, int theElementTag);
 
   ShellThermalAction();    
@@ -83,7 +84,7 @@ class ShellThermalAction : public ElementalLoad
   int indicator; //indicator if fireloadpattern was called
   Vector Factors;
   TimeSeries* theSeries;
-  //TimeSeries* theSeries1;
+  TimeSeries* theSeries1;
   //--Adding a factor vector for FireLoadPattern [-END-]: by L.J&P.K(university of Edinburgh)-07-MAY-2012-///
 };
 

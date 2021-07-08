@@ -40,7 +40,7 @@ ShellThermalAction::ShellThermalAction(int tag,
                          double t9, double locY9, 
 			       int theElementTag)
   :ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag), 
-	ThermalActionType(LOAD_TAG_ShellThermalAction),theSeries(0)
+	ThermalActionType(LOAD_TAG_ShellThermalAction),theSeries(0),theSeries1(0)
 {
 	Temp[0]=t1; Temp[1] = t2; Temp[2] = t3; Temp[3] = t4; Temp[4] = t5;
   Temp[5]=t6; Temp[6] = t7; Temp[7] = t8; Temp[8] = t9; 
@@ -57,7 +57,7 @@ ShellThermalAction::ShellThermalAction(int tag,
                          double t3, double locY3, double t4, double locY4,
                          double t5, double locY5, int theElementTag)
   :ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag), 
-ThermalActionType(LOAD_TAG_ShellThermalAction),theSeries(0)
+ThermalActionType(LOAD_TAG_ShellThermalAction),theSeries(0), theSeries1(0)
 {
   Temp[0]=t1; Temp[2] = t2; Temp[4] = t3; Temp[6] = t4; Temp[8] = t5;
   Loc[0]=locY1; Loc[2] = locY2; Loc[4] = locY3; Loc[6] = locY4; Loc[8] = locY5;
@@ -75,7 +75,7 @@ ShellThermalAction::ShellThermalAction(int tag,
                          double t1, double locY1, double t2, double locY2, 
 			       int theElementTag)
   :ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag), 
-ThermalActionType(LOAD_TAG_ShellThermalAction),theSeries(0)
+ThermalActionType(LOAD_TAG_ShellThermalAction),theSeries(0), theSeries1(0)
    
 {
     Temp[0] = t1;
@@ -100,7 +100,7 @@ ShellThermalAction::ShellThermalAction(int tag,
 					 double locY1, double locY2,
 					 TimeSeries* theSeries,int theElementTag
 					 )
-:ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag),theSeries(theSeries),
+:ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag),theSeries(theSeries),  theSeries1(0),
 ThermalActionType(LOAD_TAG_ShellThermalAction)
 {
   Loc[0]=locY1;
@@ -120,10 +120,36 @@ ThermalActionType(LOAD_TAG_ShellThermalAction)
 
 }
 
+
+//for composite section using two time series
+ShellThermalAction::ShellThermalAction(int tag,
+	double locY1, double locY2, double locY3, double locY4,
+	TimeSeries* theSeries, TimeSeries* theSeries1, int theElementTag
+)
+	:ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag), theSeries(theSeries), theSeries1(0),
+	ThermalActionType(LOAD_TAG_ShellThermalAction)
+{
+	Loc[0] = locY1;
+	Loc[8] = locY2;
+
+	for (int i = 1; i < 8; i++) {
+		Loc[i] = Loc[0] - i * (Loc[0] - Loc[8]) / 8;
+	}
+
+
+	for (int i = 0; i < 9; i++) {
+		Temp[i] = 0;
+		TempApp[i] = 0;
+	}
+	Factors.Zero();
+	indicator = 2;// Independent timeseries were created;
+
+}
+
 ShellThermalAction::ShellThermalAction(int tag,  
 					 int theElementTag)
   :ElementalLoad(tag, LOAD_TAG_ShellThermalAction, theElementTag),
-  ThermalActionType(LOAD_TAG_NodalThermalAction),theSeries(0) 
+  ThermalActionType(LOAD_TAG_NodalThermalAction),theSeries(0), theSeries1(0)
 {
 	 for(int i=0 ;i<9;i++) {
 		Temp[i]=0;
