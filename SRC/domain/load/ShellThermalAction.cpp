@@ -30,6 +30,7 @@
 #include <ShellThermalAction.h>
 #include <Vector.h>
 
+
 Vector ShellThermalAction::data(18);
 
 ShellThermalAction::ShellThermalAction(int tag, 
