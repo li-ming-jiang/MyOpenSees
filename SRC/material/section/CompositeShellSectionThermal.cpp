@@ -381,6 +381,19 @@ CompositeShellSectionThermal::getTemperatureStress(const Vector& dataMixed)
 	  AverageThermalMomentP = averageThermalMoment;
      
   */
+    Vector vec1(18);
+    Vector vec2(18);
+    if (dataMixed.Size() != 36)
+        opserr << "Warning::Composite section recived incorrect thermal action" << endln;
+    
+    for (int i = 0; i < 18; i++) {
+        vec1(i) = dataMixed(i);
+        vec2(i) = dataMixed(i+18);
+    }
+   // opserr << "vec1::" << vec1 << endln;
+   // opserr << "vec2::" << vec2 << endln;
+    theSection1->getTemperatureStress(vec1);
+    theSection2->getTemperatureStress(vec2);
   
     return *sT;
 }
