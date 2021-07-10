@@ -127,7 +127,7 @@ extern void *OPS_StainlessECThermal(void); // L.Jiang [SIF]
 extern void *OPS_SteelECThermal(void); // L.Jiang [SIF]
 extern void *OPS_ConcreteECThermal(void);// L.Jiang [SIF]
 extern void *OPS_ElasticMaterialThermal(void); //L.Jiang[SIF]
-extern void* OPS_JointEPMaterial(void); //L.Jiang[SIF]
+extern void* OPS_JointEPMaterialThermal(void); //L.Jiang[SIF]
 extern void* OPS_TimberECThermal(void);//L.Jiang[SIF]
 
 extern void *OPS_BWBN(void);
@@ -599,7 +599,7 @@ TclModelBuilderUniaxialMaterialCommand (ClientData clientData, Tcl_Interp *inter
 		// end of adding More thermo-mechanical uniaxial materials, L.Jiang[SIF]
     }
     else if (strcmp(argv[1], "JointEPThermal") == 0) {
-        void* theMat = OPS_JointEPMaterial();
+        void* theMat = OPS_JointEPMaterialThermal();
         if (theMat != 0)
             theMaterial = (UniaxialMaterial*)theMat;
         else
