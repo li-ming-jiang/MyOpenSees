@@ -158,112 +158,8 @@ CompositeShellSectionThermal::getRho( )
 
 }
 
-Response*
-CompositeShellSectionThermal::setResponse(const char **argv, int argc,
-                                      OPS_Stream &output)
-{
-  const ID &type = this->getType();
-  int typeSize = this->getOrder();
-  
-  Response *theResponse =0;
 
-  output.tag("SectionOutput");
-  output.attr("secType", this->getClassType());
-  output.attr("secTag", this->getTag());
 
-  // deformations
-  if (strcmp(argv[0],"deformations") == 0 || strcmp(argv[0],"deformation") == 0) {
-    output.tag("ResponseType","eps11");
-    output.tag("ResponseType","eps22");
-    output.tag("ResponseType","gamma12");
-    output.tag("ResponseType","theta11");
-    output.tag("ResponseType","theta22");
-    output.tag("ResponseType","theta33");
-    output.tag("ResponseType","gamma13");
-    output.tag("ResponseType","gamma23");
-    theResponse =  new MaterialResponse(this, 1, this->getSectionDeformation());
-  // forces
-  } else if (strcmp(argv[0],"forces") == 0 || strcmp(argv[0],"force") == 0) {
-    output.tag("ResponseType","p11");
-    output.tag("ResponseType","p22");
-    output.tag("ResponseType","p12");
-    output.tag("ResponseType","m11");
-    output.tag("ResponseType","m22");
-    output.tag("ResponseType","m12");
-    output.tag("ResponseType","q1");
-    output.tag("ResponseType","q2");
-    theResponse =  new MaterialResponse(this, 2, this->getStressResultant());
-  
-  // force and deformation
-  } else if (strcmp(argv[0],"forceAndDeformation") == 0) { 
-    output.tag("ResponseType","eps11");
-    output.tag("ResponseType","eps22");
-    output.tag("ResponseType","gamma12");
-    output.tag("ResponseType","theta11");
-    output.tag("ResponseType","theta22");
-    output.tag("ResponseType","theta33");
-    output.tag("ResponseType","gamma13");
-    output.tag("ResponseType","gamma23");
-    output.tag("ResponseType","p11");
-    output.tag("ResponseType","p22");
-    output.tag("ResponseType","p12");
-    output.tag("ResponseType","m11");
-    output.tag("ResponseType","m22");
-    output.tag("ResponseType","m12");
-    output.tag("ResponseType","q1");
-    output.tag("ResponseType","q2");
-    theResponse =  new MaterialResponse(this, 4, Vector(2*this->getOrder()));
-  } 
-  /*
-  else if (strcmp(argv[0],"fiber") == 0 || strcmp(argv[0],"Fiber") == 0) {
-    if (argc < 3) {
-      opserr << "CompositeShellSectionThermal::setResponse() - need to specify more data\n";
-      return 0;
-    }
-    int pointNum = atoi(argv[1]);
-    if (pointNum > 0 && pointNum <= nLayers) {
-      
-      output.tag("FiberOutput");
-      output.attr("number",pointNum);
-      output.attr("zLoc",0.5*h*sg[pointNum-1]);
-      output.attr("thickness",0.5*h*wg[pointNum-1]);
-      
-      theResponse =  theFibers[pointNum-1]->setResponse(&argv[2], argc-2, output);
-      
-      output.endTag();
-    }
-  }
-  */
-  
-  output.endTag(); // SectionOutput
-  return theResponse;
-}
-
-int 
-CompositeShellSectionThermal::getResponse(int responseID, Information &secInfo)
-{
-  switch (responseID) {
-  case 1:
-    return secInfo.setVector(this->getSectionDeformation());
-    
-  case 2:
-    return secInfo.setVector(this->getStressResultant());
-    
-  case 4: {
-    Vector &theVec = *(secInfo.theVector);
-    const Vector &e = this->getSectionDeformation();
-    const Vector &s = this->getStressResultant();
-    for (int i = 0; i < 8; i++) {
-      theVec(i) = e(i);
-      theVec(i+8) = s(i);
-    }
-    
-    return secInfo.setVector(theVec);
-  }
-  default:
-    return -1;
-  }
-}
 
 
 //receive the strainResultant 
@@ -811,3 +707,113 @@ CompositeShellSectionThermal::determineFiberTemperature(const Vector& DataMixed,
 }
 
 
+
+Response*
+CompositeShellSectionThermal::setResponse(const char** argv, int argc,
+    OPS_Stream& output)
+{
+    const ID& type = this->getType();
+    int typeSize = this->getOrder();
+
+    Response* theResponse = 0;
+
+    output.tag("SectionOutput");
+    output.attr("secType", this->getClassType());
+    output.attr("secTag", this->getTag());
+
+    // deformations
+    if (strcmp(argv[0], "deformations") == 0 || strcmp(argv[0], "deformation") == 0) {
+        output.tag("ResponseType", "eps11");
+        output.tag("ResponseType", "eps22");
+        output.tag("ResponseType", "gamma12");
+        output.tag("ResponseType", "theta11");
+        output.tag("ResponseType", "theta22");
+        output.tag("ResponseType", "theta33");
+        output.tag("ResponseType", "gamma13");
+        output.tag("ResponseType", "gamma23");
+        theResponse = new MaterialResponse(this, 1, this->getSectionDeformation());
+        // forces
+    }
+    else if (strcmp(argv[0], "forces") == 0 || strcmp(argv[0], "force") == 0) {
+        output.tag("ResponseType", "p11");
+        output.tag("ResponseType", "p22");
+        output.tag("ResponseType", "p12");
+        output.tag("ResponseType", "m11");
+        output.tag("ResponseType", "m22");
+        output.tag("ResponseType", "m12");
+        output.tag("ResponseType", "q1");
+        output.tag("ResponseType", "q2");
+        theResponse = new MaterialResponse(this, 2, this->getStressResultant());
+
+        // force and deformation
+    }
+    else if (strcmp(argv[0], "forceAndDeformation") == 0) {
+        output.tag("ResponseType", "eps11");
+        output.tag("ResponseType", "eps22");
+        output.tag("ResponseType", "gamma12");
+        output.tag("ResponseType", "theta11");
+        output.tag("ResponseType", "theta22");
+        output.tag("ResponseType", "theta33");
+        output.tag("ResponseType", "gamma13");
+        output.tag("ResponseType", "gamma23");
+        output.tag("ResponseType", "p11");
+        output.tag("ResponseType", "p22");
+        output.tag("ResponseType", "p12");
+        output.tag("ResponseType", "m11");
+        output.tag("ResponseType", "m22");
+        output.tag("ResponseType", "m12");
+        output.tag("ResponseType", "q1");
+        output.tag("ResponseType", "q2");
+        theResponse = new MaterialResponse(this, 4, Vector(2 * this->getOrder()));
+    }
+    else if (strcmp(argv[0], "comp") == 0 || strcmp(argv[0], "Comp") == 0) {
+        if (argc < 3) {
+            opserr << "CompositeShellSectionThermal::setResponse() - need to specify more data\n";
+            return 0;
+        }
+        int pointNum = atoi(argv[1]);
+
+        if (pointNum <= 0) {
+            pointNum = 1;
+        }
+        else if (pointNum > 2) {
+            pointNum = 2;
+        }
+        output.tag("FiberOutput");
+        output.attr("number", pointNum);
+        if(pointNum==1)
+            theResponse = theSection1->setResponse(&argv[2], argc - 2, output);
+        else if(pointNum == 2)
+            theResponse = theSection2->setResponse(&argv[2], argc - 2, output);
+        
+        output.endTag();
+    }
+    output.endTag(); // SectionOutput
+    return theResponse;
+}
+
+int
+CompositeShellSectionThermal::getResponse(int responseID, Information& secInfo)
+{
+    switch (responseID) {
+    case 1:
+        return secInfo.setVector(this->getSectionDeformation());
+
+    case 2:
+        return secInfo.setVector(this->getStressResultant());
+
+    case 4: {
+        Vector& theVec = *(secInfo.theVector);
+        const Vector& e = this->getSectionDeformation();
+        const Vector& s = this->getStressResultant();
+        for (int i = 0; i < 8; i++) {
+            theVec(i) = e(i);
+            theVec(i + 8) = s(i);
+        }
+
+        return secInfo.setVector(theVec);
+    }
+    default:
+        return -1;
+    }
+}

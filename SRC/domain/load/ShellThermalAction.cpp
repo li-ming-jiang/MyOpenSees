@@ -138,8 +138,7 @@ ShellThermalAction::ShellThermalAction(int tag,
 ShellThermalAction::~ShellThermalAction()
 {
      if(theSeries!=0)
-	  delete theSeries;
-	// theSeries=0;
+		 theSeries=0;
 }
 
 const Vector &
