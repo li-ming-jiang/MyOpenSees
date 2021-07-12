@@ -1001,8 +1001,9 @@ void  ShellNLDKGQThermal::zeroLoad( )
 int 
 ShellNLDKGQThermal::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-  int type;
+	int type;
     const Vector &data = theLoad->getData(type, loadFactor);
+	//opserr << "data:" << data << endln;
 
  if (type == LOAD_TAG_ShellThermalAction) {
   // ----- Real time Temperature is obtained from shellThermalAction 

@@ -148,6 +148,7 @@ ShellThermalAction::getData(int& type, double loadFactor)
 	type = ThermalActionType;
 	//0,2,4,6,8...16 storing temperature;
 	//1,3,5,7,9...17 storing local y location;
+	// opserr << "TempPP" << TempApp << endln;
 	if (indicator != 4) {
 		for (int i = 0; i < 9; i++) {
 			data(2 * i) = TempApp(i);
@@ -180,10 +181,11 @@ ShellThermalAction::applyLoad(double loadfactor)
 {
 	// first determine the load factor
 	if (indicator==2) {
-		 TempApp =((PathTimeSeriesThermal*)theSeries)->getFactors(loadfactor);
+		TempApp =((PathTimeSeriesThermal*)theSeries)->getFactors(loadfactor);
+		// opserr << "TempPP" << TempApp << endln;
 		   //PathTimeSeriesThermal returns absolute temperature;
 	}
-	if (indicator == 4) {
+	else if (indicator == 4) {
 		Vector vec1 = ((PathTimeSeriesThermal*)theSeries)->getFactors(loadfactor);
 		Vector vec2 = ((PathTimeSeriesThermal*)theSeries1)->getFactors(loadfactor);
 		//PathTimeSeriesThermal returns absolute temperature;
