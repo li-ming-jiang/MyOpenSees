@@ -46,7 +46,9 @@ CompositeShellSectionThermal::CompositeShellSectionThermal( ) :
 SectionForceDeformation( 0, SEC_TAG_LayeredShellFiberSectionThermal ), 
 strainResultant(8), theSection1(0),theSection2(0),Ratio1(0.0), Ratio2(0.0), ThermalElongation(0)
 {
-
+    stiffratio1 = 0;
+    stiffratio2 = 0;
+    stiffratio3 = 0;
 }
 
 //full constructor
@@ -61,6 +63,9 @@ strainResultant(8), theSection1(theSec1), theSection2(theSec2), Ratio1(ratio1),R
     sT = new Vector(2);
     sT->Zero();
 
+    stiffratio1 = 0;
+    stiffratio2 = 0;
+    stiffratio3 = 0;
 }
 
 //destructor
@@ -167,10 +172,24 @@ int CompositeShellSectionThermal ::
 setTrialSectionDeformation( const Vector &strainResultant_from_element)
 {
  
-  this->strainResultant = strainResultant_from_element ;
+  strainResultant = strainResultant_from_element ;
 
-  static Vector strain(6) ;
+  Vector strain1(8);
+  Vector strain2(8);
+  strain1 = strainResultant_from_element;
+  strain2 = strainResultant_from_element;
+  //stiffratio = kb/ka;
+  // ka A = kb B;
+  //w1A + w2B =C;
+  // A = stiffratio/(w1*stiffratio+w2)*C; B = 1/(w1*ratio+w2)*C
 
+  strain1(1) = stiffratio1 / (Ratio1* stiffratio1 + Ratio2) * strainResultant_from_element(1);
+  strain2(1) = 1/ (Ratio1 * stiffratio1 + Ratio2) * strainResultant_from_element(1);
+  
+  strain1(4) = stiffratio2 / (Ratio1 * stiffratio2 + Ratio2) * strainResultant_from_element(4);
+  strain2(4) = 1 / (Ratio1 * stiffratio2 + Ratio2) * strainResultant_from_element(4);
+  //Same strain along ribs; Need to add auto-identification of rib direction
+  //Shear strains are set as the same for current solution.
   int success = 0 ;
 
   int i ;
@@ -182,8 +201,10 @@ setTrialSectionDeformation( const Vector &strainResultant_from_element)
           opserr<< "Sec strain  "<<strainResultant<<endln;
 #endif
 
-      success = theSection1->setTrialSectionDeformation(strainResultant);
-      success= success+ theSection2->setTrialSectionDeformation(strainResultant);
+      strain1 = 
+
+      success = theSection1->setTrialSectionDeformation(strain1);
+      success= success+ theSection2->setTrialSectionDeformation(strain2);
 
 /*
 for ( i = 0; i < nLayers; i++ ) {
@@ -311,6 +332,8 @@ const Vector&  CompositeShellSectionThermal::getStressResultant( )
   Vector stress2 = theSection2->getStressResultant();
 
   stressResultant = stress1 * Ratio1 + stress2 * Ratio2;
+  //currently using ratios of sections
+
   /*
   
   for ( i = 0; i < nLayers; i++ ) {
@@ -372,6 +395,11 @@ const Matrix& CompositeShellSectionThermal::getSectionTangent( )
   Matrix Tangent2 = theSection2->getSectionTangent();
 
   tangent = Tangent1 * Ratio1 + Tangent2 * Ratio2;
+
+  //To determine stiff ratios
+  stiffratio1 = Tangent2(1, 1) / Tangent1(1, 1);
+  stiffratio2 = Tangent2(4, 4) / Tangent1(4, 4);
+
   /*
   for ( i = 0; i < nLayers; i++ ) {
 

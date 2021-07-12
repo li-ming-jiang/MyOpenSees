@@ -115,7 +115,9 @@ class CompositeShellSectionThermal : public SectionForceDeformation{
     double Ratio1;
     double Ratio2;
 
-
+    double stiffratio1;
+    double stiffratio2;
+    double stiffratio3;
     SectionForceDeformation* theSection1;  //pointers to the first section
     SectionForceDeformation* theSection2;  //pointers to the second section
 
