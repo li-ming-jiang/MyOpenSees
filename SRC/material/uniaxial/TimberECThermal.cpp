@@ -84,32 +84,32 @@ TimberECThermal::TimberECThermal(int tag, double _fc, double _epsc0, double _fcu
     double _Epos, double _Eneg, double _ft) :
     UniaxialMaterial(tag, MAT_TAG_ConcreteECThermal),
     //fc(_fc), epsc0(_epsc0), fcu(_fcu), Epos(_Epos), Eneg(_Eneg), ft(_ft))
-    fcT(_fc), epsc0T(_epsc0), fcuT(_fcu), EposT(_Epos), EnegT(_Eneg), ftT(_ft),E(_Epos)
+    fc0(_fc), epsc0(_epsc0), fcu0(_fcu), Epos0(_Epos), Eneg0(_Eneg), ft0(_ft),E(_Epos)
 {
 
-    //JZ 07/10 /////////////////////////////////////////////////////////////start
-    fc = fcT;
-    epsc0 = epsc0T;
-    fcu = fcuT;
-    Epos = EposT;
-    Eneg = EnegT;
-    ft = ftT;
-    //JZ 07/10 /////////////////////////////////////////////////////////////end 
+    fcT = fc0;
+    epsc0T = epsc0;
+    fcuT = fcu0;
+    EposT = Epos0;
+    EnegT = Eneg0;
+    ftT = ft0;
+
 
 //    eposP = Epos;
 //    enegP = Eneg;
-    //eP = 1.5*fc/epsc0; //for the euro code, the 2.0 should be changed into 1.5
+
     epsP = 0.0;
     sigP = 0.0;
     eps = 0.0;
     sig = 0.0;
-    EposP = Epos;
-    EnegP = Eneg;
-    //e = 1.5*fc/epsc0;//for the euro code, the 2.0 should be changed into 1.5
+    EposP = Epos0;
+    EnegP = Eneg0;
+
      
     ThermalElongation = 0; //initialize 
-    TempP = 20.0; //Pk add previous temp
-
+    TempP = 0.0;
+    TempMax = 0;
+    TempMaxP = 0;
 
 }
 
@@ -130,7 +130,7 @@ TimberECThermal::~TimberECThermal(void)
 UniaxialMaterial*
 TimberECThermal::getCopy(void)
 {
-    TimberECThermal* theCopy = new TimberECThermal(this->getTag(), fc, epsc0, fcu, Epos, Eneg, ft);
+    TimberECThermal* theCopy = new TimberECThermal(this->getTag(), fc0, epsc0, fcu0, Epos0, Eneg0, ft0);
 
     return theCopy;
 }
@@ -145,32 +145,32 @@ int
 TimberECThermal::setTrialStrain(double trialStrain, double FiberTemperature, double strainRate)
 {
 	//---------------------------------------------The Main stress determination--------------------
-    fcu = 0.85 * fc;
-    epsc0 = 1.25 * (fc / Epos);
+    fcuT = 0.85 * fcT;
+    double epsc0 = 1.25 * (fcT / EnegT);
 
-    double k1 = (fcu) / (3 * Epos * (pow(epsc0, 4)) * (1 - fcu / fc));
-    double k2 = 1 / Epos;
-    double k3 = 1 / fc - 4 / (3 * Epos * (epsc0));
-    double k4 = 1 / (3 * Epos * (pow(epsc0, 4)) * (1 - fcu / fc));
+    double k1 = (fcuT) / (3 * EnegT * (pow(epsc0, 4)) * (1 - fcuT / fcT));
+    double k2 = 1 / EnegT;
+    double k3 = 1 / fcT - 4 / (3 * EnegT * (epsc0));
+    double k4 = 1 / (3 * EnegT * (pow(epsc0, 4)) * (1 - fcuT / fcT));
     eps = trialStrain;
 
     if (eps < 0) {
         sig = (eps + k1 * pow(eps, 4)) / (k2 + eps * k3 + k4 * pow(eps, 4));
-        EposT = ((1 + 4 * k1 * pow(eps, 3)) * (k2 + k3 * eps + k4 * pow(eps, 4)) - (eps + k1 * pow(eps, 4)) * (k3 + 4 * k4 * pow(eps, 3))) / pow((k2 + k3 * eps + k4 * pow(eps, 4)), 2);
-        E = EposT;
+        E = ((1 + 4 * k1 * pow(eps, 3)) * (k2 + k3 * eps + k4 * pow(eps, 4)) - (eps + k1 * pow(eps, 4)) 
+            * (k3 + 4 * k4 * pow(eps, 3))) / pow((k2 + k3 * eps + k4 * pow(eps, 4)), 2);
     }
         
     else {
-        sig = Eneg * eps;
-        E = Eneg;
-        if (eps > (ft / Eneg)) {
-            sig = ft;
-            E = 1e-3;
+        sig = EposT * eps;
+        E = EposT;
+        if (eps > (ftT / EposT)) {
+            sig = ftT+1e-5*(eps- ftT / EposT);
+            E = 1e-5;
         }
       
     }
    
-   // opserr<<"trialStrain: "<<eps << "  Stress: "<<sig<< "Modulus: "<<E<<endln;
+    //opserr<<"trialStrain: "<<eps << "  Stress: "<<sig<< " Modulus: "<<E<<endln;
     return 0;
 }
 
@@ -204,7 +204,7 @@ double
 TimberECThermal::getElongTangent(double TempT, double& ET, double& Elong, double TempTmax) //PK add to include max temp
 {
     //material properties with temperature
-    Temp = TempT;  //make up the 20 degree which is minus in the class of thermalfield
+      //make up the 20 degree which is minus in the class of thermalfield
 //    Tempmax = TempTmax; //PK add max temp for cooling
     // The datas are from EN 1992 part 1-2-1 
     // Tensile strength at elevated temperature
@@ -212,50 +212,52 @@ TimberECThermal::getElongTangent(double TempT, double& ET, double& Elong, double
      //if (Temp >= 1080) {
     //	  opserr << "temperature " << " " << Temp <<endln;
     //}
+            
+      if(TempT>TempMax)
+        TempMax = TempT;
+        //check fiber state
+      if (TempMaxP > TempMax)
+           TempMax = TempMaxP;
+   
+      Temp = TempMax;
+    
     if (Temp <= 20) {
-        ft = ftT;
-        Eneg = EnegT;
+        ftT = ft0;
+        EposT = Epos0;
+
+        fcT = fc0;
+        fcuT = fcu0;
+        EnegT = Eneg0;
+        
     }
     else if (Temp <= 100) {
-        ft = (1.0 - 0.35 * (Temp - 20) / 80) * ftT;
-        Eneg = (1.0 - 0.50 * (Temp - 20) / 80) * EnegT;
+        ftT = (1.0 - 0.35 * (Temp - 20) / 80) * ft0;
+        EposT = (1.0 - 0.50 * (Temp - 20) / 80) * Epos0;
         //Ets = (1.0 - 1.0*(Temp -80)/500)*EtsT;
+
+        fcT = fc0 * (1 - ((Temp - 20) / 80) * 0.75);
+        fcuT = fcu0 * (1 - ((Temp - 20) / 80) * 0.75);
+        EnegT = Eneg0 * (1.0 - 0.65 * (Temp - 20) / 80);
+
     }
     else if (Temp <= 300) {
-        ft = (0.65 - 0.65 * (Temp - 100) / 200) * ftT;
-        Eneg = (0.50 - 0.50 * (Temp - 100) / 200) * EnegT;
+        ftT = (0.65 - 0.65 * (Temp - 100) / 200) * ft0;
+        EposT = (0.50 - 0.50 * (Temp - 100) / 200) * Epos0;
+
+        fcT = fc0 * (0.25 - ((Temp - 100) / 200) * 0.25);
+        fcuT = fcu0 * (0.25 - ((Temp - 100) / 200) * 0.25);
+        EnegT = Eneg0 * (0.35 - 0.35 * (Temp - 100) / 200);
+
     }
     else {
-        ft = 1.0e-10;
-        Eneg = 1.0e-10;
-        //ft = 0;
-        //Ets = 0;
+        ftT = 1.0e-8;
+        EposT = 1.0e-6;
+        
+        fcT = 1.0e-8;
+        fcT = 1.0e-8;
+        EposT = 1.0e-6;
     }
 
-    // compression strength, at elevated temperature
-    //   strain at compression strength, at elevated temperature
-    //   ultimate (crushing) strain, at elevated temperature
-    if (Temp <= 20) {
-        fc = fcT;
-        fcu = fcuT;
-        Epos = EposT;
-        //Ets = EtsT;  jz what is there the statement?
-    }
-    else if (Temp <= 100) {
-        fc = fcT * (1 - ((Temp - 20) / 80) * 0.75);
-        fcu = fcuT * (1 - ((Temp - 20) / 80) * 0.75);
-        Epos = EposT * (1.0 - 0.65 * (Temp - 20) / 80);
-    }
-    else if (Temp <= 300) {
-        fc = fcT * (0.25 - ((Temp - 100) / 200) * 0.25);
-        fcu = fcuT * (0.25 - ((Temp - 100) / 200) * 0.25);
-        Epos = EposT * (0.35 - 0.35 * (Temp - 100) / 200);
-    }
-    else {
-        fc= 1.0e-10;
-        fcu = 1.0e-10;
-        Epos = 1.0e-10;
-    }
 
     return 0;
 }
@@ -272,13 +274,13 @@ TimberECThermal::commitState(void)
 //    deptP = dept;
 
     
-    EposP = Epos;
-    EnegP = Eneg;
+    EposP = EposT;
+    EnegP = EnegT;
     sigP = sig;
     epsP = eps;
 
-    TempP = Temp; //PK add set the previous temperature
-
+    TempP = Temp; //Set the previous temperature
+    TempMaxP = TempMax;
     return 0;
 }
 
@@ -289,13 +291,13 @@ TimberECThermal::revertToLastCommit(void)
 //    dept = deptP;
 
 
-    Epos = EposP;
-    Eneg = EnegP;
+    EposT = EposP;
+    EnegT = EnegP;
     sig = sigP;
     eps = epsP;
 
     Temp = TempP; //PK add set the previous temperature
-
+    TempMax = TempMaxP;
     // NA ELENXW MIPWS EDW XANETAI TO TEMP LOGW MIN CONVERGENCE
 
     return 0;
@@ -307,14 +309,14 @@ TimberECThermal::revertToStart(void)
 //    ecminP = 0.0;
 //    deptP = 0.0;
 
-    EposP = Epos;
-    EnegP = Eneg;
+    EposP = Epos0;
+    EnegP = Eneg0;
 
     sig = 0.0;
     eps = 0.0;
     sigP = 0.0;
     epsP = 0.0;
-
+    TempMax = 0;
 
     return 0;
 }
@@ -323,9 +325,9 @@ int
 TimberECThermal::sendSelf(int commitTag, Channel& theChannel)
 {
     static Vector data(9);
-    data(0) = fc;
+    data(0) = fcT;
     data(1) = epsc0;
-    data(2) = fcu;
+    data(2) = fcuT;
 //    data(3) = epscu;
 //    data(4) = rat;
     data(3) = EposP;
@@ -333,7 +335,7 @@ TimberECThermal::sendSelf(int commitTag, Channel& theChannel)
 //    data(7) = ecminP;
 //    data(8) = deptP;
     data(4) = EnegP;
-    data(5) = ft;
+    data(5) = ftT;
     data(6) = sigP;
     data(7) = epsP;
     data(8) = this->getTag();
@@ -357,14 +359,14 @@ TimberECThermal::recvSelf(int commitTag, Channel& theChannel,
         return -1;
     }
 
-    fc = data(0);
+    fcT = data(0);
     epsc0 = data(1);
-      fcu = data(2);
+      fcuT = data(2);
 //  epscu = data(3);
 //    rat = data(4);
     EposP = data(3);
     EnegP = data(4);
-       ft = data(5);
+       ftT = data(5);
      sigP = data(6);
      epsP = data(7);
      this->setTag(data(8));
@@ -374,8 +376,8 @@ TimberECThermal::recvSelf(int commitTag, Channel& theChannel,
 
       eps = epsP;
       sig = sigP;
-    Eneg = EnegP;
-    Epos = EposP;
+    EnegT = EnegP;
+    EposT = EposP;
 
 
 
@@ -386,7 +388,7 @@ TimberECThermal::recvSelf(int commitTag, Channel& theChannel,
 void
 TimberECThermal::Print(OPS_Stream& s, int flag)
 {
-    s << "TimberECThermal:(strain, stress, tangent) " << eps << " " << sig << " " << (Epos, Eneg) << endln;
+    s << "TimberECThermal:(strain, stress, tangent) " << eps << " " << sig << " " << EposT << endln;
 }
 
 

@@ -78,7 +78,9 @@ protected:
 
 private:
 
-    double Temp;  // concrete temp
+    double Temp;  // Timber temp
+    double TempMax;  // layer state tag:: 0:wet wood, 1: dry wood, 2:char layer
+    double TempMaxP; //committed fiber state
     double ThermalElongation; // eps(theata) = alpha * temperature
     double fcT;
     double epsc0T;
@@ -86,19 +88,17 @@ private:
     double ftT;
     double EposT;
     double EnegT;
-//    double cooling; //PK add
-//    double Tempmax;  // PK add max temp
 
 
     // matpar : Concrete FIXED PROPERTIES
-    double fc;    // concrete compression strength           : mp(1)
+    double fc0;    // concrete compression strength           : mp(1)
     double epsc0; // strain at compression strength          : mp(2)
-    double fcu;   // stress at ultimate (crushing) strain    : mp(3)
+    double fcu0;   // stress at ultimate (crushing) strain    : mp(3)
 //    double epscu; // ultimate (crushing) strain              : mp(4)       
 //    double rat;   // ratio between unloading slope at epscu and original slope : mp(5)
-    double Epos;  // Modulus of Elasticity for compression   : mp(4)
-    double Eneg;  // Modulus of Elasticity for tension       : mp(5)
-    double ft;    // concrete tensile strength               : mp(6)
+    double Epos0;  // Modulus of Elasticity for compression   : mp(4)
+    double Eneg0;  // Modulus of Elasticity for tension       : mp(5)
+    double ft0;    // concrete tensile strength               : mp(6)
     double E;   // tension stiffening slope                : mp(7)
 
 
@@ -111,7 +111,7 @@ private:
     double EposP;    //   Compression elasticity modulus at last converged step;
     double EnegP;
 
-    double TempP; //PK add the previous temperature
+    double TempP; //
 
     // hstv : Concerete HISTORY VARIABLES  current step
 //    double ecmin;
