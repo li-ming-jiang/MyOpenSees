@@ -2230,6 +2230,9 @@ TclHeatTransferCommand_addFireModel(ClientData clientData, Tcl_Interp *interp, i
     else if(strcmp(argv[1],"hydroCarbon") == 0||strcmp(argv[1],"HydroCarbon") == 0){
       theFireModel = new NorminalFireEC1(FireModelTag , 3); // hydrocarbon fire tag is 3;
     }
+    else if (strcmp(argv[1], "external") == 0 || strcmp(argv[1], "External") == 0) {
+        theFireModel = new NorminalFireEC1(FireModelTag, 2); // hydrocarbon fire tag is 2;
+    }
 	else if(strcmp(argv[1],"ASTM") == 0||strcmp(argv[1],"ASTME119") == 0){
       theFireModel = new NorminalFireEC1(FireModelTag , 4); // hydrocarbon fire tag is 3;
     }

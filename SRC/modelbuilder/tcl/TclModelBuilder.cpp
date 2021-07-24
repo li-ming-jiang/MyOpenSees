@@ -2479,8 +2479,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 			  //shell thermal action using external file
 			  count++;
 
-			  const char *pwd = getInterpPWD(interp);
-			  simulationInfo.addInputFile(argv[count], pwd);
+			  //const char *pwd = getInterpPWD(interp);
+			  //simulationInfo.addInputFile(argv[count], pwd);
+			  //opserr << argv[count] << endln;
 			  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count]);
 			  count++;
 			  if (argc - count == 2) {

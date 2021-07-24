@@ -40,7 +40,7 @@ class TimberECThermal : public UniaxialMaterial
 {
 public:
     TimberECThermal(int tag, double _fc, double _epsc0, double _fcu,
-        double _epscu, double _rat, double _ft, double _Ets);
+        double _Epos, double _Eneg, double _ft);
 
     TimberECThermal(void);
 
@@ -77,48 +77,48 @@ public:
 protected:
 
 private:
-    void Tens_Envlp(double epsc, double& sigc, double& Ect);
-    void Compr_Envlp(double epsc, double& sigc, double& Ect);
 
     double Temp;  // concrete temp
-    double steps;    //the amount of the steps.
-    double strainRatio; //input strain over 0.0025(EU 1992)  
     double ThermalElongation; // eps(theata) = alpha * temperature
     double fcT;
     double epsc0T;
     double fcuT;
-    double epscuT;
     double ftT;
-    double EtsT;
-    double cooling; //PK add
-    double Tempmax;  // PK add max temp
+    double EposT;
+    double EnegT;
+//    double cooling; //PK add
+//    double Tempmax;  // PK add max temp
 
 
     // matpar : Concrete FIXED PROPERTIES
     double fc;    // concrete compression strength           : mp(1)
     double epsc0; // strain at compression strength          : mp(2)
     double fcu;   // stress at ultimate (crushing) strain    : mp(3)
-    double epscu; // ultimate (crushing) strain              : mp(4)       
-    double rat;   // ratio between unloading slope at epscu and original slope : mp(5)
+//    double epscu; // ultimate (crushing) strain              : mp(4)       
+//    double rat;   // ratio between unloading slope at epscu and original slope : mp(5)
+    double Epos;  // Modulus of Elasticity for compression   : mp(4)
+    double Eneg;  // Modulus of Elasticity for tension       : mp(5)
     double ft;    // concrete tensile strength               : mp(6)
-    double Ets;   // tension stiffening slope                : mp(7)
+    double E;   // tension stiffening slope                : mp(7)
 
 
 
     // hstvP : Concerete HISTORY VARIABLES last committed step
-    double ecminP;  //  hstP(1)
-    double deptP;   //  hstP(2)
+//    double ecminP;  //  hstP(1)
+//    double deptP;   //  hstP(2)
     double epsP;  //  = strain at previous converged step
     double sigP;  //  = stress at previous converged step
-    double eP;    //   stiffness modulus at last converged step;
+    double EposP;    //   Compression elasticity modulus at last converged step;
+    double EnegP;
 
     double TempP; //PK add the previous temperature
 
     // hstv : Concerete HISTORY VARIABLES  current step
-    double ecmin;
-    double dept;
+//    double ecmin;
+//    double dept;
     double sig;
-    double e;
+//    double Epos;
+//    double Eneg;
     double eps;
 
 
