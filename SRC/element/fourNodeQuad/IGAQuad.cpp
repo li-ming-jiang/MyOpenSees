@@ -51,8 +51,8 @@ void* OPS_IGAQuad()
     int ndm = OPS_GetNDM();
     int ndf = OPS_GetNDF();
 
-    if (ndm != 2 || ndf != 3) {
-	opserr << "WARNING -- IGAquad element expects ndm=2 and ndf=3\n";
+    if (ndm != 2 || ndf != 2) {
+	opserr << "WARNING -- IGAquad element expects ndm=2 and ndf=2\n";
 	return 0;
     }
     
@@ -125,7 +125,7 @@ IGAQuad::IGAQuad(int tag, int nd1, int nd2, int nd3, int nd4,
 			   double p, double r, double b1, double b2)
 :Element (tag, ELE_TAG_IGAQuad), 
   theMaterial(0), connectedExternalNodes(4), 
- Q(8), pressureLoad(8), thickness(t), applyLoad(0), pressure(p), rho(r), Ki(0)
+ Q(8), pressureLoad(8), thickness(t), applyLoad(0), pressure(p), rho(r), Ki(0), numKnots(2)
 {
 	pts[0][0] = -0.5773502691896258;
 	pts[0][1] = -0.5773502691896258;
@@ -185,7 +185,7 @@ IGAQuad::IGAQuad(int tag, int nd1, int nd2, int nd3, int nd4,
 IGAQuad::IGAQuad()
 :Element (0,ELE_TAG_IGAQuad),
   theMaterial(0), connectedExternalNodes(4), 
- Q(8), pressureLoad(8), thickness(0.0), applyLoad(0), pressure(0.0), Ki(0)
+ Q(8), pressureLoad(8), thickness(0.0), applyLoad(0), pressure(0.0), Ki(0), numKnots(2)
 {
   pts[0][0] = -0.577350269189626;
   pts[0][1] = -0.577350269189626;
@@ -332,7 +332,7 @@ IGAQuad::revertToStart()
     return retVal;
 }
 
-
+//update the deformation at intergation points( Gauss). IGA should be considered here
 int
 IGAQuad::update()
 {
@@ -355,6 +355,8 @@ IGAQuad::update()
 	static Vector eps(3);
 
 	int ret = 0;
+
+	//creation of knots may be written here
 
 	// Loop over the integration points
 	for (int i = 0; i < 4; i++) {
@@ -379,7 +381,7 @@ IGAQuad::update()
 	return ret;
 }
 
-
+//This is key function for stiffness matrix, IGA should be included here
 const Matrix&
 IGAQuad::getTangentStiff()
 {
@@ -438,7 +440,7 @@ IGAQuad::getTangentStiff()
 	return K;
 }
 
-
+//This will be similar to getTangentStiff()
 const Matrix&
 IGAQuad::getInitialStiff()
 {
@@ -492,6 +494,7 @@ IGAQuad::getInitialStiff()
   return K;
 }
 
+//getMass is a function for dynamic analysis, currently not considered for IGA
 const Matrix&
 IGAQuad::getMass()
 {
@@ -546,6 +549,7 @@ IGAQuad::zeroLoad(void)
   	return;
 }
 
+//adding load to the quad element, currently may be not considered
 int 
 IGAQuad::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
@@ -614,6 +618,8 @@ IGAQuad::addInertiaLoadToUnbalance(const Vector &accel)
   return 0;
 }
 
+
+//resisting force at the nodes, should be revised for IGA
 const Vector&
 IGAQuad::getResistingForce()
 {
@@ -1248,6 +1254,7 @@ IGAQuad::updateParameter(int parameterID, Information &info)
   }
 }
 
+//The shape function should be revised for IGA
 double IGAQuad::shapeFunction(double xi, double eta)
 {
 	const Vector &nd1Crds = theNodes[0]->getCrds();

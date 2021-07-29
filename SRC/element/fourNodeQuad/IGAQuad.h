@@ -132,6 +132,8 @@ private:
     static double pts[4][2];	// Stores quadrature points
     static double wts[4];		// Stores quadrature weights
 
+    int numKnots;             //number of knots inside IGA element (to be refined later)
+
     // private member functions - only objects of this class can call these
     double shapeFunction(double xi, double eta);
     void setPressureLoadAtNodes(void);
