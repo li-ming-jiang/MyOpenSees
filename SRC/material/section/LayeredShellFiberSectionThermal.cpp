@@ -96,7 +96,7 @@ void* OPS_LayeredShellFiberSectionThermal()
         return 0;
     }
 
-    if (nLayers < 3) {
+    if (nLayers < 2) {
         opserr << "ERROR number of layers must be larger than 2" << endln;
         opserr << "LayeredShellThermal section: " << tag << endln;
         return 0;

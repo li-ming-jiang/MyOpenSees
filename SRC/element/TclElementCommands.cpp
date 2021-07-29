@@ -156,7 +156,7 @@ extern void *OPS_ShellNLDKGQThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_ShellNLComThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_BeamColumnJoint2dThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_BeamColumnJoint3dThermal(void); //Added by L.Jiang [SIF]
-
+extern void* OPS_IGAQuad(void);//Added by L.Jiang [SIF]
 extern  void *OPS_CatenaryCableElement(void);
 extern  void *OPS_ShellANDeS(void);
 extern  void *OPS_FourNodeTetrahedron(void);
@@ -729,16 +729,16 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
       //end of adding thermo-mechanical shell elements by L.Jiang [SIF]  
   }
   //-----------------[Added for SIF, by LMJ]--------------------------------------
-  else if ((strcmp(argv[1], "shellNLComThermal") == 0) || (strcmp(argv[1], "ShellNLComThermal") == 0)) {
+  else if ((strcmp(argv[1], "IGAquad") == 0) || (strcmp(argv[1], "IGAQuad") == 0)) {
 
-  void* theEle = OPS_ShellNLComThermal();
+  void* theEle = OPS_IGAQuad();
   if (theEle != 0)
       theElement = (Element*)theEle;
   else {
       opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
       return TCL_ERROR;
   }
-  //end of adding thermo-mechanical shell elements by L.Jiang [SIF]  
+  //end of adding IGA Quad elements by L.Jiang [SIF]  
   }
     else if (strcmp(argv[1], "beamColumnJointThermal") == 0) {
     int ndm = OPS_GetNDM(); 
