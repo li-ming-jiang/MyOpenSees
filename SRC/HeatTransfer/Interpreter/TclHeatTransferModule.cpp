@@ -3323,74 +3323,82 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
 	// otherwise print a warning and use some defaults
 	if (theAnalysisModel == 0) 
 	    theAnalysisModel = new HT_AnalysisModel();
-    if (strcmp(argv[count], "Residual") == 0 || strcmp(argv[count], "residual") == 0) {
-        count++;
-        double testTol;
-        if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
-            opserr << "WARNING test object tolerance must be a double.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int maxIterations;
-        if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
-            opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int analysisFlag;
-        if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
-            opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
-            return TCL_ERROR;
-        }
-        count++;
-        theTest = new CTestNormResidual(testTol, maxIterations, analysisFlag);
-        opserr << "Using NormResidual test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
+    if (argc == count) {
+        //using default algorithm
+        theTest == 0;
+        theAlgorithm == 0;
     }
-    else if (strcmp(argv[count], "TempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
-        count++;
-        double testTol;
-        if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
-            opserr << "WARNING test object tolerance must be a double.\n";
-            return TCL_ERROR;
+    else {
+        if (strcmp(argv[count], "Residual") == 0 || strcmp(argv[count], "residual") == 0) {
+            count++;
+            double testTol;
+            if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
+                opserr << "WARNING test object tolerance must be a double.\n";
+                return TCL_ERROR;
+            }
+            count++;
+            int maxIterations;
+            if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
+                opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
+                return TCL_ERROR;
+            }
+            count++;
+            int analysisFlag;
+            if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
+                opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
+                return TCL_ERROR;
+            }
+            count++;
+            theTest = new CTestNormResidual(testTol, maxIterations, analysisFlag);
+            opserr << "Using NormResidual test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
         }
-        count++;
-        int maxIterations;
-        if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
-            opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
-            return TCL_ERROR;
-        }
-        count++;
-        int analysisFlag;
-        if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
-            opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
-            return TCL_ERROR;
-        }
-        count++;
-        theTest = new CTestNormTempIncr(testTol, maxIterations, analysisFlag);
-        opserr << "Using NormTempIncr test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
-        
-    }
-	if (theTest == 0) {
-		opserr << "WARNING analysis Transient - no convergence test yet specified, \n";
-	    opserr << " CTestNormTempIncr default will be used\n";
-#ifdef _DEBUG
-        // theTest = new CTestNormTempIncr(1e-3, 500,1);
-        // theTest = new CTestNormResidual(1e-1, 2000, 1);
+        else if (strcmp(argv[count], "TempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
+            count++;
+            double testTol;
+            if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
+                opserr << "WARNING test object tolerance must be a double.\n";
+                return TCL_ERROR;
+            }
+            count++;
+            int maxIterations;
+            if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
+                opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
+                return TCL_ERROR;
+            }
+            count++;
+            int analysisFlag;
+            if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
+                opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
+                return TCL_ERROR;
+            }
+            count++;
+            theTest = new CTestNormTempIncr(testTol, maxIterations, analysisFlag);
+            opserr << "Using NormTempIncr test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
 
-#else
+        }
+
+        if (strcmp(argv[count], "Newton") == 0 || strcmp(argv[count], "newton") == 0) {
+            count++;
+            theAlgorithm = new NewtonMethod(*theTest);
+            opserr << "Using the NewtonMethod algorithm.\n";
+        }
+        else if (strcmp(argv[count], "ModifiedNewton") == 0 || strcmp(argv[count], "modifiedNewton") == 0 || strcmp(argv[count], "modifiednewton") == 0) {
+            count++;
+            theAlgorithm = new ModifiedNewtonMethod(*theTest);
+            opserr << "Using the ModifiedNewtonMethod algorithm.\n";
+        }
+
+    }
+   
+
+    if (theTest == 0) {
+        opserr << "WARNING analysis Transient - no convergence test yet specified, \n";
+        opserr << " CTestNormTempIncr default will be used\n";
+        // theTest = new CTestNormTempIncr(1e-3, 500,1);
+        //theTest = new CTestNormResidual(1e-1, 2000, 1);
         theTest = new CTestNormTempIncr(1e-3, 2000, 0);
-#endif
-	}
-    if (strcmp(argv[count], "Newton") == 0 || strcmp(argv[count], "newton") == 0) {
-        count++;
-        theAlgorithm = new NewtonMethod(*theTest);
-        opserr << "Using the NewtonMethod algorithm.\n";
     }
-    else if (strcmp(argv[count], "ModifiedNewton") == 0 || strcmp(argv[count], "modifiedNewton") == 0 || strcmp(argv[count], "modifiednewton") == 0) {
-        count++;
-        theAlgorithm = new ModifiedNewtonMethod(*theTest);
-        opserr << "Using the ModifiedNewtonMethod algorithm.\n";
-    }
+
 	if (theAlgorithm == 0) {
 	    opserr << "WARNING analysis Transient - no Algorithm yet specified, \n";
 	    opserr << " NewtonMethod default will be used\n";	    
