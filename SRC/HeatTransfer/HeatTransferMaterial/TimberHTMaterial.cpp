@@ -121,7 +121,7 @@ TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* the
         opserr << "Timber Material recieves incorrect material properties" << endln;
     transt23 = 0.05 * 19e6 * (*thePars)(0, 1) / HtComb;
 #ifdef _DEBUG
-    opserr << "transt23 " << transt23 << endln;
+   // opserr << "transt23 " << transt23 << endln;
 #endif
 }
 

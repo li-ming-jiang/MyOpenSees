@@ -152,6 +152,7 @@ int TclHeatTransferCommand_HTRefineMesh(ClientData clientData, Tcl_Interp *inter
 int TclHeatTransferCommand_HTReset(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 
 int TclHeatTransferCommand_HTRecorder(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
+int TclHeatTransferCommand_HTTest(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
 int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 int TclHeatTransferCommand_HTAnalyze(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 
@@ -203,6 +204,7 @@ TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
   //Tcl_CreateCommand(interp, "HTFixT", (Tcl_CmdProc*)TclHeatTransferCommand_addSPTemperatureBC, (ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTCoupleT", (Tcl_CmdProc* )TclHeatTransferCommand_addMPTemperatureBC,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTAnalysis", (Tcl_CmdProc* )TclHeatTransferCommand_HTAnalysis,(ClientData)NULL, NULL);
+  Tcl_CreateCommand(interp, "HTTest", (Tcl_CmdProc*)TclHeatTransferCommand_HTTest, (ClientData)NULL, NULL);
   
   Tcl_CreateCommand(interp, "HTRecorder", (Tcl_CmdProc* )TclHeatTransferCommand_HTRecorder,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTAnalyze", (Tcl_CmdProc* )TclHeatTransferCommand_HTAnalyze,(ClientData)NULL, NULL);
@@ -290,6 +292,7 @@ theTest =0;
   Tcl_DeleteCommand(theInterp, "HTCoupleT");
 
   Tcl_DeleteCommand(theInterp, "HTAnalysis");
+  Tcl_DeleteCommand(theInterp, "HTTest");
   Tcl_DeleteCommand(theInterp, "HTAnalyze");
 
 }
@@ -3303,6 +3306,71 @@ int TclHeatTransferCommand_HTReset(ClientData clientData, Tcl_Interp *interp, in
 }
 
 
+//Add HT_transient analysis
+int TclHeatTransferCommand_HTTest(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv)
+{
+    // make sure at least one other argument to contain type of system
+    if (argc < 2) {
+        opserr << "WARNING need to specify an convergence test (Static, Transient)\n";
+        return TCL_ERROR;
+    }
+
+    int count = 1;
+
+            if (strcmp(argv[count], "Residual") == 0 || strcmp(argv[count], "residual") == 0) {
+                count++;
+                double testTol;
+                if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
+                    opserr << "WARNING test object tolerance must be a double.\n";
+                    return TCL_ERROR;
+                }
+                count++;
+                int maxIterations;
+                if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
+                    opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
+                    return TCL_ERROR;
+                }
+                count++;
+                int analysisFlag;
+                if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
+                    opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
+                    return TCL_ERROR;
+                }
+                count++;
+                theTest = new CTestNormResidual(testTol, maxIterations, analysisFlag);
+                opserr << "Using NormResidual test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
+            }
+            else if (strcmp(argv[count], "TempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
+                count++;
+                double testTol=0.0;
+                if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
+                    opserr << "WARNING test object tolerance must be a double.\n";
+                    return TCL_ERROR;
+                }
+                count++;
+                int maxIterations =0;
+                if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
+                    opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
+                    return TCL_ERROR;
+                }
+                count++;
+                int analysisFlag=0;
+                if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
+                    opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
+                    return TCL_ERROR;
+                }
+                
+
+                theTest = new CTestNormTempIncr(testTol, maxIterations, analysisFlag);
+                opserr << "Using NormTempIncr test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
+
+            }
+
+
+ 
+  
+    return TCL_OK;
+}
 
 //Add HT_transient analysis
 int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
@@ -3325,57 +3393,10 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
 	    theAnalysisModel = new HT_AnalysisModel();
     if (argc == count) {
         //using default algorithm
-        theTest = 0;
+        //theTest = 0;
         theAlgorithm = 0;
     }
     else {
-        if (strcmp(argv[count], "Residual") == 0 || strcmp(argv[count], "residual") == 0) {
-            count++;
-            double testTol;
-            if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
-                opserr << "WARNING test object tolerance must be a double.\n";
-                return TCL_ERROR;
-            }
-            count++;
-            int maxIterations;
-            if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
-                opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
-                return TCL_ERROR;
-            }
-            count++;
-            int analysisFlag;
-            if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
-                opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
-                return TCL_ERROR;
-            }
-            count++;
-            theTest = new CTestNormResidual(testTol, maxIterations, analysisFlag);
-            opserr << "Using NormResidual test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
-        }
-        else if (strcmp(argv[count], "TempIncr") == 0 || strcmp(argv[count], "temperature") == 0) {
-            count++;
-            double testTol;
-            if (Tcl_GetDouble(interp, argv[count], &testTol) != TCL_OK) {
-                opserr << "WARNING test object tolerance must be a double.\n";
-                return TCL_ERROR;
-            }
-            count++;
-            int maxIterations;
-            if (Tcl_GetInt(interp, argv[count], &maxIterations) != TCL_OK) {
-                opserr << "WARNING test object maximum allowable iteration must be an integer.\n";
-                return TCL_ERROR;
-            }
-            count++;
-            int analysisFlag;
-            if (Tcl_GetInt(interp, argv[count], &analysisFlag) != TCL_OK) {
-                opserr << "WARNING test object flag must be an integer (0,1,2,3).\n";
-                return TCL_ERROR;
-            }
-            count++;
-            theTest = new CTestNormTempIncr(testTol, maxIterations, analysisFlag);
-            opserr << "Using NormTempIncr test with tolerance = " << testTol << ", max iterations = " << maxIterations << " and analysis flag = " << analysisFlag << ".\n";
-
-        }
 
         if (strcmp(argv[count], "Newton") == 0 || strcmp(argv[count], "newton") == 0) {
             count++;
