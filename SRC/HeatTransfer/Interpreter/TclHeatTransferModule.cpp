@@ -3325,8 +3325,8 @@ int TclHeatTransferCommand_HTAnalysis(ClientData clientData, Tcl_Interp *interp,
 	    theAnalysisModel = new HT_AnalysisModel();
     if (argc == count) {
         //using default algorithm
-        theTest == 0;
-        theAlgorithm == 0;
+        theTest = 0;
+        theAlgorithm = 0;
     }
     else {
         if (strcmp(argv[count], "Residual") == 0 || strcmp(argv[count], "residual") == 0) {
