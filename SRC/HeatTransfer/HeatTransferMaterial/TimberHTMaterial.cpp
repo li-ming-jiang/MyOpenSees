@@ -121,7 +121,7 @@ TimberHTMaterial::TimberHTMaterial(int tag, int typeTag, HeatTransferDomain* the
         opserr << "Timber Material recieves incorrect material properties" << endln;
     transt23 = 0.05 * 19e6 * (*thePars)(0, 1) / HtComb;
 #ifdef _DEBUG
-  //  opserr << "transt23 " << transt23 << endln;
+    opserr << "transt23 " << transt23 << endln;
 #endif
 }
 
@@ -678,9 +678,9 @@ TimberHTMaterial::determinePhase(double temp, double time)
              if (trial_temp < 600)
                  factor = 0.05;
              else
-                 factor = 0.03;
+                 factor = 0.01;
 
-             current_Qc = current_Qc + alpha * HtComb / factor*(time-commit_time);
+             current_Qc = current_Qc + alpha * HtComb / factor*(0.25);
             //if T>600 and timber has long time of combustion
              if (current_Qc > 19e6* (*thePars)(0, 1) && trial_temp > T3) {
                  trialphTag = 3;
@@ -756,8 +756,8 @@ TimberHTMaterial::getHeatGen(double locy)
         if (TempTag == 0) {
             if (trial_temp < 300)
                 alpha = 0;
-            //else if (trial_temp < 400)
-              //  alpha = (trial_temp - 300) / 100 * 0.1;   //combustion area at 400-600 range
+            else if (trial_temp < 400)
+                alpha = (trial_temp - 300) / 100 * alp1;   //combustion area at 400-600 range
             else if (trial_temp < 600)
                 alpha = alp1; //linear transition from alph1 to alp2 if different
             else if (trial_temp < 800)
