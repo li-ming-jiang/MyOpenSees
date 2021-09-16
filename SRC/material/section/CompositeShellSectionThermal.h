@@ -52,7 +52,7 @@ class CompositeShellSectionThermal : public SectionForceDeformation{
 
     //full constructor
     CompositeShellSectionThermal(   int tag, SectionForceDeformation* theSec1, SectionForceDeformation* theSec2,
-                                double ratio1,double ratio2 );
+                                double ratio1,double ratio2, double ribAngle );
 
     const char *getClassType(void) const {return "CompositeShellSectionThermal";};
 
@@ -114,6 +114,8 @@ class CompositeShellSectionThermal : public SectionForceDeformation{
     //quadrature data
     double Ratio1;
     double Ratio2;
+
+    double ribAng;
 
     double stiffratio1;
     double stiffratio2;

@@ -97,6 +97,7 @@ using std::ifstream;
 using std::ios;
 
 extern void* OPS_LayeredShellFiberSectionThermal(void);
+extern void* OPS_CompositeShellSectionThermal(void);
 
 
 int
@@ -1450,7 +1451,12 @@ TclModelBuilderSectionCommand(ClientData clientData, Tcl_Interp* interp, int arg
 
 	// CompositeShell Section Added by Liming Jiang
 	else if (strcmp(argv[1], "CompositeShellThermal") == 0) {
-	if (argc < 6) {
+		void* theMat = OPS_CompositeShellSectionThermal();
+		if (theMat != 0)
+			theSection = (SectionForceDeformation*)theMat;
+		else
+			return TCL_ERROR;
+	/*if (argc < 6) {
 		opserr << "WARNING insufficient arguments" << endln;
 		opserr << "Want: section CompositeShellThermal tag? SectionTag1? r1? .SectionTag2? r2? " << endln;
 		return TCL_ERROR;
@@ -1496,7 +1502,8 @@ TclModelBuilderSectionCommand(ClientData clientData, Tcl_Interp* interp, int arg
 	theSec1 = theTclBuilder->getSection(sectag1);
 	theSec2 = theTclBuilder->getSection(sectag2);
 
-	theSection = new CompositeShellSectionThermal(tag, theSec1,theSec2,ratio1, ratio2);
+	theSection = new CompositeShellSectionThermal(tag, theSec1,theSec2,ratio1, ratio2);*/
+
 
 	}
 	//end L.Jiang [SIF] added for CompositeShellSectionThermal section  ----

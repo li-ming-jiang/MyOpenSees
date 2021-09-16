@@ -34,6 +34,7 @@
 #include <FEM_ObjectBroker.h>
 #include <MaterialResponse.h>
 #include <Information.h>
+#include <elementAPI.h>
 
 //static vector and matrices
 Vector  CompositeShellSectionThermal::stressResultant(8) ;
@@ -42,9 +43,85 @@ Matrix  CompositeShellSectionThermal::tangent(8,8) ;
 //const double  CompositeShellSectionThermal::root56 = sqrt(5.0/6.0) ; //shear correction
 //const double  CompositeShellSectionThermal::root56 = 1 ; //shear correction
 //null constructor
+void* OPS_CompositeShellSectionThermal()
+{
+    if (OPS_GetNumRemainingInputArgs() < 6) {
+        opserr << "WARNING insufficient arguments" << endln;
+        opserr << "Want: section CompositeShellThermal tag? SectionTag1? r1? .SectionTag2? r2? " << endln;
+        return 0;
+    }
+
+    int count = 2;;
+    int tag, sectag1, sectag2;
+    double ratio1, ratio2;
+
+    double ribAngle = 0.0;
+    SectionForceDeformation* theSection = 0;
+    SectionForceDeformation* theSec1 = 0;
+    SectionForceDeformation* theSec2 = 0;
+
+    int numdata = 1;
+    if (OPS_GetIntInput(&numdata, &tag) < 0) {
+        opserr << "WARNING invalid section CompositeShellThermal tag" << endln;
+        return 0;
+    }
+    
+    if (OPS_GetIntInput(&numdata, &sectag1) < 0) {
+        opserr << "WARNING invalid section tag 1" << endln;
+        opserr << "CompositeShellThermal section: " << tag << endln;
+        return 0;
+    }
+    
+    if (OPS_GetDoubleInput(&numdata, &ratio1) < 0) {
+        opserr << "WARNING invalid ratio1\n";
+        opserr << "CompositeShellThermal section:  " << tag << endln;
+        return 0;
+    }
+    
+    if (OPS_GetIntInput(&numdata, &sectag2) < 0) {
+        opserr << "WARNING invalid section tag 2" << endln;
+        opserr << "CompositeShellThermal section: " << tag << endln;
+        return 0;
+    }
+
+    if (OPS_GetDoubleInput(&numdata, &ratio2) < 0) {
+        opserr << "WARNING invalid ratio2\n";
+        opserr << "CompositeShellThermal section:  " << tag << endln;
+        return 0;
+    }
+
+    if (OPS_GetNumRemainingInputArgs() < 1) {
+        ribAngle = 0;
+    }
+    else {
+        if (OPS_GetDoubleInput(&numdata, &ribAngle) < 0) {
+            opserr << "WARNING invalid ribAngle\n";
+            opserr << "CompositeShellThermal section:  " << tag << endln;
+            return 0;
+        }
+    }
+
+    theSec1 = OPS_GetSectionForceDeformation(sectag1);
+    theSec2 = OPS_GetSectionForceDeformation(sectag2);
+
+    theSection = new CompositeShellSectionThermal(tag, theSec1, theSec2, ratio1, ratio2, ribAngle);
+
+    return theSection;
+
+}
+
+
+
+
+
+
+
+
+
+
 CompositeShellSectionThermal::CompositeShellSectionThermal( ) : 
 SectionForceDeformation( 0, SEC_TAG_LayeredShellFiberSectionThermal ), 
-strainResultant(8), theSection1(0),theSection2(0),Ratio1(0.0), Ratio2(0.0), ThermalElongation(0)
+strainResultant(8), theSection1(0),theSection2(0),Ratio1(0.0), Ratio2(0.0), ThermalElongation(0), ribAng(0.0)
 {
     stiffratio1 = 0;
     stiffratio2 = 0;
@@ -56,9 +133,9 @@ CompositeShellSectionThermal::CompositeShellSectionThermal(
                                    int tag, 
                                    SectionForceDeformation* theSec1, 
                                    SectionForceDeformation* theSec2,
-                                   double ratio1, double ratio2) :
+                                   double ratio1, double ratio2, double ribAngle) :
 SectionForceDeformation( tag, SEC_TAG_LayeredShellFiberSectionThermal ),
-strainResultant(8), theSection1(theSec1), theSection2(theSec2), Ratio1(ratio1),Ratio2(ratio2), ThermalElongation(0)
+strainResultant(8), theSection1(theSec1), theSection2(theSec2), Ratio1(ratio1),Ratio2(ratio2), ThermalElongation(0), ribAng(ribAngle)
 {
     sT = new Vector(2);
     sT->Zero();
@@ -85,7 +162,7 @@ SectionForceDeformation  *CompositeShellSectionThermal::getCopy( )
     clone = new CompositeShellSectionThermal( this->getTag(),
 					  theSection1,
 					  theSection2,
-					  Ratio1, Ratio2) ; //make the copy
+					  Ratio1, Ratio2,ribAng) ; //make the copy
   }
   return clone ;
 }
@@ -183,11 +260,21 @@ setTrialSectionDeformation( const Vector &strainResultant_from_element)
   //w1A + w2B =C;
   // A = stiffratio/(w1*stiffratio+w2)*C; B = 1/(w1*ratio+w2)*C
 
-  strain1(1) = stiffratio1 / (Ratio1* stiffratio1 + Ratio2) * strainResultant_from_element(1);
-  strain2(1) = 1/ (Ratio1 * stiffratio1 + Ratio2) * strainResultant_from_element(1);
-  
-  strain1(4) = stiffratio2 / (Ratio1 * stiffratio2 + Ratio2) * strainResultant_from_element(4);
-  strain2(4) = 1 / (Ratio1 * stiffratio2 + Ratio2) * strainResultant_from_element(4);
+  if (abs(ribAng) < 1e-5) {
+      //rib along the local x direction// for Qiu
+      strain1(1) = stiffratio1 / (Ratio1 * stiffratio1 + Ratio2) * strainResultant_from_element(1);
+      strain2(1) = 1 / (Ratio1 * stiffratio1 + Ratio2) * strainResultant_from_element(1);
+
+      strain1(4) = stiffratio2 / (Ratio1 * stiffratio2 + Ratio2) * strainResultant_from_element(4);
+      strain2(4) = 1 / (Ratio1 * stiffratio2 + Ratio2) * strainResultant_from_element(4);
+  }
+  else if (abs(ribAng) - 90 < 1e-5) {
+      //rib along the local y direction// for Qiu
+
+
+  }
+
+
   //Same strain along ribs; Need to add auto-identification of rib direction
   //Shear strains are set as the same for current solution.
   int success = 0 ;
@@ -398,7 +485,7 @@ const Matrix& CompositeShellSectionThermal::getSectionTangent( )
 
   //To determine stiff ratios
   stiffratio1 = Tangent2(1, 1) / Tangent1(1, 1);
-  stiffratio2 = Tangent2(4, 4) / Tangent1(4, 4);
+  stiffratio2 = Tangent2(3, 3) / Tangent1(3, 3);
 
   /*
   for ( i = 0; i < nLayers; i++ ) {
