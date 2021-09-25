@@ -153,7 +153,7 @@ extern void *OPS_PFEMElement2D();
 
 extern void *OPS_ShellMITC4Thermal(void);//Added by L.Jiang [SIF]
 extern void *OPS_ShellNLDKGQThermal(void);//Added by L.Jiang [SIF]
-extern void* OPS_ShellNLComThermal(void);//Added by L.Jiang [SIF]
+//extern void* OPS_IGAShellMITC9(void);//Added by L.Jiang [SIF]
 extern void* OPS_BeamColumnJoint2dThermal(void);//Added by L.Jiang [SIF]
 extern void* OPS_BeamColumnJoint3dThermal(void); //Added by L.Jiang [SIF]
 extern void* OPS_IGAQuad(void);//Added by L.Jiang [SIF]
@@ -739,6 +739,18 @@ TclModelBuilderElementCommand(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
   }
   //end of adding IGA Quad elements by L.Jiang [SIF]  
+  }
+  //-----------------[Added for SIF, by Z Zhang]--------------------------------------
+  else if ((strcmp(argv[1], "IGAShellMITC9") == 0) || (strcmp(argv[1], "IGAShellMITC9") == 0)) {
+
+ // void* theEle = OPS_IGAShellMITC9();
+ // if (theEle != 0)
+ //     theElement = (Element*)theEle;
+//  else {
+ //     opserr << "TclElementCommand -- unable to create element of type : " << argv[1] << endln;
+ //     return TCL_ERROR;
+  //}
+  //end of adding IGA Shell elements by Zixin Zhang [SIF]  
   }
     else if (strcmp(argv[1], "beamColumnJointThermal") == 0) {
     int ndm = OPS_GetNDM(); 

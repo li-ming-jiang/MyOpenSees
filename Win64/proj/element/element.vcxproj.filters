@@ -893,6 +893,9 @@
     <ClCompile Include="..\..\..\SRC\element\fourNodeQuad\IGAQuad.cpp">
       <Filter>quad</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\SRC\element\shell\IGAShellMITC9.cpp">
+      <Filter>shell</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SRC\element\Element.h">
@@ -1560,6 +1563,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\SRC\element\fourNodeQuad\IGAQuad.h">
       <Filter>quad</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\SRC\element\shell\IGAShellMITC9.h">
+      <Filter>shell</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
