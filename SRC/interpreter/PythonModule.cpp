@@ -124,6 +124,31 @@ PythonModule::getDouble(double *data, int numArgs)
     return 0;
 }
 
+/////Polyu adding python getlist
+int
+PythonModule::getList(int* sizelist)
+{
+    opserr << "python test: " << endln;
+   // PyObject* Type = PyObject_Type(wrapper.getCurrentArgv());
+    //const char* p = type->tp_name;
+   // opserr <<"type is "<< p << endln;
+
+    PyObject* list = wrapper.getCurrentArgv();
+  //  int size = 1;
+    if (!PyLong_Check(list)) {
+       opserr << " not a python list" << endln;
+    }
+  //  else {
+  //      opserr << " it is a python list" << endln;
+  //  }
+   //size = PyList_GET_SIZE(list);
+   // *sizelist = int( size);
+
+    return 0;
+}
+
+/////Polyu adding python getlist
+
 const char*
 PythonModule::getString()
 {

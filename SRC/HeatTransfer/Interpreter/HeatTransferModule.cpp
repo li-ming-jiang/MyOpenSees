@@ -111,6 +111,7 @@ using std::setiosflags;
 
  #include <SimulationInformation.h>
 #include < PathTimeSeriesThermal.h>
+//#include <OpenSeesCommands.h>
 
 static PythonWrapper* theWrapper = 0;
  extern SimulationInformation simulationInfo;
@@ -510,6 +511,16 @@ int OPS_addHTMaterial()
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
 
 	}
+	//adding test material
+	else if (strcmp(HTmatType, "Test") == 0 || strcmp(HTmatType, "test") == 0) {
+		int size = 1;
+		opserr << "python test: " << size << endln;
+		int* sizeList = &size;
+		//double* data = 0;
+		OPS_GetListInput(sizeList);
+		opserr << "python test: "<<size << endln;
+		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
+	}
 	//Adding ConcreteEC2
 	else if(strcmp(HTmatType, "ConcreteEC2") == 0) {
 
@@ -841,6 +852,7 @@ OPS_addHTEntity()
 		//Simple_Isection3D(int tag, double HTI_centerX, double HTI_centerY, double HTI_centerZ,
 							  //double HTI_Bf, double HTI_Tf, double HTI_Hw, double HTI_Tw, double HTI_Len);
 		double HTI_centerX, HTI_centerY, HTI_centerZ, HTI_BF, HTI_Tf, HTI_HB, HTI_Tw, HTI_Len;
+
 
 		if (OPS_GetDoubleInput(&numdata, &HTI_centerX) <0) {
 			opserr << "WARNING invalid HTI_centerX" << endln;
@@ -2825,7 +2837,7 @@ OPS_HTRecorder()
 	const char* option = OPS_GetString();
 	if (strcmp(option, "-file") == 0 || strcmp(option, "file") == 0 || strcmp(option, "-File") == 0)
 	{
-		fileName = ops_getstring();
+		fileName = OPS_GetString();
 		//const char* pwd = getInterpPWD(interp);
 		//simulationInfo.addOutputFile(fileName, pwd);
 		
@@ -3374,7 +3386,10 @@ static PyObject* Py_ops_addHTMaterial(PyObject* self, PyObject* args)
 {
 	theWrapper->resetCommandLine(PyTuple_Size(args), 1, args);
 
-	if (OPS_addHTMaterial() < 0) return NULL;
+	if (OPS_addHTMaterial() < 0) {
+		opserr << (void*)0;
+		//return NULL;
+	}
 
 	return theWrapper->getResults();
 }
