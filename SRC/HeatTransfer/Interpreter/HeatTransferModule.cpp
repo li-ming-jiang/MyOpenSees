@@ -516,7 +516,7 @@ int OPS_addHTMaterial()
 		int size = 1;
 		//opserr << "python test: " << size << endln;
 		int* sizeList = &size;
-		double* data = new double [3];
+		double* data = new double [50];
 		OPS_GetListInput(sizeList, data);
 		opserr <<"size "<< *sizeList<< ", python data: "<<data[1] << endln;
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
