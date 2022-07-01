@@ -516,9 +516,9 @@ int OPS_addHTMaterial()
 		int size = 1;
 		opserr << "python test: " << size << endln;
 		int* sizeList = &size;
-		//double* data = 0;
-		OPS_GetListInput(sizeList);
-		opserr << "python test: "<<size << endln;
+		double* data = 0;
+		OPS_GetListInput(sizeList, data);
+		opserr << "python test: "<<data[2] << endln;
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
 	}
 	//Adding ConcreteEC2

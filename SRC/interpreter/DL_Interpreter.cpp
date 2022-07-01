@@ -79,7 +79,7 @@ DL_Interpreter::getDouble(double *, int numArgs)
 }
 
 int
-DL_Interpreter::getList(int* size)
+DL_Interpreter::getList(double *, int* size)
 {
     return -1;
 }

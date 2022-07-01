@@ -180,7 +180,7 @@ extern "C" int        OPS_ResetCurrentInputArg(int cArg);
 extern "C" int        OPS_GetIntInput(int *numData, int*data);
 extern "C" int        OPS_SetIntOutput(int *numData, int*data);
 extern "C" int        OPS_GetDoubleInput(int *numData, double *data);
-extern "C" int        OPS_GetListInput(int* numData);
+extern "C" int        OPS_GetListInput(int* numData, double* data);
 extern "C" int        OPS_SetDoubleOutput(int *numData, double *data);
 extern "C" const char *OPS_GetString(void); // does a strcpy
 extern "C" int        OPS_SetString(const char*); 
