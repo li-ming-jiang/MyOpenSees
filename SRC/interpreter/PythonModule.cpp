@@ -128,7 +128,7 @@ PythonModule::getDouble(double *data, int numArgs)
 int
 PythonModule::getList(double* data, int* sizelist)
 {
-    opserr << "python test: " << endln;
+   // opserr << "python test: " << endln;
    // PyObject* Type = PyObject_Type(wrapper.getCurrentArgv());
     //const char* p = type->tp_name;
    // opserr <<"type is "<< p << endln;
@@ -142,13 +142,13 @@ PythonModule::getList(double* data, int* sizelist)
    size = PyList_GET_SIZE(list);
    int sizeL = int( size);
 
-   double* newdata= new double[sizeL];
+   //double* newdata= new double[sizeL];
    for (int i = 0; i < sizeL; i++) {
        PyObject* o = PyList_GetItem(list, i);
        data[i] = PyFloat_AsDouble(o);
        //PyList_SET_ITEM(currentResult, i, Py_BuildValue("d", data[i]));
    }
-   data = newdata;
+   //data = newdata;
   // opserr <<"data:  "<< data[1] << endln;
     return 0;
 }

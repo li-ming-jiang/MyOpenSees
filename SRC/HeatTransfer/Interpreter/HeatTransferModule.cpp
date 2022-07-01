@@ -514,11 +514,11 @@ int OPS_addHTMaterial()
 	//adding test material
 	else if (strcmp(HTmatType, "Test") == 0 || strcmp(HTmatType, "test") == 0) {
 		int size = 1;
-		opserr << "python test: " << size << endln;
+		//opserr << "python test: " << size << endln;
 		int* sizeList = &size;
-		double* data = 0;
+		double* data = new double [3];
 		OPS_GetListInput(sizeList, data);
-		opserr << "python test: "<<data[2] << endln;
+		opserr <<"size "<< *sizeList<< ", python data: "<<data[1] << endln;
 		theHTMaterial = new CarbonSteelEC3(HTMaterialTag);
 	}
 	//Adding ConcreteEC2
