@@ -141,7 +141,7 @@ PythonModule::getList(double* data, int* sizelist)
 
    size = PyList_GET_SIZE(list);
    int sizeL = int( size);
-
+   *sizelist = sizeL;
    //double* newdata= new double[sizeL];
    for (int i = 0; i < sizeL; i++) {
        PyObject* o = PyList_GetItem(list, i);
