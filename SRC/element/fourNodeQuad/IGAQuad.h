@@ -39,7 +39,16 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-
+//typedef struct {
+//    double J2;
+//    Vector WXg;
+//    Vector Xi;
+//    Matrix* N;
+//}resultDersBasisFunsAtGPS;
+//typedef struct {
+//    Vector R0;
+//    Matrix R1;
+//}resultRationalize;
 class Node;
 class NDMaterial;
 class Response;
@@ -47,7 +56,8 @@ class Response;
 class IGAQuad : public Element
 {
 public:
-    IGAQuad(int tag, int nd1, int nd2, int nd3, int nd4,
+    IGAQuad(int tag, int numCPs1, int ex, int nex, int ey, int ney, int* obfs1, int ndof1,
+        int* CPIds, Vector KnotVect_x1, Vector KnotVect_y1, int* numMults,
         NDMaterial& m, const char* type,
         double t, double pressure = 0.0,
         double rho = 0.0,
@@ -111,13 +121,23 @@ private:
 
     ID connectedExternalNodes; // Tags of quad nodes
 
-    Node* theNodes[4];
+    Node* theNodes[9];
+    Matrix SpanIdxList; // the list of knot span index in x/y directions 
+    Matrix refinedKnotVect;// the refined knot vector in x/y directions
+    int numCPs;
+    int ndof;
+    int obfs[2];
+    Vector KnotVect_x;
+    Vector KnotVect_y;
+    ID eleIdInfo;// stores ex, nex, ey, ney
 
-    static double matrixData[64];  // array data for matrix
+    static double matrixData[324];  // array data for matrix
     static Matrix K;		// Element stiffness, damping, and mass Matrix
     static Vector P;		// Element resisting force vector
     Vector Q;		        // Applied nodal loads
     double b[2];		// Body forces
+
+    Matrix* N0n; // stores B-Spline Basis Function and 1st order 
 
     double appliedB[2]; // Body forces applied with load pattern, C.McGann, U.Washington
     int applyLoad;      // flag for body force in load, C.McGann, U.Washington
@@ -128,17 +148,25 @@ private:
     double pressure;	        // Normal surface traction (pressure) over entire element
                      // Note: positive for outward normal
     double rho;
-    static double shp[3][4];	// Stores shape functions and derivatives (overwritten)
-    static double pts[4][2];	// Stores quadrature points
-    static double wts[4];		// Stores quadrature weights
+    static double shp[3][9];	// Stores shape functions and derivatives (overwritten)
+    static double pts[9][2];	// Stores quadrature points
+    static double wts[9];		// Stores quadrature weights
 
-    int numKnots;             //number of knots inside IGA element (to be refined later)
+    //int numKnots;             //number of knots inside IGA element (to be refined later)
+    Matrix* N0nx; // stores shape function and derivatives in both direction
+    Matrix* N0ny;
 
     // private member functions - only objects of this class can call these
-    double shapeFunction(double xi, double eta);
+    Vector shapeFunction(int qx, int qy, ID eleIdInfo, Vector KnotVect_x, Vector KnotVect_y);
     void setPressureLoadAtNodes(void);
-
+    int findSpan(int order, int ncp, int eleId, int nele, Vector KnotVect);
+    void DerBasisFuns(double Idx, Vector Pts, int obf, int n, Vector KnotVect, Matrix** N0n);
+    void calcDersBasisFunsAtGPs(int obf, int ncp, Vector KnotVect, int d, int NGPs, int Idx, double* J2, Vector* Xg, Matrix** N0n);
+    void Rationalize(Vector WeightsCP, Vector N0, Matrix N1, Vector* R0, Matrix* R1);
+    void GaussRule(int NGPs1, Vector* Xg, Vector* WXg);
     Matrix* Ki;
+    Vector dotProduct(Vector VecA, Vector VecB);
+    Vector dotDivide(Vector VecA, Vector VecB);
 };
 
 #endif
