@@ -779,7 +779,7 @@ J2PlaneStressThermal::setThermalTangentAndElongation(double &tempT, double&ET, d
 	//sigma_y = sigma_0;
 
 	//ET = 2E11;
-	//ET = E;  
+	ET = E;  
 	//ET = 3.84e10;
 	//ThermalElongation = 0;
 	Elong = ThermalElongation;

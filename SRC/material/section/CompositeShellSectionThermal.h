@@ -41,6 +41,7 @@
 #include <SectionForceDeformation.h>
 
 
+
 class CompositeShellSectionThermal : public SectionForceDeformation{
 
 //-------------------Declarations-------------------------------
@@ -52,7 +53,7 @@ class CompositeShellSectionThermal : public SectionForceDeformation{
 
     //full constructor
     CompositeShellSectionThermal(   int tag, SectionForceDeformation* theSec1, SectionForceDeformation* theSec2,
-                                double ratio1,double ratio2 );
+                                double ratio1,double ratio2, double ribAngle, int distribution);
 
     const char *getClassType(void) const {return "CompositeShellSectionThermal";};
 
@@ -115,9 +116,9 @@ class CompositeShellSectionThermal : public SectionForceDeformation{
     double Ratio1;
     double Ratio2;
 
-    double stiffratio1;
-    double stiffratio2;
-    double stiffratio3;
+    double ribAng;
+    int distributionMode;
+
     SectionForceDeformation* theSection1;  //pointers to the first section
     SectionForceDeformation* theSection2;  //pointers to the second section
 
@@ -129,8 +130,34 @@ class CompositeShellSectionThermal : public SectionForceDeformation{
 
 
     Vector* sT;
-    double* ThermalElongation;      // thermal elongation
+    double* ThermalElongation;  // thermal elongation
 
+    Vector thermalForce1; //added by QJ
+    Vector thermalForce2; //added by QJ
+
+    Vector thermalDeformation1; //added by QJ
+    Vector thermalDeformation2; //added by QJ
+
+    double axialStrain; //added by QJ
+    double curvatureStrain; //added by QJ
+
+    Matrix tangentSection1; //added by QJ
+    Matrix tangentSection2; //added by QJ
+
+    Matrix inverseTangentSection1; //added by QJ
+    Matrix inverseTangentSection2; //added by QJ
+    
+    double commitAxial1; //added by QJ
+    double commitCurve1; //added by QJ
+    double commitAxial2; //added by QJ
+    double commitCurve2; //added by QJ
+    double commitAxial; //added by QJ
+    double commitCurvature; //added by QJ
+    double axialStrain1;
+    double curvatureStrain1;
+    double axialStrain2;
+    double curvatureStrain2;
+ 
 } ; //end of CompositeShellSectionThermal declarations
 
 

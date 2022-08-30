@@ -1529,7 +1529,7 @@ FiberSection2dThermal::determineFiberTemperature(const Vector& DataMixed, double
 
 		if (  fiberLoc <= dataTempe[1])
 		{
-			opserr <<"FiberSection2dThermal::setTrialSectionDeformationTemperature -- fiber loc is out of the section";
+			opserr <<"FiberSection2dThermal::setTrialSectionDeformationTemperature -- fiber loc-  "<< fiberLoc<<" is out of the section bound- "<< dataTempe[1];
 		}
 		else if (fiberLoc <= dataTempe[3])
 		{
@@ -1573,7 +1573,7 @@ FiberSection2dThermal::determineFiberTemperature(const Vector& DataMixed, double
 		}
 		else
 		{
-			opserr <<"FiberSection2dThermal::setTrialSectionDeformation -- fiber loc is out of the section";
+            opserr << "FiberSection2dThermal::setTrialSectionDeformationTemperature -- fiber loc-  " << fiberLoc << " is out of the section bound- " << dataTempe[17];
 		}
 
 		static Vector returnedTemperature(2);

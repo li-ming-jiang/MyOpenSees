@@ -2980,7 +2980,8 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 				  count++;
 				  bool using2Ddata = false;
 
-				  double RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4;
+				  double RcvLoc1 = 0; double RcvLoc2 = 0;
+				  double RcvLoc3, RcvLoc4;
 				  TimeSeries* theSeries;
 				  bool genInterpolation;
 				  if (strcmp(argv[count], "-genInterpolation") == 0) {
@@ -2990,7 +2991,13 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 				  else {
 					  genInterpolation = false;
 				  }
-				  if (argc - count == 4) {
+
+				  if (argc - count == 0) {
+					  if (genInterpolation) {
+						  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 2], 35);
+					  }
+				  }
+				  else if (argc - count == 4) {
 					  if (genInterpolation) {
 						  theSeries = new PathTimeSeriesThermal(eleLoadTag, argv[count - 2], 25);
 					  }
@@ -3020,8 +3027,15 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 					  for (int i = 0; i<theEleTags.Size(); i++) {
 						  // Modified by Mhd Anwar Orabi 2021
 						  if (genInterpolation) {
-							  theLoad = new Beam3dThermalAction(eleLoadTag, theSeries, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
-								  theEleTags(i));
+							  if (abs(RcvLoc1) < 1e-8 && abs(RcvLoc2) < 1e-8)
+							  {
+								  theLoad = new Beam3dThermalAction(eleLoadTag, theSeries,theEleTags(i));
+							  }
+							  else {
+								  theLoad = new Beam3dThermalAction(eleLoadTag, theSeries, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
+									  theEleTags(i));
+							  }
+							
 						  } else if (!zAxis) {
 							  theLoad = new Beam3dThermalAction(eleLoadTag, RcvLoc1, RcvLoc2, RcvLoc3, RcvLoc4,
 								  theSeries, theEleTags(i));
@@ -3129,45 +3143,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 			  //double t1, locY1, t2, locY2, t3, locY3, t4, locY4, t5, locY5, 
 			  //t6, t7, locZ1, t8, t9, locZ2, t10,t11, locZ3, t12, t13, locZ4, t14,t15, locZ5;
 
-			  if (argc - count == 25) {
-				  double indata[25];
-				  double BufferData;
-
-				  for (int i = 0; i<25; i++) {
-					  if (Tcl_GetDouble(interp, argv[count], &BufferData) != TCL_OK) {
-						  opserr << "WARNING eleLoad - invalid data " << argv[count] << " for -beamThermal 3D\n";
-						  return TCL_ERROR;
-					  }
-					  indata[i] = BufferData;
-					  count++;
-				  }
-
-				  for (int i = 0; i<theEleTags.Size(); i++) {
-					  theLoad = new Beam3dThermalAction(eleLoadTag,
-						  indata[0], indata[1], indata[2], indata[3], indata[4], indata[5], indata[6], indata[7],
-						  indata[8], indata[9], indata[10], indata[11], indata[12], indata[13], indata[14], indata[15],
-						  indata[16], indata[17], indata[18], indata[19], indata[20], indata[21], indata[22], indata[23],
-						  indata[24], theEleTags(i));
-					  if (theLoad == 0) {
-						  opserr << "WARNING eleLoad - out of memory creating load of type " << argv[count];
-						  return TCL_ERROR;
-					  }
-					  // get the current pattern tag if no tag given in i/p
-					  int loadPatternTag = theTclLoadPattern->getTag();
-
-					  // add the load to the domain
-					  if (theTclDomain->addElementalLoad(theLoad, loadPatternTag) == false) {
-						  opserr << "WARNING eleLoad - could not add following load to domain:\n ";
-						  opserr << theLoad;
-						  delete theLoad;
-						  return TCL_ERROR;
-					  }
-					  eleLoadTag++;
-				  }
-				  return 0;
-			  }
-			  //end of  if (argc-count == 25){
-			  else if (argc - count == 4) {
+			 if (argc - count == 4) {
 
 				  // Modified by Mhd Anwar Orabi 2021
 				  if (!zAxis) {
@@ -3224,8 +3200,8 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 					  t6 = t7 = t8 = t9 = t10 = 0;
 					  t11 = t12 = t13 = t14 = t15 = 0;
 				  }
-				  
-				  for (int i = 0; i<theEleTags.Size(); i++) {
+				  /*
+				  * for (int i = 0; i<theEleTags.Size(); i++) {
 					  // Modified by Mhd Anwar Orabi 2021
 					  if (!zAxis) {
 						  theLoad = new Beam3dThermalAction(eleLoadTag,
@@ -3256,6 +3232,9 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp, int argc,
 					  eleLoadTag++;
 				  }
 				  return 0;
+				  * 
+				  */
+				  
 			  }
 			  //end of  if (argc-count == 4){
 			  else {

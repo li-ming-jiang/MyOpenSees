@@ -1458,7 +1458,7 @@ TclModelBuilderSectionCommand(ClientData clientData, Tcl_Interp* interp, int arg
 
 	int count = 2;;
 	int tag, sectag1, sectag2;
-	double ratio1, ratio2;
+	double ratio1, ratio2, ribangle;
 	
 	double offset = 0;
 	SectionForceDeformation* theSec1 = 0;
@@ -1492,11 +1492,17 @@ TclModelBuilderSectionCommand(ClientData clientData, Tcl_Interp* interp, int arg
 		opserr << "CompositeShellThermal section:  " << tag << endln;
 		return TCL_ERROR;
 	}
+	count++;
+	if (Tcl_GetDouble(interp, argv[count], &ribangle) != TCL_OK) {
+		opserr << "WARNING invalid ribangle\n";
+		opserr << "CompositeShellThermal section:  " << tag << endln;
+		return TCL_ERROR;
+	}
 
 	theSec1 = theTclBuilder->getSection(sectag1);
 	theSec2 = theTclBuilder->getSection(sectag2);
 
-	theSection = new CompositeShellSectionThermal(tag, theSec1,theSec2,ratio1, ratio2);
+	theSection = new CompositeShellSectionThermal(tag, theSec1,theSec2,ratio1, ratio2, ribangle,0);
 
 	}
 	//end L.Jiang [SIF] added for CompositeShellSectionThermal section  ----

@@ -46,34 +46,18 @@ class Beam3dThermalAction : public ElementalLoad
   public:
   // Constructors based on 9, 5 or 2 temperature points
   // t-temperature; locY-coordinate through the depth of section
-  Beam3dThermalAction(int tag,
-                double t1, double locY1, double t2, double locY2,
-                double t3, double locY3, double t4, double locY4,
-                double t5, double locY5, double t6, double t7, double locZ1,
-                double t8, double t9, double locZ2, double t10, double t11, double locZ3,
-                double t12, double t13, double locZ4, double t14,double t15, double locZ5,
-		        int theElementTag);
+ // removed some constructors that never used//LMJ 2022
   // Overloading constructor declaration to include zAxis boolean Mhd Anwar Orabi 2021
-  Beam3dThermalAction(bool zAxis, int tag,
-      double t1, double locY1, double t2, double locY2,
-      double t3, double locY3, double t4, double locY4,
-      double t5, double locY5, double t6, double t7, double locZ1,
-      double t8, double t9, double locZ2, double t10, double t11, double locZ3,
-      double t12, double t13, double locZ4, double t14, double t15, double locZ5,
-      int theElementTag);
 
- Beam3dThermalAction(int tag, 
-					 double t1, double locY1, double t2, double locY2,
-					 double t3, double locY3, double t4, double locY4,
-					 double t5, double locY5, double t6, double locY6,
-					 double t7, double locY7, double t8, double locY8,
-					 double t9, double locY9, 
-					 int theElementTag);
 
   Beam3dThermalAction(int tag,
                 double locY1, double locY2, double locZ1, double Z2,
                 TimeSeries* theSeries,
 		        int theElementTag);
+
+  Beam3dThermalAction(int tag,
+      TimeSeries* theSeries,
+      int theElementTag);
 
   // Added by Mhd Anwar Orabi 2021
   Beam3dThermalAction(int tag, TimeSeries* theSeries,
