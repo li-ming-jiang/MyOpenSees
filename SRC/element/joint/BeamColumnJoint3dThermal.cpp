@@ -101,7 +101,7 @@ void* OPS_BeamColumnJoint3dThermal()
 	   Vector dispLimits(3);
 	   dispLimits(0) = data[0]; dispLimits(1) = data[1]; dispLimits(2) = data[2];
 	   return new BeamColumnJoint3dThermal(idata[0], idata[1], idata[2],
-		   *mats[0], *mats[1], *mats[2], , data[0], data[1], data[2]);
+		   *mats[0], *mats[1], *mats[2],  data[0], data[1], data[2]);
 
    }
    else if (numArgs == 12) {
