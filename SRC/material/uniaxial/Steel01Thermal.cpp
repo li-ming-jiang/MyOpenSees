@@ -787,7 +787,7 @@ void Steel01Thermal::Print (OPS_Stream& s, int flag)
 int
 Steel01Thermal::setParameter(const char **argv, int argc, Parameter &param)
 {
-
+	//opserr << argv[0] << endln;
   if (strcmp(argv[0],"sigmaY") == 0 || strcmp(argv[0],"fy") == 0)
     return param.addObject(1, this);
   
@@ -821,10 +821,10 @@ Steel01Thermal::updateParameter(int parameterID, Information &info)
 	case -1:
 		return -1;
 	case 1:
-		this->fy = info.theDouble;
+		this->fyT = info.theDouble;
 		break;
 	case 2:
-		this->E0 = info.theDouble;
+		this->E0T = info.theDouble;
 		break;
 	case 3:
 		this->b = info.theDouble;

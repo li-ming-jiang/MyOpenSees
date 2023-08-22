@@ -52,7 +52,9 @@ using std::setiosflags;
 #include <Simple_Boundary.h>
 #include <HTConstants.h>
 
-#include <HeatTransferDomain.h>
+#include <QuadFour.h>
+#include <HeatTransferElement.h>
+//#include <HeatTransferDomain.h>
 #include <HeatTransferNode.h>
 #include <QuadFour.h>
 #include <BrickEight.h>
@@ -133,6 +135,8 @@ static HT_ConvergenceTest* theTest =0;
 static int HTReorderTag =0;
 
 //Declaration of Heat transfer Tcl commands
+int TclHeatTransferCommand_addHTNode(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
+int TclHeatTransferCommand_addHTElement(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** argv);
 int TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 int TclHeatTransferCommand_addHTEntity(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv);
 int TclHeatTransferCommand_addHTMesh(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv); 
@@ -187,7 +191,9 @@ TclHeatTransferModule::TclHeatTransferModule(int ndm, Tcl_Interp* interp)
 	  //theTclHTBoudary= new Simple_Boundary();
   //}
 
-  Tcl_CreateCommand(interp, "HTMaterial", (Tcl_CmdProc* )TclHeatTransferCommand_addHTMaterial,(ClientData)NULL, NULL);
+  Tcl_CreateCommand(interp, "HTNode", (Tcl_CmdProc* )TclHeatTransferCommand_addHTNode,(ClientData)NULL, NULL);
+  Tcl_CreateCommand(interp, "HTElement", (Tcl_CmdProc*)TclHeatTransferCommand_addHTElement, (ClientData)NULL, NULL);
+  Tcl_CreateCommand(interp, "HTMaterial", (Tcl_CmdProc*)TclHeatTransferCommand_addHTMaterial, (ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTEntity", (Tcl_CmdProc* )TclHeatTransferCommand_addHTEntity,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTMesh", (Tcl_CmdProc* )TclHeatTransferCommand_addHTMesh,(ClientData)NULL, NULL);
   Tcl_CreateCommand(interp, "HTMeshAll", (Tcl_CmdProc* )TclHeatTransferCommand_HTMeshAll,(ClientData)NULL, NULL);
@@ -273,7 +279,8 @@ theHTAnalysis =0;
 theTest =0;
  HTReorderTag =0;
   
-
+ Tcl_DeleteCommand(theInterp, "HTNode");
+ Tcl_DeleteCommand(theInterp, "HTElement");
 	Tcl_DeleteCommand(theInterp, "HTMaterial");
 	Tcl_DeleteCommand(theInterp, "HTEntity");
 	Tcl_DeleteCommand(theInterp, "HTMesh");
@@ -296,6 +303,9 @@ theTest =0;
   Tcl_DeleteCommand(theInterp, "HTAnalyze");
 
 }
+
+
+
 
 
 int 
@@ -580,6 +590,159 @@ TclHeatTransferModule::clearAll()
 }
 //-------------------------------------------------------------------------------//
 //------------------------Procedure of tcl commmands-----------------------------//
+//---------------------------------------------------
+int
+TclHeatTransferCommand_addHTNode(ClientData clientData, Tcl_Interp* interp, int argc,
+    TCL_Char** argv)
+{
+
+    // ensure the destructor has not been called - 
+    if (theTclHTModule == 0) {
+        opserr << "WARNING current HeatTransfer Module has been destroyed - HTMaterial\n";
+        return TCL_ERROR;
+    }
+
+    int ndf = 1;
+
+    // make sure corect number of arguments on command line
+    if (argc < 5) {
+        opserr << "WARNING insufficient arguments\n";
+        opserr << "Want: node nodeTag? [ndm coordinates?] <-mass [ndf values?]>\n";
+        return TCL_ERROR;
+    }
+
+    HeatTransferNode* TempNode = 0;
+
+    // get the nodal id
+    int nodeId;
+    if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
+        opserr << "WARNING invalid nodeTag\n";
+        opserr << "Want: node nodeTag? [ndm coordinates?] <-mass [ndf values?]>\n";
+        return TCL_ERROR;
+    }
+
+    // read in the coordinates and create the node
+    double xLoc, yLoc, zLoc;
+
+
+    // create a node in 3d space
+    if (Tcl_GetDouble(interp, argv[2], &xLoc) != TCL_OK) {
+        opserr << "WARNING invalid XCoordinate\n";
+        opserr << "node: " << nodeId << endln;
+        return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[3], &yLoc) != TCL_OK) {
+        opserr << "WARNING invalid YCoordinate\n";
+        opserr << "node: " << nodeId << endln;
+        return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[4], &zLoc) != TCL_OK) {
+        opserr << "WARNING invalid ZCoordinate\n";
+        opserr << "node: " << nodeId << endln;
+        return TCL_ERROR;
+    }
+    //    theNode = new Node(nodeId,ndf,xLoc,yLoc,zLoc);
+
+// check for -ndf override option
+    TempNode = new HeatTransferNode(nodeId, ndf, xLoc, yLoc, zLoc);
+
+    //
+    // add the node to the domain
+    //
+
+    if (theHTDomain->addNode(TempNode)<0) {
+        opserr << "WARNING failed to add node to the domain\n";
+        opserr << "node: " << nodeId << endln;
+        delete TempNode; // otherwise memory leak                                    
+        return -1;
+    }
+
+
+    // if get here we have sucessfully created the node and added it to the domain
+    return 0;
+}
+//---------------------------------------------------
+
+
+//--------------------------------------------------
+int
+TclHeatTransferCommand_addHTElement(ClientData clientData, Tcl_Interp* interp,
+    int argc, TCL_Char** argv)
+
+{
+    if (theTclHTModule == 0) {
+        opserr << "WARNING current HeatTransfer Module has been destroyed - HTMaterial\n";
+        return -1;
+    }
+
+    HeatTransferElement* theElement = 0;
+    if ((strcmp(argv[1], "Quad") == 0) || (strcmp(argv[1], "quad") == 0)) {
+
+        int numArgs = OPS_GetNumRemainingInputArgs();
+
+        if (numArgs < 6) {
+            opserr << "Want: HTelement Quad $tag $iNode $jNoe $kNode $lNode $matTag";
+            return 0;
+        }
+
+
+        int EleTag, node1, node2, node3, node4, mat;
+        int numData = 6;
+        // create a node in 3d space
+        if (Tcl_GetInt(interp, argv[2], &EleTag) != TCL_OK) {
+            opserr << "WARNING invalid XCoordinate\n";
+            opserr << "node: " << EleTag << endln;
+            return TCL_ERROR;
+        }
+        if (Tcl_GetInt(interp, argv[3], &node1) != TCL_OK) {
+            opserr << "WARNING invalid XCoordinate\n";
+            opserr << "node: " << EleTag << endln;
+            return TCL_ERROR;
+        }
+        if (Tcl_GetInt(interp, argv[4], &node2) != TCL_OK) {
+            opserr << "WARNING invalid XCoordinate\n";
+            opserr << "node: " << EleTag << endln;
+            return TCL_ERROR;
+        }
+        if (Tcl_GetInt(interp, argv[5], &node3) != TCL_OK) {
+            opserr << "WARNING invalid XCoordinate\n";
+            opserr << "node: " << EleTag << endln;
+            return TCL_ERROR;
+        }
+        if (Tcl_GetInt(interp, argv[6], &node4) != TCL_OK) {
+            opserr << "WARNING invalid XCoordinate\n";
+            opserr << "node: " << EleTag << endln;
+            return TCL_ERROR;
+        }
+        if (Tcl_GetInt(interp, argv[7], &mat) != TCL_OK) {
+            opserr << "WARNING invalid XCoordinate\n";
+            opserr << "node: " << EleTag << endln;
+            return TCL_ERROR;
+        }
+
+
+        HeatTransferMaterial* theHTMaterial = theTclHTModule->getHTMaterial(mat);
+
+        if (theHTMaterial == 0) {
+            opserr << "ERROR:  element Quad " << EleTag << "material " << mat<< " not found\n";
+            return 0;
+        }
+
+        theElement = new QuadFour(EleTag, node1, node2, node3,
+            node4, *theHTMaterial, 1);
+        // for backward compatibility
+
+        if (theHTDomain->addElement(theElement) < 0) {
+            opserr << "HeatTransferDomain failed to add element" << EleTag << endln;
+            return -1;
+        }
+        opserr << " Heat Transfer Quad " << EleTag << endln;
+    }
+    return 0;
+
+}
+
+
 
 int
 TclHeatTransferCommand_addHTMaterial(ClientData clientData, Tcl_Interp *interp, int argc,   
