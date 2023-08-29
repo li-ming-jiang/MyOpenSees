@@ -1841,6 +1841,7 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
 	int HTEleSetTag = 0;
   int HTEntityTag = 0;
   int FaceID =0;
+  ID EleRange(0);
   
   if (Tcl_GetInt(interp, argv[1], &HTEleSetTag) != TCL_OK) {
     opserr << "WARNING:: HTEleSet failed to identify set tag: " << argv[1] << "\n";
@@ -1850,90 +1851,129 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
   int count=2;
   
   //if HTEntity tag is detected
-  if(strcmp(argv[count],"-HTEntity") == 0||strcmp(argv[count],"-Entity") == 0||strcmp(argv[count],"HTEntity") == 0){
-    
-    count++;
-    
-    if (Tcl_GetInt(interp, argv[count], &HTEntityTag) != TCL_OK) {
-      opserr << "WARNING::HTEleSet failed to identify HTEntity tag: " << argv[1] << "\n";
-      return TCL_ERROR;
-    }else{
+  if (strcmp(argv[count], "-HTEntity") == 0 || strcmp(argv[count], "-Entity") == 0 || strcmp(argv[count], "HTEntity") == 0) {
+
       count++;
-    }
+
+      if (Tcl_GetInt(interp, argv[count], &HTEntityTag) != TCL_OK) {
+          opserr << "WARNING::HTEleSet failed to identify HTEntity tag: " << argv[1] << "\n";
+          return TCL_ERROR;
+      }
+      else {
+          count++;
+      }
+
+      Simple_Entity* theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
+      if (theHTEntity == 0) {
+          opserr << "WARNING:: HTEleSet failed to get the HTEntity: " << argv[1] << "\n";
+          return TCL_ERROR;
+      }
+
+      int EntityMeshTag = theHTEntity->getMeshTag();
+      Simple_Mesh* theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
+
+
+      //if face tag is detected
+      if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0)
+      {
+
+          count++;
+
+          if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
+              opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
+              return TCL_ERROR;
+          }
+          else {
+              count++;
+          }
+          int eleFaceID;
+          theHTMesh->SelectingElesbyFace(EleRange, FaceID, eleFaceID);
+      }
+      else if (strcmp(argv[count], "-NodeSet") == 0 || strcmp(argv[count], "-nodest") == 0 || strcmp(argv[count], "NodeSet") == 0)
+      {
+
+          count++;
+
+          int NodeSetID;
+          if (Tcl_GetInt(interp, argv[count], &NodeSetID) != TCL_OK) {
+              opserr << "WARNING:: invalid NodesetID for defining HTEleSet: " << argv[1] << "\n";
+              return TCL_ERROR;
+          }
+          else {
+              count++;
+          }
+
+
+          HTNodeSet* theHTNodeSet = theTclHTModule->getHTNodeSet(NodeSetID);
+
+          if (theHTNodeSet == 0) {
+              opserr << "WARNING:: invalid NodesetID for defining HTEleSet: " << argv[1] << "\n";
+              return TCL_ERROR;
+          }
+
+          ID NodesRange = theHTNodeSet->getNodeID();
+
+          if (strcmp(argv[count], "-face") == 0 || strcmp(argv[count], "-Face") == 0 || strcmp(argv[count], "face") == 0) {
+              count++;
+
+              if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
+                  opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
+                  return TCL_ERROR;
+              }
+              else {
+                  count++;
+              }
+          }
+
+          theHTMesh->SelectingEles(EleRange, NodesRange, FaceID);
+          //end of choosing elements by HTEntity and Nodeset
+      }
+  }
+  else if (strcmp(argv[count], "-HTEles") == 0 || strcmp(argv[count], "-HTeles") == 0 || strcmp(argv[count], "Eles") == 0) {
+      //if directly giving the HTele tags
+      count++;
+
+      //-----for geting uncertain number of integer data.
+      int ArgStart = count;
+      int ArgEnd = 0;
+      int data;
+      
+      while (count < argc && ArgEnd == 0) {
+
+          if (count == argc - 1) {
+              ArgEnd = count + 1;
+          }
+          else if (Tcl_GetInt(interp, argv[count], &data) != TCL_OK)
+          {
+              opserr << "Error creating HTEleSet " << argv[1] << endln;
+              opserr << "\"" << argv[count] << "\" detected after using -HTEleSet flag." << endln;
+              opserr << "Can only have integers after the -HTEles flag when creating a new combined HTEleset." << endln;
+              return TCL_ERROR;
+          }
+          else
+              count++;
+       
+
+          if (ArgEnd - ArgStart <= 0) {
+              opserr << "Error creating HTEleSet " << argv[1] << endln;
+              opserr << "Not enough arguments to create a combined of HTEleSets. Need at least 1 valid component HTEleSet." << endln;
+              return TCL_ERROR;
+          }
+
+          //~ detecting the remaining number of input
+          EleRange.resize(ArgEnd - ArgStart);
+          if (ArgStart != ArgEnd) {
+              for (int i = ArgStart; i < ArgEnd; i++) {
+                  Tcl_GetInt(interp, argv[i], &data);
+                  EleRange(i - ArgStart) = data;
+              }
+          }
+      }
+
   }else{
 	opserr<<"WARNING TclHTCommand HTEleSet wants tag -HTEntity, HTEntity, -Entity "<<endln;
   }
   
-  
-  Simple_Entity* theHTEntity = theTclHTModule->getHTEntity(HTEntityTag);
-  if(theHTEntity==0){
-    opserr<< "WARNING:: HTEleSet failed to get the HTEntity: " <<argv[1] <<"\n";
-    return TCL_ERROR;
-  }
-  
-  int EntityMeshTag = theHTEntity->getMeshTag();
-  Simple_Mesh* theHTMesh = theTclHTModule->getHTMesh(EntityMeshTag);
-  
-  
-  ID EleRange(0);
-  
-  //if face tag is detected
-  if(strcmp(argv[count],"-face") == 0||strcmp(argv[count],"-Face") == 0||strcmp(argv[count],"face") == 0)
-  {
-    
-    count++;
-    
-    if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
-      opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
-      return TCL_ERROR;
-    }else{
-      count++;
-    }
-    int eleFaceID;
-    theHTMesh->SelectingElesbyFace(EleRange, FaceID,eleFaceID);
-  }
-  else if(strcmp(argv[count],"-NodeSet") == 0||strcmp(argv[count],"-nodest") == 0||strcmp(argv[count],"NodeSet") == 0)
-  {
-    
-    count++;
-    
-    int NodeSetID;
-    if (Tcl_GetInt(interp, argv[count], &NodeSetID) != TCL_OK) {
-      opserr << "WARNING:: invalid NodesetID for defining HTEleSet: " << argv[1] << "\n";
-      return TCL_ERROR;
-    }else{
-      count++;
-    }
-    
-    
-    HTNodeSet* theHTNodeSet = theTclHTModule->getHTNodeSet(NodeSetID);
-    
-    if(theHTNodeSet ==0){
-      opserr<< "WARNING:: invalid NodesetID for defining HTEleSet: "<< argv[1] << "\n";
-      return TCL_ERROR;
-    }
-    
-    ID NodesRange = theHTNodeSet->getNodeID();
-    
-    if(strcmp(argv[count],"-face") == 0||strcmp(argv[count],"-Face") == 0||strcmp(argv[count],"face") == 0){
-      count++;
-      
-      if (Tcl_GetInt(interp, argv[count], &FaceID) != TCL_OK) {
-      opserr << "WARNING:: invalid face tag for defining HTEleSet: " << argv[1] << "\n";
-      return TCL_ERROR;
-	  }else{
-      count++;
-      }
-	}
-
-    theHTMesh->SelectingEles(EleRange, NodesRange, FaceID);
-    
-  }
-  
-    
-    
-    
-    
     
   theHTEleSet = new HTEleSet(HTEleSetTag);
   
