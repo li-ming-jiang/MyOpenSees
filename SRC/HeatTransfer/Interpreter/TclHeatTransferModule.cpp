@@ -1929,7 +1929,7 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
           //end of choosing elements by HTEntity and Nodeset
       }
   }
-  else if (strcmp(argv[count], "-HTEles") == 0 || strcmp(argv[count], "-HTeles") == 0 || strcmp(argv[count], "Eles") == 0) {
+  else if (strcmp(argv[count], "-HTEles") == 0 || strcmp(argv[count], "-HTeles") == 0 || strcmp(argv[count], "Eles" || strcmp(argv[count], "-Eles") == 0) {
       //if directly giving the HTele tags
       count++;
 
