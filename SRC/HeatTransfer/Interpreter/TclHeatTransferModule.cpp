@@ -1929,19 +1929,19 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
           //end of choosing elements by HTEntity and Nodeset
       }
   }
-  else if (strcmp(argv[count], "-HTEles") == 0 || strcmp(argv[count], "-HTeles") == 0 || strcmp(argv[count], "Eles" || strcmp(argv[count], "-Eles") == 0) {
+  else if (strcmp(argv[count], "-HTEles") == 0 || strcmp(argv[count], "-HTeles") == 0 || strcmp(argv[count], "Eles" )==0|| strcmp(argv[count], "-Eles") == 0) {
       //if directly giving the HTele tags
       count++;
 
       //-----for geting uncertain number of integer data.
       int ArgStart = count;
-      int ArgEnd = 0;
+      int ArgEnd = argc;
       int data;
-      
-      while (count < argc && ArgEnd == 0) {
 
+/*
+while (count < argc && ArgEnd == 0) {
           if (count == argc - 1) {
-              ArgEnd = count + 1;
+              ArgEnd = count + 1; //identify reaching the end
           }
           else if (Tcl_GetInt(interp, argv[count], &data) != TCL_OK)
           {
@@ -1952,25 +1952,25 @@ TclHeatTransferCommand_HTEleSet(ClientData clientData, Tcl_Interp *interp, int a
           }
           else
               count++;
-       
+      }
 
-          if (ArgEnd - ArgStart <= 0) {
+        if (ArgEnd - ArgStart <= 0) {
               opserr << "Error creating HTEleSet " << argv[1] << endln;
               opserr << "Not enough arguments to create a combined of HTEleSets. Need at least 1 valid component HTEleSet." << endln;
               return TCL_ERROR;
-          }
-
-          //~ detecting the remaining number of input
-          EleRange.resize(ArgEnd - ArgStart);
-          if (ArgStart != ArgEnd) {
-              for (int i = ArgStart; i < ArgEnd; i++) {
-                  Tcl_GetInt(interp, argv[i], &data);
-                  EleRange(i - ArgStart) = data;
-              }
-          }
       }
 
-  }else{
+*/
+      //~ detecting the remaining number of input
+      EleRange.resize(ArgEnd - ArgStart);
+      if (ArgStart != ArgEnd) {
+          for (int i = ArgStart; i < ArgEnd; i++) {
+              Tcl_GetInt(interp, argv[i], &data);
+              EleRange(i - ArgStart) = data;
+          }
+      }
+  }
+  else{
 	opserr<<"WARNING TclHTCommand HTEleSet wants tag -HTEntity, HTEntity, -Entity "<<endln;
   }
   
